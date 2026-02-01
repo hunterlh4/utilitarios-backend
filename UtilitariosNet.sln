@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35825.156
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UtilitariosCore", "src\UtilitariosCore\UtilitariosCore.csproj", "{937289D6-C661-4661-A8B8-AE9C52B46BA2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apps", "apps", "{D8DBDEE8-99A1-41FD-AE67-B407EA654705}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UtilitariosApi", "apps\UtilitariosApi\UtilitariosApi.csproj", "{8962E831-E9D4-47E4-ADBF-D1A2ABC51CDF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "databases", "databases", "{E3A9F827-39CA-401F-923A-69F0E5B01285}"
+	ProjectSection(SolutionItems) = preProject
+		databases\01 DB_BMIAMI_SCHEMAS.sql = databases\01 DB_BMIAMI_SCHEMAS.sql
+		databases\02 DB_BMAIMI_SCRIPTSV2.sql = databases\02 DB_BMAIMI_SCRIPTSV2.sql
+		databases\03 BD_BMIAMI.sql = databases\03 BD_BMIAMI.sql
+		databases\04 script.sql = databases\04 script.sql
+		databases\05_INSERT_PRODUCTS_AND_MAINTENANCE.sql = databases\05_INSERT_PRODUCTS_AND_MAINTENANCE.sql
+		databases\INVENTORY_SYSTEM_FLOW_EXAMPLE.md = databases\INVENTORY_SYSTEM_FLOW_EXAMPLE.md
+		databases\PRODUCT_REGISTRATION_GUIDE.md = databases\PRODUCT_REGISTRATION_GUIDE.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{937289D6-C661-4661-A8B8-AE9C52B46BA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{937289D6-C661-4661-A8B8-AE9C52B46BA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{937289D6-C661-4661-A8B8-AE9C52B46BA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{937289D6-C661-4661-A8B8-AE9C52B46BA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8962E831-E9D4-47E4-ADBF-D1A2ABC51CDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8962E831-E9D4-47E4-ADBF-D1A2ABC51CDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8962E831-E9D4-47E4-ADBF-D1A2ABC51CDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8962E831-E9D4-47E4-ADBF-D1A2ABC51CDF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{937289D6-C661-4661-A8B8-AE9C52B46BA2} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{8962E831-E9D4-47E4-ADBF-D1A2ABC51CDF} = {D8DBDEE8-99A1-41FD-AE67-B407EA654705}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {929FD39E-7AFD-412F-8E2D-C64715B66B9F}
+	EndGlobalSection
+EndGlobal
