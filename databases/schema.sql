@@ -4,7 +4,7 @@ CREATE TABLE Anime (
     title NVARCHAR(500) NOT NULL,
     image NVARCHAR(1000) NOT NULL,
     episodes INT NOT NULL,
-    status CHAR(1) NOT NULL, -- 1: proximamente, 2: completado
+    status CHAR(1) NOT NULL, -- 1: proximamente, 2: completado,
     createdAt DATETIME DEFAULT GETDATE()
 );
 
@@ -259,7 +259,7 @@ CREATE TABLE AccountRelation (
 CREATE TABLE AccountProperty (
     id INT IDENTITY(1,1) PRIMARY KEY,
     accountId INT NOT NULL,
-    key CHAR(1) NOT NULL, -- 1: hasDota2, 2: hasCS2, 3: hasSteamMobile, 4: vacBanned
+    device CHAR(1) NOT NULL, -- 1: hasDota2, 2: hasCS2, 3: hasSteamMobile, 4: vacBanned
     value BIT default 0, -- 0 = false, 1 = true
     createdAt DATETIME DEFAULT GETDATE()
 );
@@ -381,8 +381,7 @@ CREATE INDEX IX_Media_Type_RefId ON Media(type, refId);
 -- Obtener links de una entidad
 CREATE INDEX IX_Link_Type_RefId ON Link(type, refId);
 
--- Filtrar helpers por categoría
-CREATE INDEX IX_Link_Type_Category ON Link(type, category) WHERE type = '3';
+
 
 -- Obtener tags de una entidad
 CREATE INDEX IX_TagRelation_Type_RefId ON TagRelation(type, refId);

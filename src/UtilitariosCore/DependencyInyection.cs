@@ -23,6 +23,8 @@ public static class DependencyInyection
         services.AddScoped<IAuthContext, AuthContextService>();
         services.AddScoped<IJwtUtil, JwtUtil>();
 
+        services.AddHttpClient();
+
         return services;
     }
 
@@ -36,10 +38,22 @@ public static class DependencyInyection
         services.AddScoped<IUserDetailRepository, UserDetailRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IAnimeRepository, AnimeRepository>();
+        services.AddScoped<IHentaiRepository, HentaiRepository>();
+        services.AddScoped<IJavRepository, JavRepository>();
+        services.AddScoped<IActressRepository, ActressRepository>();
+        services.AddScoped<ILinkRepository, LinkRepository>();
+        services.AddScoped<ISeriesRepository, SeriesRepository>();
+        services.AddScoped<IMediaRepository, MediaRepository>();
+        services.AddScoped<IGirlGaleryRepository, GirlGaleryRepository>();
+        services.AddScoped<IAnimeGaleryRepository, AnimeGaleryRepository>();
 
         // Servicios de notificaciones
         services.AddSingleton<Infrastructure.Queue.AzureQueueClient>();
         services.AddSingleton<INotificationService, Infrastructure.Services.Notifications.NotificationService>();
+
+        // Servicio de subida de imágenes
+        services.AddHttpClient<Infrastructure.Services.ImageUpload.IImgBBService, Infrastructure.Services.ImageUpload.ImgBBService>();
 
         // Configuraciones
         services.Configure<Infrastructure.Queue.AzureQueueSettings>(configuration.GetSection("Settings:AzureQueue"));

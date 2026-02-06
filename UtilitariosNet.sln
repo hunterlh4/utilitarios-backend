@@ -12,15 +12,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UtilitariosApi", "apps\UtilitariosApi\UtilitariosApi.csproj", "{8962E831-E9D4-47E4-ADBF-D1A2ABC51CDF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "databases", "databases", "{E3A9F827-39CA-401F-923A-69F0E5B01285}"
-	ProjectSection(SolutionItems) = preProject
-		databases\01 DB_BMIAMI_SCHEMAS.sql = databases\01 DB_BMIAMI_SCHEMAS.sql
-		databases\02 DB_BMAIMI_SCRIPTSV2.sql = databases\02 DB_BMAIMI_SCRIPTSV2.sql
-		databases\03 BD_BMIAMI.sql = databases\03 BD_BMIAMI.sql
-		databases\04 script.sql = databases\04 script.sql
-		databases\05_INSERT_PRODUCTS_AND_MAINTENANCE.sql = databases\05_INSERT_PRODUCTS_AND_MAINTENANCE.sql
-		databases\INVENTORY_SYSTEM_FLOW_EXAMPLE.md = databases\INVENTORY_SYSTEM_FLOW_EXAMPLE.md
-		databases\PRODUCT_REGISTRATION_GUIDE.md = databases\PRODUCT_REGISTRATION_GUIDE.md
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
