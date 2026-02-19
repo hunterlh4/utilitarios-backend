@@ -31,8 +31,6 @@ public class SeriesController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
-  
-
     [HttpPatch("{id:int}/status")]
     public async Task<ActionResult> UpdateStatus([FromRoute] int id, [FromBody] UpdateSeriesStatusCommand command)
     {

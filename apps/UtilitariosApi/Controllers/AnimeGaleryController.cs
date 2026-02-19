@@ -37,7 +37,8 @@ public class AnimeGaleryController(ISender sender) : ControllerBase
     {
         var response = await sender.Send(new UpdateAnimeGaleryCommand(id)
         {
-            Name = payload.Name
+            Name = payload.Name,
+            MediaId = payload.MediaId
         });
         return response.ToActionResult();
     }

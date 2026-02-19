@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Refit;
 using System.Reflection;
+using UtilitariosCore.Infrastructure.Services.ImageUpload;
 
 namespace UtilitariosCore;
 
@@ -42,18 +43,20 @@ public static class DependencyInyection
         services.AddScoped<IHentaiRepository, HentaiRepository>();
         services.AddScoped<IJavRepository, JavRepository>();
         services.AddScoped<IActressRepository, ActressRepository>();
+        services.AddScoped<IActressAdultRepository, ActressAdultRepository>();
         services.AddScoped<ILinkRepository, LinkRepository>();
         services.AddScoped<ISeriesRepository, SeriesRepository>();
         services.AddScoped<IMediaRepository, MediaRepository>();
         services.AddScoped<IGirlGaleryRepository, GirlGaleryRepository>();
         services.AddScoped<IAnimeGaleryRepository, AnimeGaleryRepository>();
+        services.AddScoped<IVideoAdultRepository, VideoAdultRepository>();
 
         // Servicios de notificaciones
         services.AddSingleton<Infrastructure.Queue.AzureQueueClient>();
         services.AddSingleton<INotificationService, Infrastructure.Services.Notifications.NotificationService>();
 
         // Servicio de subida de imágenes
-        services.AddHttpClient<Infrastructure.Services.ImageUpload.IImgBBService, Infrastructure.Services.ImageUpload.ImgBBService>();
+        services.AddHttpClient<IImgBBService, ImgBBService>();
 
         // Configuraciones
         services.Configure<Infrastructure.Queue.AzureQueueSettings>(configuration.GetSection("Settings:AzureQueue"));

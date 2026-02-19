@@ -1,21 +1,19 @@
 namespace UtilitariosCore.Application.Features.Actresses.Dtos;
 
-public class ActressDto
+public class ActressJavDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public string? Image { get; set; }
+    public string? FirstImageUrl { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
-public class CreateActressDto
+public class CreateActressJavDto
 {
-    public string Name { get; set; } = string.Empty;
-    public string? Image { get; set; }
+    public int Id { get; set; }
 }
 
-public class UpdateActressDto
+public class UpdateActressJavDto
 {
-    public string? Name { get; set; }
-    public string? Image { get; set; }
+    public string Name { get; set; } = string.Empty;
 }

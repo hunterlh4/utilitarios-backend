@@ -21,9 +21,9 @@ public class UploadController(IImgBBService imgBBService, IMediaRepository media
                 return BadRequest(new { error = "Image is required" });
             }
 
-            if (type < 1 || type > 3)
+            if (type < 1 || type > 5)
             {
-                return BadRequest(new { error = "Invalid type. Must be 1 (GirlGalery), 2 (AnimeGalery), or 3 (Project)" });
+                return BadRequest(new { error = "Invalid type. Must be 1 (GirlGalery), 2 (AnimeGalery), or 3 (Project), or 4 (actress), or 5 (actressadult)" });
             }
 
             if (refId <= 0)
@@ -71,6 +71,34 @@ public class UploadController(IImgBBService imgBBService, IMediaRepository media
         catch (ArgumentException ex)
         {
             return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    [HttpDelete("media/{id:int}")]
+    public async Task<ActionResult> DeleteMedia([FromRoute] int id)
+    {
+        try
+        {
+            var media = await mediaRepository.GetMediaById(id);
+
+            if (media == null)
+            {
+                return NotFound(new { error = "Media not found" });
+            }
+
+            // Eliminar de la base de datos
+            var deleted = await mediaRepository.DeleteMedia(id);
+
+            if (!deleted)
+            {
+                return StatusCode(500, new { error = "Failed to delete media from database" });
+            }
+
+            return Ok(new { success = true, message = "Media deleted successfully" });
         }
         catch (Exception ex)
         {

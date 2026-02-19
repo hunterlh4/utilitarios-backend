@@ -72,4 +72,6 @@ public class JavController(ISender sender) : ControllerBase
         var response = await sender.Send(new DeleteJavCommand(id));
         return response.ToActionResult();
     }
+
+    
 }

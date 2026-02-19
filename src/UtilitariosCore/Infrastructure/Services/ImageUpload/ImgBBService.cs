@@ -71,7 +71,7 @@ public class ImgBBService : IImgBBService
             Url = result.Data.Url,
             DisplayUrl = result.Data.DisplayUrl,
             Thumbnail = result.Data.Thumb?.Url ?? result.Data.Medium?.Url ?? result.Data.Url,
-            DeleteUrl = result.Data.DeleteUrl
+            DeleteUrl = result.Data.DeleteUrl ?? string.Empty
         };
     }
 }

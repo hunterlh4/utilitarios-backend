@@ -32,4 +32,5 @@ public class CreateGirlGaleryDto
 public class UpdateGirlGaleryDto
 {
     public string Name { get; set; } = string.Empty;
+    public int? MediaId { get; set; }
 }

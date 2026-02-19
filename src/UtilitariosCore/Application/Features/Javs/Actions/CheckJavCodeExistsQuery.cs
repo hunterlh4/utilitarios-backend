@@ -16,7 +16,7 @@ internal sealed class CheckJavCodeExistsQueryHandler(IJavRepository javRepositor
             return Errors.BadRequest("Code is required.");
         }
 
-        var existingJav = await javRepository.GetJavByCode(request.Code);
+        var existingJav = await javRepository.GetJavByCode(request.Code.ToUpper());
         return Results.Created(existingJav != null);
     }
 }

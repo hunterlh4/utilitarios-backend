@@ -32,4 +32,5 @@ public class CreateAnimeGaleryDto
 public class UpdateAnimeGaleryDto
 {
     public string Name { get; set; } = string.Empty;
+    public int? MediaId { get; set; }
 }

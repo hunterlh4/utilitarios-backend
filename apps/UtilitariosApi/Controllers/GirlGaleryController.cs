@@ -37,7 +37,8 @@ public class GirlGaleryController(ISender sender) : ControllerBase
     {
         var response = await sender.Send(new UpdateGirlGaleryCommand(id)
         {
-            Name = payload.Name
+            Name = payload.Name,
+            MediaId = payload.MediaId
         });
         return response.ToActionResult();
     }
