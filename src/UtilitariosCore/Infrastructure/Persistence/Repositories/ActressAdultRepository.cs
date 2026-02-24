@@ -1,12 +1,14 @@
 using Dapper;
 using UtilitariosCore.Application.Features.ActressAdults.Dtos;
+using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
+using UtilitariosCore.Domain.Models;
 
 namespace UtilitariosCore.Infrastructure.Persistence.Repositories;
 
 public class ActressAdultRepository(MssqlContext context) : IActressAdultRepository
 {
-    public async Task<int> CreateActressAdult(Domain.Models.ActressAdult actress)
+    public async Task<int> CreateActressAdult(ActressAdult actress)
     {
         var db = context.CreateDefaultConnection();
 
@@ -20,7 +22,7 @@ public class ActressAdultRepository(MssqlContext context) : IActressAdultReposit
         return result;
     }
 
-    public async Task<bool> UpdateActressAdult(Domain.Models.ActressAdult actress)
+    public async Task<bool> UpdateActressAdult(ActressAdult actress)
     {
         var db = context.CreateDefaultConnection();
 
@@ -34,19 +36,19 @@ public class ActressAdultRepository(MssqlContext context) : IActressAdultReposit
         return result > 0;
     }
 
-    public async Task<Domain.Models.ActressAdult?> GetActressAdultById(int id)
+    public async Task<ActressAdult?> GetActressAdultById(int id)
     {
         var db = context.CreateDefaultConnection();
         string sql = "SELECT Id, Name, CreatedAt FROM ActressAdult WHERE Id = @Id";
-        var result = await db.QueryFirstOrDefaultAsync<Domain.Models.ActressAdult>(sql, new { Id = id });
+        var result = await db.QueryFirstOrDefaultAsync<ActressAdult>(sql, new { Id = id });
         return result;
     }
 
-    public async Task<Domain.Models.ActressAdult?> GetActressAdultByName(string name)
+    public async Task<ActressAdult?> GetActressAdultByName(string name)
     {
         var db = context.CreateDefaultConnection();
         string sql = "SELECT Id, Name, CreatedAt FROM ActressAdult WHERE Name = @Name";
-        var result = await db.QueryFirstOrDefaultAsync<Domain.Models.ActressAdult>(sql, new { Name = name });
+        var result = await db.QueryFirstOrDefaultAsync<ActressAdult>(sql, new { Name = name });
         return result;
     }
 
@@ -54,18 +56,18 @@ public class ActressAdultRepository(MssqlContext context) : IActressAdultReposit
     {
         var db = context.CreateDefaultConnection();
         
-        string sql = @"
+        string sql = $@"
         SELECT 
             a.Id,
             a.Name,
             a.CreatedAt,
             (
-                SELECT TOP 1 m.url 
+                SELECT TOP 1 m.Url 
                 FROM Media m 
-                WHERE m.type = '5' 
-                AND m.refId = a.Id 
-                ORDER BY m.orderIndex
-            ) as FirstImageUrl
+                WHERE m.Type = {(int)MediaType.ActressAdult} 
+                AND m.RefId = a.Id 
+                ORDER BY m.OrderIndex
+            ) as Image
         FROM ActressAdult a
         ORDER BY a.Name
         ";

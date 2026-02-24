@@ -12,6 +12,7 @@ public interface IJavRepository
     Task<Jav?> GetJavById(int id);
     Task<Jav?> GetJavByCode(string code);
     Task<IEnumerable<Jav>> GetAllJavs();
+    Task<IEnumerable<Jav>> GetJavsByActressId(int actressId);
     Task<JavWithDetails?> GetJavWithDetailsById(int id);
     Task<IEnumerable<JavWithDetails>> GetAllJavsWithDetails();
 }

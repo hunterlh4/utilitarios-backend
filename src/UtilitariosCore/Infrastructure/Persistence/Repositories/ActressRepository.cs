@@ -1,5 +1,6 @@
 using Dapper;
 using UtilitariosCore.Application.Features.Actresses.Dtos;
+using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Domain.Models;
 
@@ -63,18 +64,18 @@ public class ActressRepository(MssqlContext context) : IActressRepository
     {
         var db = context.CreateDefaultConnection();
 
-        string sql = @"
+        string sql = $@"
         SELECT 
             a.Id,
             a.Name,
             a.CreatedAt,
             (
-                SELECT TOP 1 m.url 
+                SELECT TOP 1 m.Url 
                 FROM Media m 
-                WHERE m.type = '4' 
-                AND m.refId = a.Id 
-                ORDER BY m.orderIndex
-            ) as FirstImageUrl
+                WHERE m.Type = {(int)MediaType.Actress} 
+                AND m.RefId = a.Id 
+                ORDER BY m.OrderIndex
+            ) as Image
         FROM Actress a
         ORDER BY a.Name
         ";

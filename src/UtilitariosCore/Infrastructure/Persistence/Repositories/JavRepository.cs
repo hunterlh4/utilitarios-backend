@@ -81,18 +81,34 @@ public class JavRepository(MssqlContext context) : IJavRepository
         return result;
     }
 
-    public async Task<JavWithDetails?> GetJavWithDetailsById(int id)
+    public async Task<IEnumerable<Jav>> GetJavsByActressId(int actressId)
     {
         var db = context.CreateDefaultConnection();
 
         string sql = @"
+        SELECT j.Id, j.Code, j.Image, j.Status, j.CreatedAt
+        FROM Jav j
+        INNER JOIN JavActress ja ON j.Id = ja.JavId
+        WHERE ja.ActressId = @ActressId
+        ORDER BY j.CreatedAt DESC
+        ";
+
+        var result = await db.QueryAsync<Jav>(sql, new { ActressId = actressId });
+        return result;
+    }
+
+    public async Task<JavWithDetails?> GetJavWithDetailsById(int id)
+    {
+        var db = context.CreateDefaultConnection();
+
+        string sql = $@"
         SELECT 
             j.Id, j.Code, j.ActressId, j.Image, j.Status, j.CreatedAt,
             a.Id, a.Name, a.Image, a.CreatedAt,
             l.Id, l.Type, l.RefId, l.Name, l.Url, l.OrderIndex, l.CreatedAt
         FROM Jav j
         LEFT JOIN Actress a ON j.ActressId = a.Id
-        LEFT JOIN Link l ON (l.RefId = j.Id AND l.Type = 2) OR (l.RefId = a.Id AND l.Type = 5)
+        LEFT JOIN Link l ON (l.RefId = j.Id AND l.Type = {(int)LinkType.Jav}) OR (l.RefId = a.Id AND l.Type = {(int)LinkType.Actress})
         WHERE j.Id = @Id
         ORDER BY l.Type, l.Id
         ";
@@ -138,14 +154,14 @@ public class JavRepository(MssqlContext context) : IJavRepository
     {
         var db = context.CreateDefaultConnection();
 
-        string sql = @"
+        string sql = $@"
         SELECT 
             j.Id, j.Code, j.ActressId, j.Image, j.Status, j.CreatedAt,
             a.Id, a.Name, a.Image, a.CreatedAt,
             l.Id, l.Type, l.RefId, l.Name, l.Url, l.OrderIndex, l.CreatedAt
         FROM Jav j
         LEFT JOIN Actress a ON j.ActressId = a.Id
-        LEFT JOIN Link l ON (l.RefId = j.Id AND l.Type = 2) OR (l.RefId = a.Id AND l.Type = 5)
+        LEFT JOIN Link l ON (l.RefId = j.Id AND l.Type = {(int)LinkType.Jav}) OR (l.RefId = a.Id AND l.Type = {(int)LinkType.Actress})
         ORDER BY j.CreatedAt DESC, l.Type, l.Id
         ";
 

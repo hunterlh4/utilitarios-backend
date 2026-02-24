@@ -1,3 +1,4 @@
+using FluentValidation;
 using MediatR;
 using UtilitariosCore.Application.Features.ActressAdults.Dtos;
 using UtilitariosCore.Domain.Interfaces;
@@ -6,20 +7,24 @@ using UtilitariosCore.Shared.Responses;
 
 namespace UtilitariosCore.Application.Features.ActressAdults.Actions;
 
-public class CreateActressAdultCommand : IRequest<Result<CreateActressAdultDto>>
+public record CreateActressAdultCommand : IRequest<Result<CreateActressAdultDto>>
 {
     public string Name { get; set; } = string.Empty;
 
-    internal sealed class Handler(IActressAdultRepository actressAdultRepository) 
+    public sealed class Validator : AbstractValidator<CreateActressAdultCommand>
+    {
+        public Validator()
+        {
+            RuleFor(x => x.Name).NotEmpty().WithMessage("El nombre es requerida.");
+        }
+    }
+
+    internal sealed class Handler(
+        IActressAdultRepository actressAdultRepository)
         : IRequestHandler<CreateActressAdultCommand, Result<CreateActressAdultDto>>
     {
         public async Task<Result<CreateActressAdultDto>> Handle(CreateActressAdultCommand request, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(request.Name))
-            {
-                return Errors.BadRequest("Name is required.");
-            }
-
             var newActress = new ActressAdult
             {
                 Name = request.Name,
@@ -28,10 +33,7 @@ public class CreateActressAdultCommand : IRequest<Result<CreateActressAdultDto>>
 
             var actressId = await actressAdultRepository.CreateActressAdult(newActress);
 
-            return Results.Created(new CreateActressAdultDto
-            {
-                Id = actressId
-            });
+            return Results.Created(new CreateActressAdultDto { Id = actressId });
         }
     }
 }

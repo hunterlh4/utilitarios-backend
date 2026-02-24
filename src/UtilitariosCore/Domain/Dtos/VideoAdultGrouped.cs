@@ -1,3 +1,5 @@
+using UtilitariosCore.Domain.Enums;
+
 namespace UtilitariosCore.Domain.Dtos;
 
 public class VideoAdultGrouped
@@ -8,7 +10,7 @@ public class VideoAdultGrouped
     public string VideoUrl { get; set; } = string.Empty;
     public string? Title { get; set; }
     public string? ThumbnailUrl { get; set; }
-    public char Status { get; set; }
+    public ContentStatus Status { get; set; }
     public DateTime VideoCreatedAt { get; set; }
     public List<ActressInfo> Actresses { get; set; } = new();
 }

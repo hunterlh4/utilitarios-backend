@@ -1,5 +1,6 @@
 using MediatR;
 using UtilitariosCore.Application.Features.ActressAdults.Dtos;
+using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Shared.Responses;
 
@@ -9,20 +10,17 @@ public record GetActressAdultByIdQuery(int Id) : IRequest<Result<ActressAdultDet
 
 internal sealed class GetActressAdultByIdQueryHandler(
     IActressAdultRepository actressAdultRepository,
-    IVideoAdultRepository videoAdultRepository) 
+    IVideoAdultRepository videoAdultRepository,
+    ILinkRepository linkRepository)
     : IRequestHandler<GetActressAdultByIdQuery, Result<ActressAdultDetailDto>>
 {
     public async Task<Result<ActressAdultDetailDto>> Handle(GetActressAdultByIdQuery request, CancellationToken cancellationToken)
     {
         var actress = await actressAdultRepository.GetActressAdultById(request.Id);
-        
-        if (actress == null)
-        {
-            return Errors.NotFound("Actress not found.");
-        }
+        if (actress == null) return Errors.NotFound("Actriz no encontrada.");
 
-        // Una sola consulta que trae videos ya agrupados con sus actrices
         var videosGrouped = await videoAdultRepository.GetVideoAdultsWithActressesByActressId(request.Id);
+        var links = await linkRepository.GetLinksByRefId(request.Id, LinkType.ActressAdult);
 
         var videoList = videosGrouped.Select(v => new VideoAdultDto
         {
@@ -40,13 +38,18 @@ internal sealed class GetActressAdultByIdQueryHandler(
             CreatedAt = v.VideoCreatedAt
         }).ToList();
 
-        var result = new ActressAdultDetailDto
+        return new ActressAdultDetailDto
         {
             Id = actress.Id,
             Name = actress.Name,
+            Links = links.Select(l => new LinkDto
+            {
+                Id = l.Id,
+                Name = l.Name,
+                Url = l.Url,
+                OrderIndex = l.OrderIndex
+            }).ToList(),
             Videos = videoList
         };
-
-        return result;
     }
 }

@@ -7,5 +7,6 @@ public enum LinkType
     Helper = 3,
     GirlGalery = 4,
     Actress = 5,
-    Post = 6
+    Post = 6,
+    ActressAdult = 7
 }

@@ -1,7 +1,10 @@
+using FluentValidation;
+using MediatR;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Infrastructure.Persistence;
 using UtilitariosCore.Infrastructure.Persistence.Repositories;
 using UtilitariosCore.Infrastructure.Services.Hostaway;
+using UtilitariosCore.Shared.Behaviors;
 using UtilitariosCore.Shared.Extensions;
 using UtilitariosCore.Shared.Requests;
 using UtilitariosCore.Shared.Settings;
@@ -19,7 +22,13 @@ public static class DependencyInyection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        });
+
+        services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
         services.AddScoped<IAuthContext, AuthContextService>();
         services.AddScoped<IJwtUtil, JwtUtil>();

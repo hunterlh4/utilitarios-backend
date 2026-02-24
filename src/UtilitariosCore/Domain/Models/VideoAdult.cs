@@ -1,3 +1,5 @@
+using UtilitariosCore.Domain.Enums;
+
 namespace UtilitariosCore.Domain.Models;
 
 public class VideoAdult
@@ -9,6 +11,6 @@ public class VideoAdult
     public string? Title { get; set; }
     public string? ThumbnailUrl { get; set; }
     public string? EmbedHtml { get; set; }
-    public char Status { get; set; }
+    public ContentStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
 }
