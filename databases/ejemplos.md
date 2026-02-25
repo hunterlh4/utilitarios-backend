@@ -1,22 +1,224 @@
 # Ejemplos de Datos
 
-## Anime (Lista de anime)
-| id | title | image | episodes | status | createdAt |
-|----|-------|-------|----------|--------|-----------|
-| 1 | Shigatsu wa Kimi no Uso | https://cdn.myanimelist.net/images/anime/3/67177.jpg | 22 | 2 | 2025-01-15 14:30:25 |
-| 2 | Steins;Gate | https://cdn.myanimelist.net/images/anime/5/73199.jpg | 24 | 1 | 2025-01-20 09:15:42 |
-
-**Status:** 1=proximamente, 2=completado
+Registros de referencia ordenados por secuencia de uso.  
+Los IDs de `Media` y `Link` son continuos a través de todas las tablas (tabla única compartida).
 
 ---
 
-## Hentai (Lista de hentai)
-| id | title | image | episodes | status | createdAt |
-|----|-------|-------|----------|--------|-----------|
-| 1 | Overflow | https://example.com/overflow.jpg | 8 | 2 | 2025-01-10 20:45:10 |
-| 2 | Kanojo x Kanojo x Kanojo | https://example.com/kxkxk.jpg | 3 | 1 | 2025-01-18 16:22:33 |
+## GirlGalery (Galería de chicas)
+| id | name | createdAt |
+|----|------|-----------|
+| 1 | Yui Hatano | 2025-01-10 11:25:30 |
+| 2 | Maria Ozawa | 2025-01-15 15:40:12 |
+| 3 | Sasha Grey | 2025-01-20 09:55:45 |
 
-**Status:** 1=proximamente, 2=completado
+---
+
+## Media — GirlGalery (type=1, N imágenes)
+| id | type | refId | url | thumbnail | deleteUrl | orderIndex | createdAt |
+|----|------|-------|-----|-----------|-----------|------------|-----------|
+| 1 | 1 | 1 | https://i.ibb.co/xxx/yui1.jpg | https://i.ibb.co/xxx/thumb.jpg | https://ibb.co/xxx/delete | 0 | 2025-01-10 11:26:15 |
+| 2 | 1 | 1 | https://i.ibb.co/yyy/yui2.jpg | https://i.ibb.co/yyy/thumb.jpg | https://ibb.co/yyy/delete | 1 | 2025-01-10 11:27:42 |
+| 3 | 1 | 2 | https://i.ibb.co/zzz/maria1.jpg | https://i.ibb.co/zzz/thumb.jpg | https://ibb.co/zzz/delete | 0 | 2025-01-15 15:41:20 |
+
+**type=1 → MediaType.GirlGalery**  
+Yui Hatano (id=1) tiene 2 imágenes · Maria Ozawa (id=2) tiene 1 imagen
+
+---
+
+## Link — GirlGalery (type=4)
+| id | type | refId | name | url | orderIndex | createdAt |
+|----|------|-------|------|-----|------------|-----------|
+| 1 | 4 | 1 | NULL | https://www.instagram.com/yuihatano | 0 | 2025-01-10 11:30:00 |
+| 2 | 4 | 1 | NULL | https://twitter.com/yuihatano | 1 | 2025-01-10 11:31:00 |
+| 3 | 4 | 2 | NULL | https://www.instagram.com/mariaozawa | 0 | 2025-01-15 15:45:00 |
+
+**type=4 → LinkType.GirlGalery**  
+Yui Hatano (id=1) tiene 2 links (Instagram, Twitter)
+
+---
+
+## AnimeGalery (Galería de imágenes de anime)
+| id | name | createdAt |
+|----|------|-----------|
+| 1 | Shigatsu | 2025-01-12 16:30:00 |
+| 2 | Konosuba | 2025-01-15 13:45:18 |
+| 3 | Steins;Gate | 2025-01-18 19:20:55 |
+
+---
+
+## Media — AnimeGalery (type=2, N imágenes)
+| id | type | refId | url | thumbnail | deleteUrl | orderIndex | createdAt |
+|----|------|-------|-----|-----------|-----------|------------|-----------|
+| 4 | 2 | 1 | https://i.ibb.co/aaa/shigatsu1.jpg | https://i.ibb.co/aaa/thumb.jpg | https://ibb.co/aaa/delete | 0 | 2025-01-12 16:31:20 |
+| 5 | 2 | 1 | https://i.ibb.co/bbb/shigatsu2.jpg | https://i.ibb.co/bbb/thumb.jpg | https://ibb.co/bbb/delete | 1 | 2025-01-12 16:32:10 |
+| 6 | 2 | 2 | https://i.ibb.co/ccc/konosuba1.jpg | https://i.ibb.co/ccc/thumb.jpg | https://ibb.co/ccc/delete | 0 | 2025-01-15 13:46:05 |
+
+**type=2 → MediaType.AnimeGalery**  
+Shigatsu (id=1) tiene 2 imágenes · Konosuba (id=2) tiene 1 imagen
+
+---
+
+## ActressJav (Actrices de JAV)
+| id | name | createdAt |
+|----|------|-----------|
+| 1 | Yuria Yoshine | 2025-01-15 12:00:00 |
+| 2 | Ai Sayama | 2025-01-16 14:30:25 |
+| 3 | Saki Okuda | 2025-01-18 10:15:00 |
+
+---
+
+## Media — ActressJav (type=4, 1 imagen)
+| id | type | refId | url | thumbnail | deleteUrl | orderIndex | createdAt |
+|----|------|-------|-----|-----------|-----------|------------|-----------|
+| 7 | 4 | 1 | https://i.ibb.co/abc/yuria.jpg | https://i.ibb.co/abc/thumb.jpg | https://ibb.co/abc/delete | 0 | 2025-01-15 12:01:00 |
+| 8 | 4 | 2 | https://i.ibb.co/def/ai.jpg | https://i.ibb.co/def/thumb.jpg | https://ibb.co/def/delete | 0 | 2025-01-16 14:31:00 |
+
+**type=4 → MediaType.ActressJav**  
+1 imagen por actriz. `orderIndex=0` siempre.
+
+---
+
+## Link — ActressJav (type=5)
+| id | type | refId | name | url | orderIndex | createdAt |
+|----|------|-------|------|-----|------------|-----------|
+| 9 | 5 | 1 | NULL | https://missav123.com/dm121/en/actresses/Yuria%20Yoshine | 0 | 2025-01-15 12:05:00 |
+| 10 | 5 | 1 | NULL | https://www.instagram.com/yuriayoshine | 1 | 2025-01-15 12:06:00 |
+| 11 | 5 | 2 | NULL | https://missav123.com/dm121/en/actresses/Ai%20Sayama | 0 | 2025-01-16 14:35:00 |
+
+**type=5 → LinkType.ActressJav**  
+Yuria Yoshine (id=1) tiene 2 links (missav, Instagram)
+
+---
+
+## Jav (Videos JAV)
+| id | code | image | status | createdAt |
+| 1 | NIMA-055 | https://fourhoi.com/nima-055-uncensored-leak/cover-n.jpg | 1 | 2025-01-15 18:25:40 |
+| 2 | SSIS-123 | https://example.com/ssis123.jpg | 2 | 2025-01-16 21:10:15 |
+| 3 | PRED-456 | https://example.com/pred456.jpg | 1 | 2025-01-18 11:00:00 |
+
+**status:** 1=Proximamente · 2=Completado (ContentStatus)
+
+---
+
+## JavActress (Relación N:N Jav ↔ ActressJav)
+| javId | actressId |
+|-------|----------|
+| 1 | 1 |
+| 2 | 2 |
+| 3 | 1 |
+| 3 | 3 |
+
+NIMA-055 (id=1) → Yuria Yoshine · SSIS-123 (id=2) → Ai Sayama  
+PRED-456 (id=3) → Yuria Yoshine + Saki Okuda (2 actrices)
+
+---
+
+## Link — Jav/Streaming (type=2)
+| id | type | refId | name | url | orderIndex | createdAt |
+|----|------|-------|------|-----|------------|-----------|
+| 12 | 2 | 1 | NULL | https://missav123.com/en/nima-055-uncensored-leak | 0 | 2025-01-15 18:30:12 |
+| 13 | 2 | 1 | NULL | https://es.eporner.com/video-KxEjAYhz2dx | 1 | 2025-01-15 18:31:45 |
+| 14 | 2 | 1 | NULL | https://es.xsz-av.com/video/202931 | 2 | 2025-01-15 18:32:20 |
+| 15 | 2 | 2 | NULL | https://missav123.com/en/ssis-123 | 0 | 2025-01-16 21:15:00 |
+
+**type=2 → LinkType.Jav**  
+NIMA-055 (id=1) tiene 3 links de streaming
+
+---
+
+## Link — Helpers (type=3, refId=NULL)
+| id | type | refId | name | url | orderIndex | createdAt |
+|----|------|-------|------|-----|------------|-----------|
+| 16 | 3 | NULL | JAVLibrary | https://www.javlibrary.com | NULL | 2025-01-05 10:00:00 |
+| 17 | 3 | NULL | JAVDatabase | https://www.javdatabase.com | NULL | 2025-01-05 10:05:30 |
+| 18 | 3 | NULL | buscador | https://www5.javmost.com/search/advance | NULL | 2025-01-05 10:10:15 |
+
+**type=3 → LinkType.Helper** · refId=NULL porque no pertenecen a ninguna entidad específica
+
+---
+
+## ActressAdult (Actrices porno)
+| id | name | createdAt |
+|----|------|-----------|
+| 1 | Mia Khalifa | 2025-02-01 10:00:00 |
+| 2 | Lana Rhoades | 2025-02-02 11:30:00 |
+| 3 | Riley Reid | 2025-02-03 09:00:00 |
+
+---
+
+## Media — ActressAdult (type=5, 1 imagen)
+| id | type | refId | url | thumbnail | deleteUrl | orderIndex | createdAt |
+|----|------|-------|-----|-----------|-----------|------------|-----------|
+| 19 | 5 | 1 | https://i.ibb.co/ghi/mia.jpg | https://i.ibb.co/ghi/thumb.jpg | https://ibb.co/ghi/delete | 0 | 2025-02-01 10:01:00 |
+| 20 | 5 | 2 | https://i.ibb.co/jkl/lana.jpg | https://i.ibb.co/jkl/thumb.jpg | https://ibb.co/jkl/delete | 0 | 2025-02-02 11:31:00 |
+
+**type=5 → MediaType.ActressAdult**  
+1 imagen por actriz. `orderIndex=0` siempre.
+
+---
+
+## Link — ActressAdult (type=7)
+| id | type | refId | name | url | orderIndex | createdAt |
+|----|------|-------|------|-----|------------|-----------|
+| 21 | 7 | 1 | NULL | https://pornhub.com/pornstar/mia-khalifa | 0 | 2025-02-01 10:05:00 |
+| 22 | 7 | 1 | NULL | https://www.instagram.com/miakhalifa | 1 | 2025-02-01 10:06:00 |
+| 23 | 7 | 2 | NULL | https://pornhub.com/pornstar/lana-rhoades | 0 | 2025-02-02 11:35:00 |
+
+**type=7 → LinkType.ActressAdult**
+
+---
+
+## VideoAdult (Videos porno)
+| id | source | externalId | videoUrl | title | thumbnailUrl | status | createdAt |
+|----|--------|------------|----------|-------|--------------|--------|-----------|
+| 1 | pornhub | ph5e4dbd7c8a7a2 | https://www.pornhub.com/view_video.php?viewkey=ph5e4dbd7c8a7a2 | Mia Khalifa Best | https://ei.phncdn.com/videos/thumb.jpg | 2 | 2025-02-01 12:00:00 |
+| 2 | xvideos | 12345678 | https://www.xvideos.com/video12345678 | Lana Rhoades Scene | https://cdn.xvideos.com/thumb.jpg | 1 | 2025-02-02 14:00:00 |
+
+**source:** pornhub / xvideos (VideoAdultSource)  
+**status:** 1=Proximamente · 2=Completado (ContentStatus)
+
+---
+
+## ActressVideo (Relación N:N ActressAdult ↔ VideoAdult)
+| actressAdultId | videoAdultId |
+|----------------|--------------|
+| 1 | 1 |
+| 2 | 2 |
+| 3 | 1 |
+
+Video id=1 tiene 2 actrices (Mia Khalifa + Riley Reid)  
+Video id=2 tiene 1 actriz (Lana Rhoades)
+
+---
+
+## Anime (Lista de anime)
+| id | title | image | episodes | status | createdAt |
+| 1 | Overflow | https://cdn.myanimelist.net/images/anime/overflow.jpg | 8 | 2 | 2025-01-10 20:45:10 |
+| 2 | Kanojo x Kanojo x Kanojo | https://cdn.myanimelist.net/images/anime/kxkxk.jpg | 3 | 1 | 2025-01-18 16:22:33 |
+
+**status:** 1=Proximamente · 2=Completado (ContentStatus)
+
+---
+
+## Genre (Catálogo estático)
+| id | name |
+|----|------|
+| 1 | Action |
+| 2 | Romance |
+| 3 | Comedy |
+| 4 | Drama |
+| 5 | Sci-Fi |
+| 6 | Hentai |
+
+---
+
+## HentaiGenre (Relación Hentai ↔ Genre)
+| hentaiId | genreId |
+|----------|---------|
+| 1 | 2 |
+| 1 | 3 |
+| 2 | 2 |
 
 ---
 
@@ -26,7 +228,7 @@
 | 1 | tt0124298 | Blast from the Past | https://m.media-amazon.com/images/M/MV5BODQ0ZmNk... | 1999 | 6.7 | movie | 1 | 2025-01-12 18:30:15 |
 | 2 | tt0944947 | Game of Thrones | https://m.media-amazon.com/images/M/MV5BYTRiNDQ... | 2011 | 9.2 | series | 2 | 2025-01-05 22:10:48 |
 
-**Status:** 1=proximamente, 2=completado
+**status:** 1=Proximamente · 2=Completado (ContentStatus)
 
 ---
 
@@ -50,59 +252,45 @@
 
 ---
 
-## GirlGalery (Galería de chicas)
-| id | name | createdAt |
-|----|------|-----------|
-| 1 | Yui Hatano | 2025-01-10 11:25:30 |
-| 2 | Maria Ozawa | 2025-01-15 15:40:12 |
-| 3 | Sasha Grey | 2025-01-20 09:55:45 |
-
----
-
-## Media (Imágenes de GirlGalery)
-| id | type | refId | url | thumbnail | deleteUrl | orderIndex | createdAt |
-|----|------|-------|-----|-----------|-----------|------------|-----------|
-| 1 | 1 | 1 | https://i.ibb.co/xxx/yui1.jpg | https://i.ibb.co/xxx/thumb.jpg | https://ibb.co/xxx/delete | 0 | 2025-01-10 11:26:15 |
-| 2 | 1 | 1 | https://i.ibb.co/yyy/yui2.jpg | https://i.ibb.co/yyy/thumb.jpg | https://ibb.co/yyy/delete | 1 | 2025-01-10 11:27:42 |
-| 3 | 1 | 2 | https://i.ibb.co/zzz/maria1.jpg | https://i.ibb.co/zzz/thumb.jpg | https://ibb.co/zzz/delete | 0 | 2025-01-15 15:41:20 |
-
-**Type 1 = GirlGalery**  
-**Ejemplo:** Yui Hatano (id=1) tiene 2 imágenes, Maria Ozawa (id=2) tiene 1 imagen
-
----
-
-## AnimeGalery (Galería de imágenes de anime)
-| id | name | createdAt |
-|----|------|-----------|
-| 1 | Shigatsu | 2025-01-12 16:30:00 |
-| 2 | Konosuba | 2025-01-15 13:45:18 |
-| 3 | Steins;Gate | 2025-01-18 19:20:55 |
-
----
-
-## Media (Imágenes de AnimeGalery)
-| id | type | refId | url | thumbnail | deleteUrl | orderIndex | createdAt |
-|----|------|-------|-----|-----------|-----------|------------|-----------|
-| 4 | 2 | 1 | https://i.ibb.co/aaa/shigatsu1.jpg | https://i.ibb.co/aaa/thumb.jpg | https://ibb.co/aaa/delete | 0 | 2025-01-12 16:31:20 |
-| 5 | 2 | 1 | https://i.ibb.co/bbb/shigatsu2.jpg | https://i.ibb.co/bbb/thumb.jpg | https://ibb.co/bbb/delete | 1 | 2025-01-12 16:32:10 |
-| 6 | 2 | 2 | https://i.ibb.co/ccc/konosuba1.jpg | https://i.ibb.co/ccc/thumb.jpg | https://ibb.co/ccc/delete | 0 | 2025-01-15 13:46:05 |
-
-**Type 2 = AnimeGalery**  
-**Ejemplo:** Shigatsu (id=1) tiene 2 imágenes, Konosuba (id=2) tiene 1 imagen
-
----
-
 ## Proyect (Galería de proyectos)
 | id | name | description | url | createdAt |
 |----|------|-------------|-----|-----------|
 | 1 | Sistema de Ventas | user: admin@gmail.com\npassword: 123\n\nNET 9 \| ANGULAR 18 \| SQL | https://ventas.perfisoft.com | 2025-01-08 14:20:35 |
 | 2 | Sistema de Reservas Hotel | PHP \| MYSQL\n\nuser: admin@gmail.com\npassword: 123456 | https://reserva.lltechnologyservicepr.com | 2025-01-10 10:15:22 |
+---
+
+## Media — Project (type=3, N imágenes)
+| id | type | refId | url | thumbnail | deleteUrl | orderIndex | createdAt |
+|----|------|-------|-----|-----------|-----------|------------|-----------|
+| 24 | 3 | 1 | https://scontent.ftcq1-1.fna.fbcdn.net/v/... | NULL | NULL | 0 | 2025-01-08 14:22:10 |
+| 25 | 3 | 1 | https://scontent.ftcq1-1.fna.fbcdn.net/v/... | NULL | NULL | 1 | 2025-01-08 14:22:45 |
+| 26 | 3 | 2 | https://i.ibb.co/ddd/hotel1.jpg | https://i.ibb.co/ddd/thumb.jpg | https://ibb.co/ddd/delete | 0 | 2025-01-10 10:16:30 |
+
+**type=3 → MediaType.Project**
 
 ---
 
-## Media (Imágenes de Project)
-| id | type | refId | url | thumbnail | deleteUrl | orderIndex | createdAt |
-|----|------|-------|-----|-----------|-----------|------------|-----------|
+## Link — Project (type=1, url_extra)
+| id | type | refId | name | url | orderIndex | createdAt |
+|----|------|-------|------|-----|------------|-----------|
+| 27 | 1 | 1 | NULL | https://www.facebook.com/61555695754588/videos/... | 0 | 2025-01-08 14:25:40 |
+| 28 | 1 | 2 | NULL | https://www.youtube.com/watch?v=demo123 | 0 | 2025-01-10 10:18:15 |
+
+**type=1 → LinkType.Project**
+
+---
+
+## YouTube (Videos de YouTube)
+| id | name | description | url | createdAt |
+| 1 | https://www.youtube.com/watch?v=ekr2nIex040 | ROSÉ & Bruno Mars - APT. | ROSÉ | https://i.ytimg.com/vi/ekr2nIex040/hqdefault.jpg | 1 | 2024-11-22 15:30:00 |
+| 2 | https://www.youtube.com/watch?v=dQw4w9WgXcQ | Never Gonna Give You Up | Rick Astley | https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg | 4 | 2024-12-01 20:45:30 |
+
+**category:** 1=Anime · 2=Serie · 3=Pelicula · 4=Shorts (YouTubeCategory)
+
+---
+
+## Tag (Tags genéricos)
+| id | name | description | url | createdAt |
 | 7 | 3 | 1 | https://scontent.ftcq1-1.fna.fbcdn.net/v/t39... | NULL | NULL | 0 | 2025-01-08 14:22:10 |
 | 8 | 3 | 1 | https://scontent.ftcq1-1.fna.fbcdn.net/v/t39... | NULL | NULL | 1 | 2025-01-08 14:22:45 |
 | 9 | 3 | 2 | https://i.ibb.co/ddd/hotel1.jpg | https://i.ibb.co/ddd/thumb.jpg | https://ibb.co/ddd/delete | 0 | 2025-01-10 10:16:30 |
