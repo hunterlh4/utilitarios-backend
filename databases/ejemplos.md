@@ -59,6 +59,18 @@ Shigatsu (id=1) tiene 2 imágenes · Konosuba (id=2) tiene 1 imagen
 
 ---
 
+## Link — AnimeGalery (type=8)
+| id | type | refId | name | url | orderIndex | createdAt |
+|----|------|-------|------|-----|------------|--------|
+| 4 | 8 | 1 | NULL | https://www.myanimelist.net/anime/11061/shigatsu | 0 | 2025-01-12 16:33:00 |
+| 5 | 8 | 1 | NULL | https://www.instagram.com/shigatsu_official | 1 | 2025-01-12 16:34:00 |
+| 6 | 8 | 2 | NULL | https://www.myanimelist.net/anime/30831/konosuba | 0 | 2025-01-15 13:47:00 |
+
+**type=8 → LinkType.AnimeGalery**  
+Shigatsu (id=1) tiene 2 links · Konosuba (id=2) tiene 1 link
+
+---
+
 ## ActressJav (Actrices de JAV)
 | id | name | createdAt |
 |----|------|-----------|
@@ -93,6 +105,7 @@ Yuria Yoshine (id=1) tiene 2 links (missav, Instagram)
 
 ## Jav (Videos JAV)
 | id | code | image | status | createdAt |
+|----|------|-------|--------|-----------|
 | 1 | NIMA-055 | https://fourhoi.com/nima-055-uncensored-leak/cover-n.jpg | 1 | 2025-01-15 18:25:40 |
 | 2 | SSIS-123 | https://example.com/ssis123.jpg | 2 | 2025-01-16 21:10:15 |
 | 3 | PRED-456 | https://example.com/pred456.jpg | 1 | 2025-01-18 11:00:00 |
@@ -127,14 +140,38 @@ NIMA-055 (id=1) tiene 3 links de streaming
 
 ---
 
-## Link — Helpers (type=3, refId=NULL)
+## Link — HelperJav (type=3, refId=NULL)
 | id | type | refId | name | url | orderIndex | createdAt |
-|----|------|-------|------|-----|------------|-----------|
+|----|------|-------|------|-----|------------|--------|
 | 16 | 3 | NULL | JAVLibrary | https://www.javlibrary.com | NULL | 2025-01-05 10:00:00 |
 | 17 | 3 | NULL | JAVDatabase | https://www.javdatabase.com | NULL | 2025-01-05 10:05:30 |
 | 18 | 3 | NULL | buscador | https://www5.javmost.com/search/advance | NULL | 2025-01-05 10:10:15 |
 
-**type=3 → LinkType.Helper** · refId=NULL porque no pertenecen a ninguna entidad específica
+**type=3 → LinkType.HelperJav** · refId=NULL porque no pertenecen a ninguna entidad específica
+
+---
+
+## Tag — ActressJav (type=1)
+| id | name | type |
+|----|------|------|
+| 1 | Creampie | 1 |
+| 2 | Big Tits | 1 |
+| 3 | Uncensored | 1 |
+
+**type=1 → TagType.ActressJav** · UNIQUE por (Name, Type)
+
+---
+
+## TagRelation — ActressJav (type=1)
+| tagId | refId | type |
+|-------|-------|------|
+| 1 | 1 | 1 |
+| 2 | 1 | 1 |
+| 3 | 1 | 1 |
+| 1 | 2 | 1 |
+
+Yuria Yoshine (actriz id=1) tiene 3 tags: Creampie, Big Tits, Uncensored  
+Ai Sayama (actriz id=2) tiene 1 tag: Creampie
 
 ---
 
@@ -192,33 +229,69 @@ Video id=2 tiene 1 actriz (Lana Rhoades)
 
 ---
 
+## Tag — ActressAdult (type=5)
+| id | name | type |
+|----|------|------|
+| 9 | Latina | 5 |
+| 10 | MILF | 5 |
+| 11 | Blowjob | 5 |
+
+**type=5 → TagType.ActressAdult** · tags propios de la actriz porno (no del video)
+
+---
+
+## TagRelation — ActressAdult (type=5)
+| tagId | refId | type |
+|-------|-------|------|
+| 9 | 1 | 5 |
+| 10 | 1 | 5 |
+| 11 | 2 | 5 |
+
+Mia Khalifa (actriz id=1) tiene 2 tags: Latina, MILF  
+Lana Rhoades (actriz id=2) tiene 1 tag: Blowjob
+
+---
+
 ## Anime (Lista de anime)
-| id | title | image | episodes | status | createdAt |
-| 1 | Overflow | https://cdn.myanimelist.net/images/anime/overflow.jpg | 8 | 2 | 2025-01-10 20:45:10 |
-| 2 | Kanojo x Kanojo x Kanojo | https://cdn.myanimelist.net/images/anime/kxkxk.jpg | 3 | 1 | 2025-01-18 16:22:33 |
+| id | apiId | title | image | episodes | status | createdAt |
+|----|-------|-------|-------|----------|--------|----------|
+| 1 | 11061 | Shigatsu wa Kimi no Uso | https://cdn.myanimelist.net/images/anime/3/67177.jpg | 22 | 2 | 2025-01-15 14:30:25 |
+| 2 | 9253 | Steins;Gate | https://cdn.myanimelist.net/images/anime/5/73199.jpg | 24 | 1 | 2025-01-20 09:15:42 |
+
+**status:** 1=Proximamente · 2=Completado (ContentStatus) · **apiId:** mal_id de MyAnimeList API
+
+---
+
+## Hentai (Lista de hentai)
+| id | apiId | title | image | episodes | status | createdAt |
+|----|-------|-------|-------|----------|--------|----------|
+| 1 | 33137 | Overflow | https://cdn.myanimelist.net/images/anime/overflow.jpg | 8 | 2 | 2025-01-10 20:45:10 |
+| 2 | 10415 | Kanojo x Kanojo x Kanojo | https://cdn.myanimelist.net/images/anime/kxkxk.jpg | 3 | 1 | 2025-01-18 16:22:33 |
 
 **status:** 1=Proximamente · 2=Completado (ContentStatus)
 
 ---
 
-## Genre (Catálogo estático)
-| id | name |
-|----|------|
-| 1 | Action |
-| 2 | Romance |
-| 3 | Comedy |
-| 4 | Drama |
-| 5 | Sci-Fi |
-| 6 | Hentai |
+## Tag — Hentai (type=6)
+| id | name | type |
+|----|------|------|
+| 12 | Romance | 6 |
+| 13 | Comedy | 6 |
+| 14 | Netorare | 6 |
+
+**type=6 → TagType.Hentai** · reemplaza las tablas Genre + HentaiGenre (UNIQUE por Name+Type)
 
 ---
 
-## HentaiGenre (Relación Hentai ↔ Genre)
-| hentaiId | genreId |
-|----------|---------|
-| 1 | 2 |
-| 1 | 3 |
-| 2 | 2 |
+## TagRelation — Hentai (type=6)
+| tagId | refId | type |
+|-------|-------|------|
+| 12 | 1 | 6 |
+| 13 | 1 | 6 |
+| 12 | 2 | 6 |
+
+Overflow (id=1) → Romance, Comedy  
+Kanojo x Kanojo (id=2) → Romance
 
 ---
 
@@ -232,31 +305,12 @@ Video id=2 tiene 1 actriz (Lana Rhoades)
 
 ---
 
-## Genre (Catálogo de géneros)
-| id | name |
-|----|------|
-| 1 | Action |
-| 2 | Romance |
-| 3 | Comedy |
-| 4 | Drama |
-| 5 | Sci-Fi |
-
----
-
-## HentaiGenre (Relación Hentai-Género)
-| hentaiId | genreId |
-|----------|---------|
-| 1 | 2 |
-| 1 | 3 |
-| 2 | 2 |
-
----
-
 ## Proyect (Galería de proyectos)
 | id | name | description | url | createdAt |
 |----|------|-------------|-----|-----------|
 | 1 | Sistema de Ventas | user: admin@gmail.com\npassword: 123\n\nNET 9 \| ANGULAR 18 \| SQL | https://ventas.perfisoft.com | 2025-01-08 14:20:35 |
 | 2 | Sistema de Reservas Hotel | PHP \| MYSQL\n\nuser: admin@gmail.com\npassword: 123456 | https://reserva.lltechnologyservicepr.com | 2025-01-10 10:15:22 |
+
 ---
 
 ## Media — Project (type=3, N imágenes)
@@ -281,115 +335,12 @@ Video id=2 tiene 1 actriz (Lana Rhoades)
 ---
 
 ## YouTube (Videos de YouTube)
-| id | name | description | url | createdAt |
-| 1 | https://www.youtube.com/watch?v=ekr2nIex040 | ROSÉ & Bruno Mars - APT. | ROSÉ | https://i.ytimg.com/vi/ekr2nIex040/hqdefault.jpg | 1 | 2024-11-22 15:30:00 |
-| 2 | https://www.youtube.com/watch?v=dQw4w9WgXcQ | Never Gonna Give You Up | Rick Astley | https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg | 4 | 2024-12-01 20:45:30 |
-
-**category:** 1=Anime · 2=Serie · 3=Pelicula · 4=Shorts (YouTubeCategory)
-
----
-
-## Tag (Tags genéricos)
-| id | name | description | url | createdAt |
-| 7 | 3 | 1 | https://scontent.ftcq1-1.fna.fbcdn.net/v/t39... | NULL | NULL | 0 | 2025-01-08 14:22:10 |
-| 8 | 3 | 1 | https://scontent.ftcq1-1.fna.fbcdn.net/v/t39... | NULL | NULL | 1 | 2025-01-08 14:22:45 |
-| 9 | 3 | 2 | https://i.ibb.co/ddd/hotel1.jpg | https://i.ibb.co/ddd/thumb.jpg | https://ibb.co/ddd/delete | 0 | 2025-01-10 10:16:30 |
-
-**Type 3 = Project**  
-**Ejemplo:** Sistema de Ventas (id=1) tiene 2 imágenes, Sistema de Reservas (id=2) tiene 1 imagen
-
----
-
-## Link (Enlaces de Project - url_extra)
-| id | type | refId | name | url | orderIndex | createdAt |
-|----|------|-------|------|-----|------------|-----------|
-| 1 | 1 | 1 | NULL | https://www.facebook.com/61555695754588/videos/... | 0 | 2025-01-08 14:25:40 |
-| 2 | 1 | 2 | NULL | https://www.youtube.com/watch?v=demo123 | 0 | 2025-01-10 10:18:15 |
-
-**Type 1 = Project (url_extra)**  
-**Ejemplo:** Sistema de Ventas (id=1) tiene 1 video de Facebook, Sistema de Reservas (id=2) tiene 1 video de YouTube
-
----
-
-## Actress (Actrices JAV)
-| id | name | image | createdAt |
-|----|------|-------|-----------|
-| 1 | Yuria Yoshine | https://example.com/yuria.jpg | 2025-01-15 12:00:00 |
-| 2 | Ai Sayama | https://example.com/ai.jpg | 2025-01-16 14:30:25 |
-
----
-
-## Link (Enlaces de Actress)
-| id | type | refId | name | url | orderIndex | createdAt |
-|----|------|-------|------|-----|------------|-----------|
-| 12 | 5 | 1 | NULL | https://missav123.com/dm121/en/actresses/Yuria%20Yoshine | 0 | 2025-01-15 12:05:00 |
-| 13 | 5 | 1 | NULL | https://www.instagram.com/yuriayoshine | 1 | 2025-01-15 12:06:00 |
-| 14 | 5 | 2 | NULL | https://missav123.com/dm121/en/actresses/Ai%20Sayama | 0 | 2025-01-16 14:35:00 |
-
-**Type 5 = Actress**  
-**Ejemplo:** Yuria Yoshine (id=1) tiene 2 links (missav, Instagram)
-
----
-
-## Link (Enlaces de Post)
-| id | type | refId | name | url | orderIndex | createdAt |
-|----|------|-------|------|-----|------------|-----------|
-| 15 | 6 | 1 | PDF | https://online.fliphtml5.com/uejlb/wnsd/#p=1 | 0 | 2025-11-21 10:10:00 |
-| 16 | 6 | 1 | github | https://github.com/erikuus/good-ui/blob/main/SUMMARY.md | 1 | 2025-11-21 10:11:00 |
-
-**Type 6 = Post**  
-**Ejemplo:** Post "Refactoring UI" (id=1) tiene 2 links (PDF, github)
-
----
-
-## Jav (Videos JAV)
-| id | code | actressId | image | status | createdAt |
-|----|------|-----------|-------|--------|-----------|
-| 1 | NIMA-055 | 1 | https://fourhoi.com/nima-055-uncensored-leak/cover-n.jpg | 1 | 2025-01-15 18:25:40 |
-| 2 | SSIS-123 | 2 | https://example.com/ssis123.jpg | 2 | 2025-01-16 21:10:15 |
-
-**Status:** 1=proximamente, 2=completado
-
----
-
-## Link (Enlaces de Jav - streaming)
-| id | type | refId | name | url | orderIndex | createdAt |
-|----|------|-------|------|-----|------------|-----------|
-| 3 | 2 | 1 | NULL | https://missav123.com/en/nima-055-uncensored-leak | 0 | 2025-01-15 18:30:12 |
-| 4 | 2 | 1 | NULL | https://es.eporner.com/video-KxEjAYhz2dx/... | 1 | 2025-01-15 18:31:45 |
-| 5 | 2 | 1 | NULL | https://es.xsz-av.com/video/202931 | 2 | 2025-01-15 18:32:20 |
-
-**Type 2 = Jav (streaming)**  
-**Ejemplo:** NIMA-055 (id=1) tiene 3 enlaces de streaming
-
----
-
-## Link (Helpers - páginas útiles)
-| id | type | refId | name | url | orderIndex | createdAt |
-|----|------|-------|------|-----|------------|-----------|
-| 6 | 3 | NULL | JAVLibrary | https://www.javlibrary.com | NULL | 2025-01-05 10:00:00 |
-| 7 | 3 | NULL | JAVDatabase | https://www.javdatabase.com | NULL | 2025-01-05 10:05:30 |
-| 8 | 3 | NULL | buscador | https://www5.javmost.com/search/advance | NULL | 2025-01-05 10:10:15 |
-
-## Link (Enlaces de GirlGalery)
-| id | type | refId | name | url | orderIndex | createdAt |
-|----|------|-------|------|-----|------------|-----------|
-| 9 | 4 | 1 | NULL | https://www.instagram.com/yuihatano | 0 | 2025-01-10 11:30:00 |
-| 10 | 4 | 1 | NULL | https://twitter.com/yuihatano | 1 | 2025-01-10 11:31:00 |
-| 11 | 4 | 2 | NULL | https://www.instagram.com/mariaozawa | 0 | 2025-01-15 15:45:00 |
-
-**Type 4 = GirlGalery**  
-**Ejemplo:** Yui Hatano (id=1) tiene 2 links (Instagram, Twitter)
-
----
-
-## YouTube (Videos de YouTube)
 | id | url | title | authorName | thumbnailUrl | category | createdAt |
 |----|-----|-------|------------|--------------|----------|-----------|
 | 1 | https://www.youtube.com/watch?v=ekr2nIex040 | ROSÉ & Bruno Mars - APT. | ROSÉ | https://i.ytimg.com/vi/ekr2nIex040/hqdefault.jpg | 1 | 2024-11-22 15:30:00 |
 | 2 | https://www.youtube.com/watch?v=dQw4w9WgXcQ | Never Gonna Give You Up | Rick Astley | https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg | 4 | 2024-12-01 20:45:30 |
 
-**Category:** 1=anime, 2=serie, 3=pelicula, 4=shorts
+**category:** 1=Anime · 2=Serie · 3=Pelicula · 4=Shorts (YouTubeCategory)
 
 ---
 
@@ -404,8 +355,15 @@ Video id=2 tiene 1 actriz (Lana Rhoades)
 | 6 | ui | 3 |
 | 7 | diseño | 3 |
 | 8 | hooks | 3 |
+| 9 | Latina | 5 |
+| 10 | MILF | 5 |
+| 11 | Blowjob | 5 |
+| 12 | Romance | 6 |
+| 13 | Comedy | 6 |
+| 14 | Netorare | 6 |
 
-**Type:** 1=Jav, 2=Project, 3=Post
+**type:** 1=ActressJav · 2=Project · 3=Post · 4=Other · 5=ActressAdult · 6=Hentai (TagType)  
+Mismo nombre puede existir en distintos tipos (UNIQUE por Name+Type)
 
 ---
 
@@ -420,14 +378,18 @@ Video id=2 tiene 1 actriz (Lana Rhoades)
 | 6 | 1 | 3 |
 | 7 | 1 | 3 |
 | 8 | 2 | 3 |
+| 9 | 1 | 5 |
+| 10 | 1 | 5 |
+| 11 | 2 | 5 |
+| 12 | 1 | 6 |
+| 13 | 1 | 6 |
+| 12 | 2 | 6 |
 
-**Type:** 1=Jav, 2=Project, 3=Post
-
-**Ejemplo:** 
-- El Jav con id=1 tiene los tags 1 y 2 (Creampie, Big Tits)  
-- El Project con id=1 tiene los tags 3, 4 y 5 (React, Angular, SQL Server)
-- El Post con id=1 tiene los tags 6 y 7 (ui, diseño)
-- El Post con id=2 tiene el tag 8 (hooks)
+ActressJav id=1 → Creampie, Big Tits  
+Project id=1 → React, Angular, SQL Server  
+Post id=1 → ui, diseño · Post id=2 → hooks  
+ActressAdult id=1 → Latina, MILF · ActressAdult id=2 → Blowjob  
+Hentai id=1 → Romance, Comedy · Hentai id=2 → Romance
 
 
 ---
@@ -567,9 +529,9 @@ Video id=2 tiene 1 actriz (Lana Rhoades)
 
 ---
 
-## AccountProperty (Propiedades adicionales - solo booleanos para Steam)
-| id | accountId | key | value | createdAt |
-|----|-----------|-----|-------|-----------|
+## AccountProperty (Propiedades booleanas — solo Steam)
+| id | accountId | device | value | createdAt |
+|----|-----------|--------|-------|-----------|
 | 1 | 2 | 1 | 1 | 2025-01-10 10:33:00 |
 | 2 | 2 | 2 | 1 | 2025-01-10 10:34:00 |
 | 3 | 2 | 3 | 1 | 2025-01-10 10:35:00 |
@@ -578,46 +540,32 @@ Video id=2 tiene 1 actriz (Lana Rhoades)
 | 6 | 6 | 2 | 0 | 2025-01-11 09:34:00 |
 | 7 | 6 | 4 | 0 | 2025-01-11 09:35:00 |
 
-**Key (CHAR):** 1=hasDota2, 2=hasCS2, 3=hasSteamMobile, 4=vacBanned  
-**Value (BIT):** 0=false, 1=true
+**device:** 1=HasDota2 · 2=HasCS2 · 3=HasSteamMobile · 4=VacBanned (AccountPropertyKey)  
+**value (BIT):** 0=false · 1=true
 
 ---
 
-## Estructura de relaciones:
+### Árbol de cuentas
 
 ```
-Account (Email Principal - juan@gmail.com)
+Account (Email Principal — juan@gmail.com)
 ├── Account (Steam Main - juangamer)
 │   │   profileUrl: https://steamcommunity.com/id/juangamer
 │   │   lastConnection: 2025-01-15 10:00:00
-│   ├── AccountProperty (key=1 hasDota2: 1)
-│   ├── AccountProperty (key=2 hasCS2: 1)
-│   ├── AccountProperty (key=3 hasSteamMobile: 1)
-│   └── AccountProperty (key=4 vacBanned: 0)
+│   ├── AccountProperty device=1 HasDota2: 1
+│   ├── AccountProperty device=2 HasCS2: 1
+│   ├── AccountProperty device=3 HasSteamMobile: 1
+│   └── AccountProperty device=4 VacBanned: 0
 ├── Account (Facebook Personal)
-│   │   profileUrl: https://facebook.com/juanprofile
-│   │   lastConnection: 2025-01-14 18:30:00
-├── Account (Instagram Main)
-│   │   profileUrl: https://instagram.com/juanig
-│   │   lastConnection: 2025-01-16 09:15:00
-└── Account (LOL Main)
-    │   profileUrl: https://lol.com/profile/juanlol
-    │   lastConnection: 2025-01-18 20:00:00
+├── Account (Instagram Main — @juanig)
+└── Account (LOL Main — JuanLOL)
 
-Account (Email Secundario - juan2@gmail.com)
-└── Account (Steam Segunda - juanalt)
-    │   profileUrl: https://steamcommunity.com/id/juanalt
-    │   lastConnection: 2025-01-20 14:30:00
-    ├── AccountProperty (key=1 hasDota2: 1)
-    ├── AccountProperty (key=2 hasCS2: 0)
-    └── AccountProperty (key=4 vacBanned: 0)
+Account (Email Secundario — juan2@gmail.com)
+└── Account (Steam Segunda — juanalt)
+    ├── AccountProperty device=1 HasDota2: 1
+    ├── AccountProperty device=2 HasCS2: 0
+    └── AccountProperty device=4 VacBanned: 0
 ```
-
-**Actualizar última conexión:**
-```sql
-UPDATE Account SET lastConnection = GETDATE() WHERE id = 2
-```
-
 
 ---
 
@@ -630,7 +578,7 @@ UPDATE Account SET lastConnection = GETDATE() WHERE id = 2
 
 ---
 
-## Transaction (Transacciones de dinero)
+## Payment (Pagos / Deudas)
 | id | personId | type | amount | description | date | createdAt |
 |----|----------|------|--------|-------------|------|-----------|
 | 1 | 1 | 1 | 1170.00 | total | 2025-11-23 | 2025-11-23 10:00:00 |
@@ -640,11 +588,9 @@ UPDATE Account SET lastConnection = GETDATE() WHERE id = 2
 | 5 | 2 | 1 | 500.00 | préstamo | 2025-12-01 | 2025-12-01 10:00:00 |
 | 6 | 2 | 3 | 25.00 | interés 5% | 2025-12-15 | 2025-12-15 10:00:00 |
 
-**Type:** 1=deuda, 2=pago, 3=interes_deuda, 4=interes_pago
-
-**Ejemplo:** 
-- Rosa (id=1) tiene deuda de 1170, ha pagado 570 + 50 + 50 = 670, debe 500
-- Juan (id=2) tiene deuda de 500 + interés de 25 = 525
+**type:** 1=Deuda · 2=Pago · 3=InteresDeuda · 4=InteresPago (PaymentType)  
+Rosa (id=1): deuda 1170, pagado 670 → debe 500  
+Juan (id=2): deuda 500 + interés 25 → debe 525
 
 ---
 
@@ -691,12 +637,6 @@ FROM Salary
 - 12 meses: 2,610 × 12 = **31,320** + CTS×2 (3,000) + Bonus×2 (3,000) = **37,320**
 - 16 meses: 2,610 × 16 = **41,760** + CTS×2 (3,000) + Bonus×2 (3,000) = **47,760**
 
-**Solo actualizas Salary cuando:**
-- Cambia tu sueldo
-- Cambia el descuento AFP
-- Actualizas tu dinero actual (currentMoney)
-
-
 ---
 
 ## Post (Publicaciones/Manuales)
@@ -735,24 +675,26 @@ FROM Salary
 
 ---
 
-## PostLink (Enlaces externos)
-| id | postId | name | url | orderIndex | createdAt |
-|----|--------|------|-----|------------|-----------|
-| 1 | 1 | PDF | https://online.fliphtml5.com/uejlb/wnsd/#p=1 | 0 | 2025-11-21 10:10:00 |
-| 2 | 1 | github | https://github.com/erikuus/good-ui/blob/main/SUMMARY.md | 1 | 2025-11-21 10:11:00 |
+## Link — Post (type=6)
+| id | type | refId | name | url | orderIndex | createdAt |
+|----|------|-------|------|-----|------------|--------|
+| 29 | 6 | 1 | PDF | https://online.fliphtml5.com/uejlb/wnsd/#p=1 | 0 | 2025-11-21 10:10:00 |
+| 30 | 6 | 1 | github | https://github.com/erikuus/good-ui/blob/main/SUMMARY.md | 1 | 2025-11-21 10:11:00 |
+
+**type=6 → LinkType.Post**
 
 ---
 
-## Estructura de una publicación:
+### Estructura de un Post completo
 
 ```
-Post (Refactoring UI)
-├── TagRelation → Tag (ui)
-├── TagRelation → Tag (diseño)
-├── PostContent (type=4 imagen)
+Post (Refactoring UI — id=1)
+├── TagRelation → Tag "ui" (type=3)
+├── TagRelation → Tag "diseño" (type=3)
+├── PostContent (type=4 imagen: ui-image.jpg)
 ├── PostContent (type=1 titulo: "Introducción al diseño UI")
 ├── PostContent (type=2 parrafo: "El diseño UI es fundamental...")
-├── PostContent (type=3 codigo: "const theme = {...}")
+├── PostContent (type=3 codigo: "const theme = {...}" - language=javascript)
 ├── PostContent (type=5 lista)
 │   ├── PostContentItem ("Usar colores consistentes")
 │   ├── PostContentItem ("Mantener espaciado uniforme")

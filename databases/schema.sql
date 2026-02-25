@@ -33,19 +33,6 @@ CREATE TABLE Series (
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
--- Genre catalog table
-CREATE TABLE Genre (
-    Id INT PRIMARY KEY, -- 1-99
-    Name NVARCHAR(100) NOT NULL
-);
-
--- HentaiGenre relationship
-CREATE TABLE HentaiGenre (
-    HentaiId INT NOT NULL,
-    GenreId INT NOT NULL,
-    PRIMARY KEY (HentaiId, GenreId)
-);
-
 -- Girl table (galería de chicas)
 CREATE TABLE GirlGalery (
     Id INT IDENTITY(1,1) PRIMARY KEY,
@@ -132,7 +119,7 @@ CREATE TABLE Media (
 -- Link table (enlaces genéricos para Project, Jav, GirlGalery, Actress, Post, helpers)
 CREATE TABLE Link (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    Type INT NOT NULL, -- 1: Project (url_extra), 2: Jav (streaming), 3: Helper, 4: GirlGalery, 5: ActressJav, 6: Post, 7: ActressAdult
+    Type INT NOT NULL, -- 1: Project (url_extra), 2: Jav (streaming), 3: HelperJav, 4: GirlGalery, 5: ActressJav, 6: Post, 7: ActressAdult, 8: AnimeGalery
     RefId INT, -- ID de la entidad (NULL para helpers)
     Name NVARCHAR(200), -- Nombre del helper o link
     Url NVARCHAR(1000) NOT NULL,
@@ -172,19 +159,19 @@ CREATE TABLE YouTube (
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
--- Tag table (tags genéricos reutilizables para Jav, Project, Post, etc.)
+-- Tag table (tags genéricos reutilizables para Jav, Project, Post, VideoAdult, Hentai)
 CREATE TABLE Tag (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(100) NOT NULL,
-    Type INT NOT NULL, -- 1: Jav, 2: Project, 3: Post, 4: otros
+    Type INT NOT NULL, -- 1: ActressJav, 2: Project, 3: Post, 4: Other, 5: ActressAdult, 6: Hentai
     UNIQUE (Name, Type) -- Mismo nombre puede existir en diferentes tipos
 );
 
 -- TagRelation table (relación genérica entre tags y entidades)
 CREATE TABLE TagRelation (
     TagId INT NOT NULL,
-    RefId INT NOT NULL, -- ID de la entidad (Jav, Project, Post, etc.)
-    Type INT NOT NULL, -- 1: Jav, 2: Project, 3: Post
+    RefId INT NOT NULL, -- ID de la entidad (ActressJav, Project, Post, ActressAdult, Hentai)
+    Type INT NOT NULL, -- 1: ActressJav, 2: Project, 3: Post, 4: Other, 5: ActressAdult, 6: Hentai
     PRIMARY KEY (TagId, RefId, Type)
 );
 

@@ -7,7 +7,7 @@ namespace UtilitariosCore.Application.Features.ActressAdults.Actions;
 
 public record GetAllActressAdultsQuery : IRequest<Result<IEnumerable<ActressAdultDto>>>;
 
-internal sealed class GetAllActressAdultsQueryHandler(IActressAdultRepository actressAdultRepository) 
+internal sealed class GetAllActressAdultsQueryHandler(IActressAdultRepository actressAdultRepository)
     : IRequestHandler<GetAllActressAdultsQuery, Result<IEnumerable<ActressAdultDto>>>
 {
     public async Task<Result<IEnumerable<ActressAdultDto>>> Handle(GetAllActressAdultsQuery request, CancellationToken cancellationToken)

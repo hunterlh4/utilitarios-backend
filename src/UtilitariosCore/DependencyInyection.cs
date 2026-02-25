@@ -47,7 +47,6 @@ public static class DependencyInyection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUserDetailRepository, UserDetailRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
-        services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IAnimeRepository, AnimeRepository>();
         services.AddScoped<IHentaiRepository, HentaiRepository>();
         services.AddScoped<IJavRepository, JavRepository>();
@@ -59,6 +58,7 @@ public static class DependencyInyection
         services.AddScoped<IGirlGaleryRepository, GirlGaleryRepository>();
         services.AddScoped<IAnimeGaleryRepository, AnimeGaleryRepository>();
         services.AddScoped<IVideoAdultRepository, VideoAdultRepository>();
+        services.AddScoped<ITagRepository, TagRepository>();
 
         // Servicios de notificaciones
         services.AddSingleton<Infrastructure.Queue.AzureQueueClient>();

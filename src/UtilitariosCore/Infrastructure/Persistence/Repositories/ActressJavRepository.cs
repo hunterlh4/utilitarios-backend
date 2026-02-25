@@ -60,28 +60,78 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
         return result;
     }
 
+    public async Task<ActressJavWithTagsDto?> GetActressWithTagsById(int id)
+    {
+        var db = context.CreateDefaultConnection();
+
+        string sql = $@"
+        SELECT
+            a.Id,
+            a.Name,
+            a.Image,
+            a.CreatedAt,
+            (
+                SELECT STRING_AGG(t.Name, ',')
+                FROM TagRelation tr
+                INNER JOIN Tag t ON t.Id = tr.TagId
+                WHERE tr.RefId = a.Id AND tr.Type = {(int)TagType.ActressJav}
+            ) AS TagsRaw
+        FROM Actress a
+        WHERE a.Id = @Id
+        ";
+
+        var row = await db.QueryFirstOrDefaultAsync<ActressJavRawWithTagsDto>(sql, new { Id = id });
+        if (row is null) return null;
+
+        return new ActressJavWithTagsDto
+        {
+            Id = row.Id,
+            Name = row.Name,
+            Image = row.Image,
+            CreatedAt = row.CreatedAt,
+            Tags = string.IsNullOrEmpty(row.TagsRaw)
+                ? []
+                : [.. row.TagsRaw.Split(',')]
+        };
+    }
+
     public async Task<IEnumerable<ActressJavDto>> GetAllActressesWithFirstImage()
     {
         var db = context.CreateDefaultConnection();
 
         string sql = $@"
-        SELECT 
+        SELECT
             a.Id,
             a.Name,
             a.CreatedAt,
             (
-                SELECT TOP 1 m.Url 
-                FROM Media m 
-                WHERE m.Type = {(int)MediaType.ActressJav} 
-                AND m.RefId = a.Id 
+                SELECT TOP 1 m.Url
+                FROM Media m
+                WHERE m.Type = {(int)MediaType.ActressJav}
+                AND m.RefId = a.Id
                 ORDER BY m.OrderIndex
-            ) as Image
+            ) AS Image,
+            (
+                SELECT STRING_AGG(t.Name, ',')
+                FROM TagRelation tr
+                INNER JOIN Tag t ON t.Id = tr.TagId
+                WHERE tr.RefId = a.Id AND tr.Type = {(int)TagType.ActressJav}
+            ) AS TagsRaw
         FROM Actress a
         ORDER BY a.Name
         ";
 
-        var result = await db.QueryAsync<ActressJavDto>(sql);
-        return result;
+        var rows = await db.QueryAsync<ActressJavRawDto>(sql);
+        return rows.Select(r => new ActressJavDto
+        {
+            Id = r.Id,
+            Name = r.Name,
+            CreatedAt = r.CreatedAt,
+            Image = r.Image,
+            Tags = string.IsNullOrEmpty(r.TagsRaw)
+                ? []
+                : [.. r.TagsRaw.Split(',')]
+        });
     }
 }
 

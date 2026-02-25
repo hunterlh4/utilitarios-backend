@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Shared.Responses;
 
@@ -9,6 +10,7 @@ public record UpdateActressAdultCommand : IRequest<Result>
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public List<string> Tags { get; set; } = [];
 
     public sealed class Validator : AbstractValidator<UpdateActressAdultCommand>
     {
@@ -20,7 +22,8 @@ public record UpdateActressAdultCommand : IRequest<Result>
     }
 
     internal sealed class Handler(
-        IActressAdultRepository actressAdultRepository)
+        IActressAdultRepository actressAdultRepository,
+        ITagRepository tagRepository)
         : IRequestHandler<UpdateActressAdultCommand, Result>
     {
         public async Task<Result> Handle(UpdateActressAdultCommand request, CancellationToken cancellationToken)
@@ -30,6 +33,8 @@ public record UpdateActressAdultCommand : IRequest<Result>
 
             actress.Name = request.Name;
             await actressAdultRepository.UpdateActressAdult(actress);
+
+            await tagRepository.ReplaceTagsForRefId(request.Id, TagType.ActressAdult, request.Tags);
 
             return Results.NoContent();
         }

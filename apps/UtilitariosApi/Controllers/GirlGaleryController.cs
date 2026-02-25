@@ -50,6 +50,13 @@ public class GirlGaleryController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
+    [HttpPut("{id:int}/links")]
+    public async Task<ActionResult> UpdateLinks([FromRoute] int id, [FromBody] List<string> links)
+    {
+        var response = await sender.Send(new UpdateGirlGaleryLinksCommand(id, links));
+        return response.ToActionResult();
+    }
+
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> Delete([FromRoute] int id)
     {

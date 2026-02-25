@@ -10,7 +10,8 @@ public record GetAnimeGaleryByIdQuery(int Id) : IRequest<Result<AnimeGaleryDetai
 
 internal sealed class GetAnimeGaleryByIdQueryHandler(
     IAnimeGaleryRepository repository,
-    IMediaRepository mediaRepository) 
+    IMediaRepository mediaRepository,
+    ILinkRepository linkRepository)
     : IRequestHandler<GetAnimeGaleryByIdQuery, Result<AnimeGaleryDetailDto>>
 {
     public async Task<Result<AnimeGaleryDetailDto>> Handle(GetAnimeGaleryByIdQuery request, CancellationToken cancellationToken)
@@ -35,11 +36,21 @@ internal sealed class GetAnimeGaleryByIdQueryHandler(
             })
             .ToList();
 
+        var links = await linkRepository.GetLinksByRefId(item.Id, LinkType.AnimeGalery);
+        var linkList = links.Select(l => new AnimeGaleryLinkDto
+        {
+            Id = l.Id,
+            Name = l.Name,
+            Url = l.Url,
+            OrderIndex = l.OrderIndex
+        }).ToList();
+
         var result = new AnimeGaleryDetailDto
         {
             Id = item.Id,
             Name = item.Name,
             Media = mediaList,
+            Links = linkList,
             CreatedAt = item.CreatedAt
         };
 

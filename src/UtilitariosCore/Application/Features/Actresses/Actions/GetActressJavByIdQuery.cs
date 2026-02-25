@@ -16,7 +16,7 @@ internal sealed class GetActressJavByIdQueryHandler(
 {
     public async Task<Result<ActressJavDetailDto>> Handle(GetActressJavByIdQuery request, CancellationToken cancellationToken)
     {
-        var actress = await actressRepository.GetActressById(request.Id);
+        var actress = await actressRepository.GetActressWithTagsById(request.Id);
         if (actress == null) return Errors.NotFound("Actriz no encontrada.");
 
         var links = await linkRepository.GetLinksByRefId(request.Id, LinkType.ActressJav);
@@ -28,6 +28,7 @@ internal sealed class GetActressJavByIdQueryHandler(
             Name = actress.Name,
             Image = actress.Image,
             CreatedAt = actress.CreatedAt,
+            Tags = actress.Tags,
             Links = links.Select(l => new ActressLinkDto
             {
                 Id = l.Id,

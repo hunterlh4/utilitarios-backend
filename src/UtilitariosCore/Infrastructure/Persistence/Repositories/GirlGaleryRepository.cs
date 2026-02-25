@@ -1,4 +1,6 @@
 using Dapper;
+using UtilitariosCore.Application.Features.GirlGaleries.Dtos;
+using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Domain.Models;
 
@@ -55,6 +57,30 @@ public class GirlGaleryRepository(MssqlContext context) : IGirlGaleryRepository
         var db = context.CreateDefaultConnection();
         string sql = "SELECT Id, Name, CreatedAt FROM GirlGalery ORDER BY CreatedAt DESC";
         var result = await db.QueryAsync<GirlGalery>(sql);
+        return result;
+    }
+
+    public async Task<IEnumerable<GirlGaleryDto>> GetAllGirlGaleriesWithFirstImage()
+    {
+        var db = context.CreateDefaultConnection();
+
+        string sql = $@"
+        SELECT
+            g.Id,
+            g.Name,
+            g.CreatedAt,
+            (
+                SELECT TOP 1 m.Url
+                FROM Media m
+                WHERE m.Type = {(int)MediaType.GirlGalery}
+                AND m.RefId = g.Id
+                ORDER BY m.OrderIndex
+            ) AS FirstImageUrl
+        FROM GirlGalery g
+        ORDER BY g.CreatedAt DESC
+        ";
+
+        var result = await db.QueryAsync<GirlGaleryDto>(sql);
         return result;
     }
 }

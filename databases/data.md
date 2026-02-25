@@ -165,9 +165,6 @@ Este documento describe los valores de datos (enums, status, tipos) para cada en
 | `1` | `Proximamente` | Pendiente / por ver |
 | `2` | `Completado` | Visto / completado |
 
-### Genre (catálogo fijo, Id 1–99)
-> Usado por `HentaiGenre` para relacionar géneros con hentais.
-
 ---
 
 ## 🎮 DOTA 2
@@ -279,16 +276,19 @@ Este documento describe los valores de datos (enums, status, tipos) para cada en
 |-------|------|---------|-------------|
 | `1` | `Project` | Proyect | URL extra del proyecto |
 | `2` | `Jav` | Jav | Links de streaming |
-| `3` | `Helper` | — | Links helper (RefId = NULL) |
+| `3` | `HelperJav` | — | Links helper JAV (RefId = NULL) |
 | `4` | `GirlGalery` | GirlGalery | Links de galería |
 | `5` | `ActressJav` | ActressJav | Links de actriz JAV |
 | `6` | `Post` | Post | Links de referencia |
 | `7` | `ActressAdult` | ActressAdult | Links de actriz adulto |
+| `8` | `AnimeGalery` | AnimeGalery | Links de galería anime |
 
 ### Tag.Type → TagType (tabla `Tag` / `TagRelation`)
 | Valor | Enum | Entidad |
 |-------|------|---------|
-| `1` | `Jav` | Jav |
+| `1` | `ActressJav` | ActressJav |
 | `2` | `Project` | Proyect |
 | `3` | `Post` | Post |
 | `4` | `Other` | Otros |
+| `5` | `ActressAdult` | ActressAdult |
+| `6` | `Hentai` | Hentai |

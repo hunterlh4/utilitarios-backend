@@ -11,7 +11,8 @@ public record GetActressAdultByIdQuery(int Id) : IRequest<Result<ActressAdultDet
 internal sealed class GetActressAdultByIdQueryHandler(
     IActressAdultRepository actressAdultRepository,
     IVideoAdultRepository videoAdultRepository,
-    ILinkRepository linkRepository)
+    ILinkRepository linkRepository,
+    ITagRepository tagRepository)
     : IRequestHandler<GetActressAdultByIdQuery, Result<ActressAdultDetailDto>>
 {
     public async Task<Result<ActressAdultDetailDto>> Handle(GetActressAdultByIdQuery request, CancellationToken cancellationToken)
@@ -21,6 +22,7 @@ internal sealed class GetActressAdultByIdQueryHandler(
 
         var videosGrouped = await videoAdultRepository.GetVideoAdultsWithActressesByActressId(request.Id);
         var links = await linkRepository.GetLinksByRefId(request.Id, LinkType.ActressAdult);
+        var tags = await tagRepository.GetTagsByRefId(request.Id, TagType.ActressAdult);
 
         var videoList = videosGrouped.Select(v => new VideoAdultDto
         {
@@ -42,6 +44,7 @@ internal sealed class GetActressAdultByIdQueryHandler(
         {
             Id = actress.Id,
             Name = actress.Name,
+            Tags = tags.Select(t => t.Name).ToList(),
             Links = links.Select(l => new LinkDto
             {
                 Id = l.Id,
