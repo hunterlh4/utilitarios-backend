@@ -31,16 +31,10 @@ public class HentaiController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult> Update([FromRoute] int id, [FromBody] UpdateHentaiDto payload)
+    [HttpPut("{id:int}/tags")]
+    public async Task<ActionResult> UpdateTags([FromRoute] int id, [FromBody] List<string> tags)
     {
-        var response = await sender.Send(new UpdateHentaiCommand(id)
-        {
-            Title = payload.Title,
-            Image = payload.Image,
-            Episodes = payload.Episodes,
-            Status = payload.Status
-        });
+        var response = await sender.Send(new UpdateHentaiTagsCommand(id, tags));
         return response.ToActionResult();
     }
 

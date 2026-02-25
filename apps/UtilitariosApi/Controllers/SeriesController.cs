@@ -31,6 +31,21 @@ public class SeriesController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult> Update([FromRoute] int id, [FromBody] UpdateSeriesDto payload)
+    {
+        var response = await sender.Send(new UpdateSeriesCommand(id)
+        {
+            ImdbId = payload.ImdbId,
+            Title = payload.Title,
+            Image = payload.Image,
+            Year = payload.Year,
+            Rating = payload.Rating,
+            Type = payload.Type
+        });
+        return response.ToActionResult();
+    }
+
     [HttpPatch("{id:int}/status")]
     public async Task<ActionResult> UpdateStatus([FromRoute] int id, [FromBody] UpdateSeriesStatusCommand command)
     {

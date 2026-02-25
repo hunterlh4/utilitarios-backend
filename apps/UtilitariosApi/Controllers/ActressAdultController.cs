@@ -35,7 +35,7 @@ public class ActressAdultController(ISender sender) : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<ActionResult> Update([FromRoute] int id, [FromBody] UpdateActressAdultRequest request)
     {
-        var response = await sender.Send(new UpdateActressAdultCommand { Id = id, Name = request.Name });
+        var response = await sender.Send(new UpdateActressAdultCommand { Id = id, Name = request.Name, Tags = request.Tags });
         return response.ToActionResult();
     }
 
