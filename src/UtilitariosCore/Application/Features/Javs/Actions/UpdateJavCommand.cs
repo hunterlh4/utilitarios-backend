@@ -16,7 +16,7 @@ public record UpdateJavCommand(int Id) : IRequest<Result>
 
     internal sealed class Handler(
         IJavRepository javRepository,
-        IActressRepository actressRepository,
+        IActressJavRepository actressJavRepository,
         ILinkRepository linkRepository) 
         : IRequestHandler<UpdateJavCommand, Result>
     {
@@ -40,20 +40,20 @@ public record UpdateJavCommand(int Id) : IRequest<Result>
             }
 
             // Buscar o crear actriz
-            var actress = await actressRepository.GetActressByName(request.ActressName);
+            var actress = await actressJavRepository.GetActressByName(request.ActressName);
 
             int actressId;
 
             if (actress == null)
             {
                 // Crear nueva actriz
-                var newActress = new Actress
+                var newActress = new ActressJav
                 {
                     Name = request.ActressName,
                     CreatedAt = DateTime.UtcNow
                 };
 
-                actressId = await actressRepository.CreateActress(newActress);
+                actressId = await actressJavRepository.CreateActress(newActress);
             }
             else
             {
@@ -63,7 +63,7 @@ public record UpdateJavCommand(int Id) : IRequest<Result>
             // Si tiene URL, verificar si ya existe ese link
             if (!string.IsNullOrWhiteSpace(request.ActressUrl))
             {
-                var existingLinks = await linkRepository.GetLinksByRefId(actressId, LinkType.Actress);
+                var existingLinks = await linkRepository.GetLinksByRefId(actressId, LinkType.ActressJav);
                 var linkExists = existingLinks.Any(l => l.Url == request.ActressUrl);
 
                 // Solo crear el link si no existe
@@ -71,7 +71,7 @@ public record UpdateJavCommand(int Id) : IRequest<Result>
                 {
                     var actressLink = new Link
                     {
-                        Type = LinkType.Actress,
+                        Type = LinkType.ActressJav,
                         RefId = actressId,
                         Name = null,
                         Url = request.ActressUrl,

@@ -4,6 +4,7 @@ using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Infrastructure.Persistence;
 using UtilitariosCore.Infrastructure.Persistence.Repositories;
 using UtilitariosCore.Infrastructure.Services.Hostaway;
+using UtilitariosCore.Infrastructure.Services.ImageUpload;
 using UtilitariosCore.Shared.Behaviors;
 using UtilitariosCore.Shared.Extensions;
 using UtilitariosCore.Shared.Requests;
@@ -13,7 +14,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Refit;
 using System.Reflection;
-using UtilitariosCore.Infrastructure.Services.ImageUpload;
 
 namespace UtilitariosCore;
 
@@ -51,7 +51,7 @@ public static class DependencyInyection
         services.AddScoped<IAnimeRepository, AnimeRepository>();
         services.AddScoped<IHentaiRepository, HentaiRepository>();
         services.AddScoped<IJavRepository, JavRepository>();
-        services.AddScoped<IActressRepository, ActressRepository>();
+        services.AddScoped<IActressJavRepository, ActressJavRepository>();
         services.AddScoped<IActressAdultRepository, ActressAdultRepository>();
         services.AddScoped<ILinkRepository, LinkRepository>();
         services.AddScoped<ISeriesRepository, SeriesRepository>();

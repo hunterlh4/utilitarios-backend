@@ -20,7 +20,7 @@ public interface IJavRepository
 public class JavWithDetails
 {
     public Jav Jav { get; set; } = null!;
-    public Actress? Actress { get; set; }
+    public ActressJav? Actress { get; set; }
     public List<Link> ActressLinks { get; set; } = new();
     public List<Link> JavLinks { get; set; } = new();
 }

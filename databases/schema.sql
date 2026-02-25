@@ -60,14 +60,6 @@ CREATE TABLE AnimeGalery (
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
--- Proyecto table (galería de proyectos)
-CREATE TABLE Proyect (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
-    Name NVARCHAR(500) NOT NULL,
-    Description NVARCHAR(MAX),
-    Url NVARCHAR(1000),
-    CreatedAt DATETIME DEFAULT GETDATE()
-);
 
 
 
@@ -128,7 +120,7 @@ CREATE TABLE JavActress (
 -- Media table (Imagenes subida) 1,2,3 N imagenes, 4 actres 1 imagen, 5 1 imagen
 CREATE TABLE Media (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    Type INT NOT NULL, -- 1: GirlGalery N, 2: AnimeGalery N, 3: Project N, 4: Actress, 5: ActressAdult
+    Type INT NOT NULL, -- 1: GirlGalery N, 2: AnimeGalery N, 3: Project N, 4: ActressJav, 5: ActressAdult
     RefId INT NOT NULL,
     Url NVARCHAR(1000) NOT NULL,
     Thumbnail NVARCHAR(1000),
@@ -140,13 +132,24 @@ CREATE TABLE Media (
 -- Link table (enlaces genéricos para Project, Jav, GirlGalery, Actress, Post, helpers)
 CREATE TABLE Link (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    Type INT NOT NULL, -- 1: Project (url_extra), 2: Jav (streaming), 3: Helper, 4: GirlGalery, 5: Actress, 6: Post, 7: ActressAdult
+    Type INT NOT NULL, -- 1: Project (url_extra), 2: Jav (streaming), 3: Helper, 4: GirlGalery, 5: ActressJav, 6: Post, 7: ActressAdult
     RefId INT, -- ID de la entidad (NULL para helpers)
     Name NVARCHAR(200), -- Nombre del helper o link
     Url NVARCHAR(1000) NOT NULL,
     OrderIndex INT,
     CreatedAt DATETIME DEFAULT GETDATE()
 );
+
+
+-- Proyecto table (galería de proyectos)
+CREATE TABLE Proyect (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(500) NOT NULL,
+    Description NVARCHAR(MAX),
+    Url NVARCHAR(1000),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
 
 -- YouTube table (videos de YouTube con metadata oEmbed)
 CREATE TABLE YouTube (

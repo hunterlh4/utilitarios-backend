@@ -6,7 +6,7 @@ public enum LinkType
     Jav = 2,
     Helper = 3,
     GirlGalery = 4,
-    Actress = 5,
+    ActressJav = 5,
     Post = 6,
     ActressAdult = 7
 }

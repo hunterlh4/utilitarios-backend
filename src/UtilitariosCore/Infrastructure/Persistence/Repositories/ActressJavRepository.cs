@@ -6,9 +6,9 @@ using UtilitariosCore.Domain.Models;
 
 namespace UtilitariosCore.Infrastructure.Persistence.Repositories;
 
-public class ActressRepository(MssqlContext context) : IActressRepository
+public class ActressJavRepository(MssqlContext context) : IActressJavRepository
 {
-    public async Task<int> CreateActress(Actress actress)
+    public async Task<int> CreateActress(ActressJav actress)
     {
         var db = context.CreateDefaultConnection();
 
@@ -22,7 +22,7 @@ public class ActressRepository(MssqlContext context) : IActressRepository
         return result;
     }
 
-    public async Task<bool> UpdateActress(Actress actress)
+    public async Task<bool> UpdateActress(ActressJav actress)
     {
         var db = context.CreateDefaultConnection();
 
@@ -36,27 +36,27 @@ public class ActressRepository(MssqlContext context) : IActressRepository
         return result > 0;
     }
 
-    public async Task<Actress?> GetActressById(int id)
+    public async Task<ActressJav?> GetActressById(int id)
     {
         var db = context.CreateDefaultConnection();
         string sql = "SELECT Id, Name, Image, CreatedAt FROM Actress WHERE Id = @Id";
-        var result = await db.QueryFirstOrDefaultAsync<Actress>(sql, new { Id = id });
+        var result = await db.QueryFirstOrDefaultAsync<ActressJav>(sql, new { Id = id });
         return result;
     }
 
-    public async Task<Actress?> GetActressByName(string name)
+    public async Task<ActressJav?> GetActressByName(string name)
     {
         var db = context.CreateDefaultConnection();
         string sql = "SELECT Id, Name, Image, CreatedAt FROM Actress WHERE Name = @Name";
-        var result = await db.QueryFirstOrDefaultAsync<Actress>(sql, new { Name = name });
+        var result = await db.QueryFirstOrDefaultAsync<ActressJav>(sql, new { Name = name });
         return result;
     }
 
-    public async Task<IEnumerable<Actress>> GetAllActresses()
+    public async Task<IEnumerable<ActressJav>> GetAllActresses()
     {
         var db = context.CreateDefaultConnection();
         string sql = "SELECT Id, Name, Image, CreatedAt FROM Actress ORDER BY Name";
-        var result = await db.QueryAsync<Actress>(sql);
+        var result = await db.QueryAsync<ActressJav>(sql);
         return result;
     }
 
@@ -72,7 +72,7 @@ public class ActressRepository(MssqlContext context) : IActressRepository
             (
                 SELECT TOP 1 m.Url 
                 FROM Media m 
-                WHERE m.Type = {(int)MediaType.Actress} 
+                WHERE m.Type = {(int)MediaType.ActressJav} 
                 AND m.RefId = a.Id 
                 ORDER BY m.OrderIndex
             ) as Image

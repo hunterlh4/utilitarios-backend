@@ -19,12 +19,12 @@ public record CreateActressCommand : IRequest<Result<CreateActressJavDto>>
         }
     }
 
-    internal sealed class Handler(IActressRepository actressRepository)
+    internal sealed class Handler(IActressJavRepository actressRepository)
         : IRequestHandler<CreateActressCommand, Result<CreateActressJavDto>>
     {
         public async Task<Result<CreateActressJavDto>> Handle(CreateActressCommand request, CancellationToken cancellationToken)
         {
-            var newActress = new Actress
+            var newActress = new ActressJav
             {
                 Name = request.Name,
                 CreatedAt = DateTime.UtcNow

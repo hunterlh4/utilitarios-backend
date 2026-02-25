@@ -9,7 +9,7 @@ namespace UtilitariosCore.Application.Features.Actresses.Actions;
 public record GetActressJavByIdQuery(int Id) : IRequest<Result<ActressJavDetailDto>>;
 
 internal sealed class GetActressJavByIdQueryHandler(
-    IActressRepository actressRepository,
+    IActressJavRepository actressRepository,
     IJavRepository javRepository,
     ILinkRepository linkRepository)
     : IRequestHandler<GetActressJavByIdQuery, Result<ActressJavDetailDto>>
@@ -19,7 +19,7 @@ internal sealed class GetActressJavByIdQueryHandler(
         var actress = await actressRepository.GetActressById(request.Id);
         if (actress == null) return Errors.NotFound("Actriz no encontrada.");
 
-        var links = await linkRepository.GetLinksByRefId(request.Id, LinkType.Actress);
+        var links = await linkRepository.GetLinksByRefId(request.Id, LinkType.ActressJav);
         var javs = await javRepository.GetJavsByActressId(request.Id);
 
         return new ActressJavDetailDto

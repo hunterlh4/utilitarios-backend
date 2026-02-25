@@ -1,6 +1,6 @@
 namespace UtilitariosCore.Domain.Models;
 
-public class Actress
+public class ActressJav
 {
     public int Id { get; set; }
     public required string Name { get; set; }

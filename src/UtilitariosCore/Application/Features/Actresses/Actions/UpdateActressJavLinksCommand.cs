@@ -19,7 +19,7 @@ public record UpdateActressJavLinksCommand(int Id, List<string> Links) : IReques
     }
 
     internal sealed class Handler(
-        IActressRepository actressRepository,
+        IActressJavRepository actressRepository,
         ILinkRepository linkRepository)
         : IRequestHandler<UpdateActressJavLinksCommand, Result>
     {
@@ -28,7 +28,7 @@ public record UpdateActressJavLinksCommand(int Id, List<string> Links) : IReques
             var actress = await actressRepository.GetActressById(request.Id);
             if (actress == null) return Errors.NotFound("Actriz no encontrada.");
 
-            var existingLinks = await linkRepository.GetLinksByRefId(request.Id, LinkType.Actress);
+            var existingLinks = await linkRepository.GetLinksByRefId(request.Id, LinkType.ActressJav);
             var existingByUrl = existingLinks.ToDictionary(l => l.Url, l => l);
             var incomingUrls = request.Links.ToHashSet();
 
@@ -49,7 +49,7 @@ public record UpdateActressJavLinksCommand(int Id, List<string> Links) : IReques
                 {
                     await linkRepository.CreateLink(new Link
                     {
-                        Type = LinkType.Actress,
+                        Type = LinkType.ActressJav,
                         RefId = request.Id,
                         Url = url,
                         OrderIndex = orderIndex

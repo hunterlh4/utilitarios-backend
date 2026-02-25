@@ -19,7 +19,7 @@ public record UpdateActressCommand : IRequest<Result>
         }
     }
 
-    internal sealed class Handler(IActressRepository actressRepository)
+    internal sealed class Handler(IActressJavRepository actressRepository)
         : IRequestHandler<UpdateActressCommand, Result>
     {
         public async Task<Result> Handle(UpdateActressCommand request, CancellationToken cancellationToken)

@@ -1,5 +1,5 @@
 using Dapper;
-using UtilitariosCore.Domain.Dtos;
+using UtilitariosCore.Application.Features.ActressAdults.Dtos;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Domain.Models;
 
@@ -105,7 +105,7 @@ public class VideoAdultRepository(MssqlContext context) : IVideoAdultRepository
         return result;
     }
 
-    public async Task<IEnumerable<Actress>> GetActressesByVideoId(int videoAdultId)
+    public async Task<IEnumerable<ActressJav>> GetActressesByVideoId(int videoAdultId)
     {
         var db = context.CreateDefaultConnection();
 
@@ -117,7 +117,7 @@ public class VideoAdultRepository(MssqlContext context) : IVideoAdultRepository
         ORDER BY a.Name
         ";
 
-        var result = await db.QueryAsync<Actress>(sql, new { VideoId = videoAdultId });
+        var result = await db.QueryAsync<ActressJav>(sql, new { VideoId = videoAdultId });
         return result;
     }
 

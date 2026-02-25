@@ -108,14 +108,14 @@ public class JavRepository(MssqlContext context) : IJavRepository
             l.Id, l.Type, l.RefId, l.Name, l.Url, l.OrderIndex, l.CreatedAt
         FROM Jav j
         LEFT JOIN Actress a ON j.ActressId = a.Id
-        LEFT JOIN Link l ON (l.RefId = j.Id AND l.Type = {(int)LinkType.Jav}) OR (l.RefId = a.Id AND l.Type = {(int)LinkType.Actress})
+        LEFT JOIN Link l ON (l.RefId = j.Id AND l.Type = {(int)LinkType.Jav}) OR (l.RefId = a.Id AND l.Type = {(int)LinkType.ActressJav})
         WHERE j.Id = @Id
         ORDER BY l.Type, l.Id
         ";
 
         var javDict = new Dictionary<int, JavWithDetails>();
 
-        await db.QueryAsync<Jav, Actress?, Link?, JavWithDetails>(
+        await db.QueryAsync<Jav, ActressJav?, Link?, JavWithDetails>(
             sql,
             (jav, actress, link) =>
             {
@@ -135,7 +135,7 @@ public class JavRepository(MssqlContext context) : IJavRepository
                     {
                         javDetails.JavLinks.Add(link);
                     }
-                    else if (link.Type == LinkType.Actress)
+                    else if (link.Type == LinkType.ActressJav)
                     {
                         javDetails.ActressLinks.Add(link);
                     }
@@ -161,13 +161,13 @@ public class JavRepository(MssqlContext context) : IJavRepository
             l.Id, l.Type, l.RefId, l.Name, l.Url, l.OrderIndex, l.CreatedAt
         FROM Jav j
         LEFT JOIN Actress a ON j.ActressId = a.Id
-        LEFT JOIN Link l ON (l.RefId = j.Id AND l.Type = {(int)LinkType.Jav}) OR (l.RefId = a.Id AND l.Type = {(int)LinkType.Actress})
+        LEFT JOIN Link l ON (l.RefId = j.Id AND l.Type = {(int)LinkType.Jav}) OR (l.RefId = a.Id AND l.Type = {(int)LinkType.ActressJav})
         ORDER BY j.CreatedAt DESC, l.Type, l.Id
         ";
 
         var javDict = new Dictionary<int, JavWithDetails>();
 
-        await db.QueryAsync<Jav, Actress?, Link?, JavWithDetails>(
+        await db.QueryAsync<Jav, ActressJav?, Link?, JavWithDetails>(
             sql,
             (jav, actress, link) =>
             {
@@ -187,7 +187,7 @@ public class JavRepository(MssqlContext context) : IJavRepository
                     {
                         javDetails.JavLinks.Add(link);
                     }
-                    else if (link.Type == LinkType.Actress && !javDetails.ActressLinks.Any(l => l.Id == link.Id))
+                    else if (link.Type == LinkType.ActressJav && !javDetails.ActressLinks.Any(l => l.Id == link.Id))
                     {
                         javDetails.ActressLinks.Add(link);
                     }

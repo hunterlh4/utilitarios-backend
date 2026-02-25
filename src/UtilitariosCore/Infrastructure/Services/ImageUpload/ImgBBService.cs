@@ -1,12 +1,9 @@
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using UtilitariosCore.Application.Features.Media.Dtos;
+using UtilitariosCore.Domain.Interfaces;
 
 namespace UtilitariosCore.Infrastructure.Services.ImageUpload;
-
-public interface IImgBBService
-{
-    Task<ImgBBUploadResponse?> UploadImageAsync(Stream fileStream, string fileName);
-}
 
 public class ImgBBService : IImgBBService
 {
@@ -74,33 +71,10 @@ public class ImgBBService : IImgBBService
             DeleteUrl = result.Data.DeleteUrl ?? string.Empty
         };
     }
-}
 
-public class ImgBBUploadResponse
-{
-    public string Url { get; set; } = string.Empty;
-    public string DisplayUrl { get; set; } = string.Empty;
-    public string Thumbnail { get; set; } = string.Empty;
-    public string DeleteUrl { get; set; } = string.Empty;
-}
-
-// Clases para deserializar la respuesta de ImgBB
-internal class ImgBBApiResponse
-{
-    public bool Success { get; set; }
-    public ImgBBData? Data { get; set; }
-}
-
-internal class ImgBBData
-{
-    public string Url { get; set; } = string.Empty;
-    public string DisplayUrl { get; set; } = string.Empty;
-    public string DeleteUrl { get; set; } = string.Empty;
-    public ImgBBImage? Thumb { get; set; }
-    public ImgBBImage? Medium { get; set; }
-}
-
-internal class ImgBBImage
-{
-    public string Url { get; set; } = string.Empty;
+    public async Task DeleteImageAsync(string deleteUrl)
+    {
+        if (!string.IsNullOrWhiteSpace(deleteUrl))
+            await _httpClient.GetAsync(deleteUrl);
+    }
 }
