@@ -5,13 +5,14 @@ using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Domain.Models;
 using UtilitariosCore.Shared.Responses;
+using UtilitariosCore.Shared.Utils;
 
 namespace UtilitariosCore.Application.Features.Actresses.Actions;
 
 public record CreateActressCommand : IRequest<Result<CreateActressJavDto>>
 {
     public string Name { get; set; } = string.Empty;
-    public List<string> Tags { get; set; } = [];
+    public List<int> TagIds { get; set; } = [];
 
     public sealed class Validator : AbstractValidator<CreateActressCommand>
     {
@@ -30,14 +31,14 @@ public record CreateActressCommand : IRequest<Result<CreateActressJavDto>>
         {
             var newActress = new ActressJav
             {
-                Name = request.Name,
+                Name = StringNormalizer.ToTitleCase(request.Name),
                 CreatedAt = DateTime.UtcNow
             };
 
             var actressId = await actressRepository.CreateActress(newActress);
 
-            if (request.Tags.Count > 0)
-                await tagRepository.ReplaceTagsForRefId(actressId, TagType.ActressJav, request.Tags);
+            if (request.TagIds.Count > 0)
+                await tagRepository.ReplaceTagsForRefId(actressId, TagType.ActressJav, request.TagIds);
 
             return Results.Created(new CreateActressJavDto { Id = actressId });
         }

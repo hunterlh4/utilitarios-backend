@@ -65,4 +65,63 @@ public class HentaiRepository(MssqlContext context) : IHentaiRepository
         var result = await db.QueryAsync<Hentai>(sql);
         return result;
     }
+
+    public async Task<HentaiWithTags?> GetHentaiWithTagsById(int id)
+    {
+        var db = context.CreateDefaultConnection();
+        const string sql = @"
+            SELECT h.Id, h.ApiId, h.Title, h.Image, h.Episodes, h.Status, h.CreatedAt,
+                   t.Name AS TagName
+            FROM Hentai h
+            LEFT JOIN TagRelation tr ON tr.RefId = h.Id AND tr.Type = 6
+            LEFT JOIN Tag t ON t.Id = tr.TagId
+            WHERE h.Id = @Id";
+
+        Hentai? hentai = null;
+        var tags = new List<string>();
+
+        await db.QueryAsync<Hentai, string?, Hentai>(
+            sql,
+            (h, tagName) =>
+            {
+                hentai ??= h;
+                if (tagName != null) tags.Add(tagName);
+                return h;
+            },
+            new { Id = id },
+            splitOn: "TagName");
+
+        if (hentai is null) return null;
+        return new HentaiWithTags { Hentai = hentai, Tags = tags };
+    }
+
+    public async Task<IEnumerable<HentaiWithTags>> GetAllHentaisWithTags()
+    {
+        var db = context.CreateDefaultConnection();
+        const string sql = @"
+            SELECT h.Id, h.ApiId, h.Title, h.Image, h.Episodes, h.Status, h.CreatedAt,
+                   t.Name AS TagName
+            FROM Hentai h
+            LEFT JOIN TagRelation tr ON tr.RefId = h.Id AND tr.Type = 6
+            LEFT JOIN Tag t ON t.Id = tr.TagId
+            ORDER BY h.CreatedAt DESC";
+
+        var dict = new Dictionary<int, HentaiWithTags>();
+
+        await db.QueryAsync<Hentai, string?, Hentai>(
+            sql,
+            (h, tagName) =>
+            {
+                if (!dict.TryGetValue(h.Id, out var entry))
+                {
+                    entry = new HentaiWithTags { Hentai = h };
+                    dict[h.Id] = entry;
+                }
+                if (tagName != null) entry.Tags.Add(tagName);
+                return h;
+            },
+            splitOn: "TagName");
+
+        return dict.Values;
+    }
 }

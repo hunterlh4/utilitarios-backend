@@ -1,3 +1,4 @@
+using FluentValidation;
 using MediatR;
 using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
@@ -9,102 +10,67 @@ namespace UtilitariosCore.Application.Features.Javs.Actions;
 public record UpdateJavCommand(int Id) : IRequest<Result>
 {
     public string Code { get; set; } = string.Empty;
-    public string ActressName { get; set; } = string.Empty;
-    public string? ActressUrl { get; set; }
+    public List<int> ActressIds { get; set; } = new();
     public string Image { get; set; } = string.Empty;
     public List<string> Links { get; set; } = new();
 
+    public sealed class Validator : AbstractValidator<UpdateJavCommand>
+    {
+        public Validator()
+        {
+            RuleFor(x => x.Id).GreaterThan(0).WithMessage("El ID debe ser mayor a 0.");
+            RuleFor(x => x.Code).NotEmpty().WithMessage("El código es requerido.");
+            RuleFor(x => x.Image).NotEmpty().WithMessage("La imagen es requerida.");
+            RuleFor(x => x.ActressIds).NotEmpty().WithMessage("Se requiere al menos una actriz.");
+            RuleForEach(x => x.ActressIds).GreaterThan(0).WithMessage("El ID de la actriz debe ser mayor a 0.");
+            RuleForEach(x => x.Links).NotEmpty().WithMessage("El link no puede estar vacío.");
+        }
+    }
+
     internal sealed class Handler(
         IJavRepository javRepository,
-        IActressJavRepository actressJavRepository,
-        ILinkRepository linkRepository) 
+        ILinkRepository linkRepository)
         : IRequestHandler<UpdateJavCommand, Result>
     {
         public async Task<Result> Handle(UpdateJavCommand request, CancellationToken cancellationToken)
         {
             var item = await javRepository.GetJavById(request.Id);
+            if (item is null) return Errors.NotFound();
 
-            if (item is null)
-            {
-                return Errors.NotFound();
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Code))
-            {
-                return Errors.BadRequest("Code is required.");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.ActressName))
-            {
-                return Errors.BadRequest("ActressName is required.");
-            }
-
-            // Buscar o crear actriz
-            var actress = await actressJavRepository.GetActressByName(request.ActressName);
-
-            int actressId;
-
-            if (actress == null)
-            {
-                // Crear nueva actriz
-                var newActress = new ActressJav
-                {
-                    Name = request.ActressName,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                actressId = await actressJavRepository.CreateActress(newActress);
-            }
-            else
-            {
-                actressId = actress.Id;
-            }
-
-            // Si tiene URL, verificar si ya existe ese link
-            if (!string.IsNullOrWhiteSpace(request.ActressUrl))
-            {
-                var existingLinks = await linkRepository.GetLinksByRefId(actressId, LinkType.ActressJav);
-                var linkExists = existingLinks.Any(l => l.Url == request.ActressUrl);
-
-                // Solo crear el link si no existe
-                if (!linkExists)
-                {
-                    var actressLink = new Link
-                    {
-                        Type = LinkType.ActressJav,
-                        RefId = actressId,
-                        Name = null,
-                        Url = request.ActressUrl,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    await linkRepository.CreateLink(actressLink);
-                }
-            }
-
-            // Actualizar Jav
             item.Code = request.Code.ToUpper();
-            item.ActressId = actressId;
             item.Image = request.Image;
-
             await javRepository.UpdateJav(item);
 
-            // Actualizar links del Jav - eliminar los existentes y crear los nuevos
-            await linkRepository.DeleteLinksByRefId(request.Id, LinkType.Jav);
+            // Diff actrices: eliminar las que ya no vienen, agregar las nuevas
+            var currentIds = (await javRepository.GetActressIdsByJavId(request.Id)).ToHashSet();
+            var incomingIds = request.ActressIds.ToHashSet();
 
-            if (request.Links != null && request.Links.Any())
+            foreach (var id in currentIds.Except(incomingIds))
+                await javRepository.RemoveActressFromJav(request.Id, id);
+
+            foreach (var id in incomingIds.Except(currentIds))
+                await javRepository.AddActressToJav(request.Id, id);
+
+            // Diff links: eliminar los que ya no vienen, agregar los nuevos
+            var currentLinks = (await linkRepository.GetLinksByRefId(request.Id, LinkType.Jav)).ToList();
+            var incomingUrls = request.Links
+                .Where(u => !string.IsNullOrWhiteSpace(u))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var link in currentLinks.Where(l => !incomingUrls.Contains(l.Url)))
+                await linkRepository.DeleteLink(link.Id);
+
+            var existingUrls = currentLinks.Select(l => l.Url).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var url in incomingUrls.Where(u => !existingUrls.Contains(u)))
             {
-                foreach (var url in request.Links)
+                await linkRepository.CreateLink(new Link
                 {
-                    var link = new Link
-                    {
-                        Type = LinkType.Jav,
-                        RefId = request.Id,
-                        Name = null,
-                        Url = url,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    await linkRepository.CreateLink(link);
-                }
+                    Type = LinkType.Jav,
+                    RefId = request.Id,
+                    Name = null,
+                    Url = url,
+                    CreatedAt = DateTime.UtcNow
+                });
             }
 
             return Results.NoContent();

@@ -10,4 +10,6 @@ public interface IHentaiRepository
     Task<Hentai?> GetHentaiById(int id);
     Task<Hentai?> GetHentaiByApiId(string apiId);
     Task<IEnumerable<Hentai>> GetAllHentais();
+    Task<HentaiWithTags?> GetHentaiWithTagsById(int id);
+    Task<IEnumerable<HentaiWithTags>> GetAllHentaisWithTags();
 }

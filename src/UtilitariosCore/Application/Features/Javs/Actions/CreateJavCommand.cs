@@ -1,3 +1,4 @@
+using FluentValidation;
 using MediatR;
 using UtilitariosCore.Application.Features.Javs.Dtos;
 using UtilitariosCore.Domain.Enums;
@@ -10,76 +11,32 @@ namespace UtilitariosCore.Application.Features.Javs.Actions;
 public class CreateJavCommand : IRequest<Result<CreateJavDto>>
 {
     public string Code { get; set; } = string.Empty;
-    public string ActressName { get; set; } = string.Empty;
-    public string? ActressUrl { get; set; }
+    public List<int> ActressIds { get; set; } = new();
     public string Image { get; set; } = string.Empty;
     public List<string> Links { get; set; } = new();
 
+    public sealed class Validator : AbstractValidator<CreateJavCommand>
+    {
+        public Validator()
+        {
+            RuleFor(x => x.Code).NotEmpty().WithMessage("El código es requerido.");
+            RuleFor(x => x.Image).NotEmpty().WithMessage("La imagen es requerida.");
+            RuleFor(x => x.ActressIds).NotEmpty().WithMessage("Se requiere al menos una actriz.");
+            RuleForEach(x => x.ActressIds).GreaterThan(0).WithMessage("El ID de la actriz debe ser mayor a 0.");
+            RuleForEach(x => x.Links).NotEmpty().WithMessage("El link no puede estar vacío.");
+        }
+    }
+
     internal sealed class Handler(
         IJavRepository javRepository,
-        IActressJavRepository actressJavRepository,
-        ILinkRepository linkRepository) 
+        ILinkRepository linkRepository)
         : IRequestHandler<CreateJavCommand, Result<CreateJavDto>>
     {
         public async Task<Result<CreateJavDto>> Handle(CreateJavCommand request, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(request.Code))
-            {
-                return Errors.BadRequest("Code is required.");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.ActressName))
-            {
-                return Errors.BadRequest("ActressName is required.");
-            }
-
-            // Buscar o crear actriz
-            var actress = await actressJavRepository.GetActressByName(request.ActressName);
-
-            int actressId;
-
-            if (actress == null)
-            {
-                // Crear nueva actriz
-                var newActress = new ActressJav
-                {
-                    Name = request.ActressName,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                actressId = await actressJavRepository.CreateActress(newActress);
-            }
-            else
-            {
-                actressId = actress.Id;
-            }
-
-            // Si tiene URL, verificar si ya existe ese link
-            if (!string.IsNullOrWhiteSpace(request.ActressUrl))
-            {
-                var existingLinks = await linkRepository.GetLinksByRefId(actressId, LinkType.ActressJav);
-                var linkExists = existingLinks.Any(l => l.Url == request.ActressUrl);
-
-                // Solo crear el link si no existe
-                if (!linkExists)
-                {
-                    var actressLink = new Link
-                    {
-                        Type = LinkType.ActressJav,
-                        RefId = actressId,
-                        Name = null,
-                        Url = request.ActressUrl,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    await linkRepository.CreateLink(actressLink);
-                }
-            }
-
-            // Crear Jav
             var newJav = new Jav
             {
                 Code = request.Code.ToUpper(),
-                ActressId = actressId,
                 Image = request.Image,
                 Status = ContentStatus.Proximamente,
                 CreatedAt = DateTime.UtcNow
@@ -87,35 +44,28 @@ public class CreateJavCommand : IRequest<Result<CreateJavDto>>
 
             var javId = await javRepository.CreateJav(newJav);
 
-            // Crear links del Jav
-            if (request.Links != null && request.Links.Any())
-            {
-                // Obtener links existentes para verificar duplicados
-                var existingLinks = await linkRepository.GetLinksByRefId(javId, LinkType.Jav);
-                var existingUrls = existingLinks.Select(l => l.Url).ToHashSet();
+            foreach (var actressId in request.ActressIds)
+                await javRepository.AddActressToJav(javId, actressId);
 
+            if (request.Links != null && request.Links.Count > 0)
+            {
                 foreach (var url in request.Links)
                 {
-                    // Solo crear el link si no existe
-                    if (!existingUrls.Contains(url))
+                    if (!string.IsNullOrWhiteSpace(url))
                     {
-                        var link = new Link
+                        await linkRepository.CreateLink(new Link
                         {
                             Type = LinkType.Jav,
                             RefId = javId,
                             Name = null,
                             Url = url,
                             CreatedAt = DateTime.UtcNow
-                        };
-                        await linkRepository.CreateLink(link);
+                        });
                     }
                 }
             }
 
-            return Results.Created(new CreateJavDto
-            {
-                Id = javId
-            });
+            return Results.Created(new CreateJavDto { Id = javId });
         }
     }
 }

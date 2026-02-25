@@ -20,29 +20,33 @@ public class GetAllJavsQuery : IRequest<Result<IEnumerable<JavDto>>>
             var result = new List<JavDto>();
             foreach (var item in items)
             {
-                List<string> actressTags = [];
-                if (item.Actress != null)
+                var actresses = new List<ActressDto>();
+                var allTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var actressWithLinks in item.Actresses)
                 {
-                    var tags = await tagRepository.GetTagsByRefId(item.Actress.Id, TagType.ActressJav);
-                    actressTags = tags.Select(t => t.Name).ToList();
+                    var tags = await tagRepository.GetTagsByRefId(actressWithLinks.Actress.Id, TagType.ActressJav);
+                    var tagNames = tags.Select(t => t.Name).ToList();
+                    foreach (var tag in tagNames) allTags.Add(tag);
+                    actresses.Add(new ActressDto
+                    {
+                        Id = actressWithLinks.Actress.Id,
+                        Name = actressWithLinks.Actress.Name,
+                        Image = actressWithLinks.Actress.Image,
+                        Tags = tagNames,
+                        Links = actressWithLinks.Links.Select(l => new LinkDto
+                        {
+                            Id = l.Id,
+                            Url = l.Url
+                        }).ToList()
+                    });
                 }
 
                 result.Add(new JavDto
                 {
                     Id = item.Jav.Id,
                     Code = item.Jav.Code,
-                    Actress = item.Actress != null ? new ActressDto
-                    {
-                        Id = item.Actress.Id,
-                        Name = item.Actress.Name,
-                        Image = item.Actress.Image,
-                        Tags = actressTags,
-                        Links = item.ActressLinks.Select(l => new LinkDto
-                        {
-                            Id = l.Id,
-                            Url = l.Url
-                        }).ToList()
-                    } : null,
+                    Actresses = actresses,
+                    Tags = [.. allTags],
                     Image = item.Jav.Image,
                     Status = item.Jav.Status,
                     Links = item.JavLinks.Select(l => new LinkDto

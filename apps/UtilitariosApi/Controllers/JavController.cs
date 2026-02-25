@@ -38,12 +38,19 @@ public class JavController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
-    //[HttpPost("bulk")]
-    //public async Task<ActionResult<CreateJavDto>> BulkCreate([FromBody] BulkCreateJavCommand command)
-    //{
-    //    var response = await sender.Send(command);
-    //    return response.ToActionResult();
-    //}
+    [HttpPost("bulk")]
+    public async Task<ActionResult<CreateJavDto>> BulkCreate([FromBody] BulkCreateJavCommand command)
+    {
+       var response = await sender.Send(command);
+       return response.ToActionResult();
+    }
+
+    [HttpPost("bulk-import")]
+    public async Task<ActionResult<BulkImportJavResult>> BulkImport([FromBody] BulkImportJavCommand command)
+    {
+        var response = await sender.Send(command);
+        return response.ToActionResult();
+    }
 
     [HttpPut("{id:int}")]
     public async Task<ActionResult> Update([FromRoute] int id, [FromBody] UpdateJavDto payload)
@@ -51,8 +58,7 @@ public class JavController(ISender sender) : ControllerBase
         var response = await sender.Send(new UpdateJavCommand(id)
         {
             Code = payload.Code,
-            ActressName = payload.ActressName,
-            ActressUrl = payload.ActressUrl,
+            ActressIds = payload.ActressIds,
             Image = payload.Image,
             Links = payload.Links
         });

@@ -3,5 +3,6 @@ namespace UtilitariosCore.Domain.Enums;
 public enum ContentStatus
 {
     Proximamente = 1,
-    Completado = 2
+    Completado = 2,
+    Pendiente = 3
 }

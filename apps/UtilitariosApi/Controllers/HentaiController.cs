@@ -32,9 +32,9 @@ public class HentaiController(ISender sender) : ControllerBase
     }
 
     [HttpPut("{id:int}/tags")]
-    public async Task<ActionResult> UpdateTags([FromRoute] int id, [FromBody] List<string> tags)
+    public async Task<ActionResult> UpdateTags([FromRoute] int id, [FromBody] List<int> tagIds)
     {
-        var response = await sender.Send(new UpdateHentaiTagsCommand(id, tags));
+        var response = await sender.Send(new UpdateHentaiTagsCommand(id, tagIds));
         return response.ToActionResult();
     }
 

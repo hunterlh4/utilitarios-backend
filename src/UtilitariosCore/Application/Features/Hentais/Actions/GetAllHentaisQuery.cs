@@ -7,22 +7,23 @@ namespace UtilitariosCore.Application.Features.Hentais.Actions;
 
 public class GetAllHentaisQuery : IRequest<Result<IEnumerable<HentaiDto>>>
 {
-    internal sealed class Handler(IHentaiRepository hentaiRepository) 
+    internal sealed class Handler(IHentaiRepository hentaiRepository)
         : IRequestHandler<GetAllHentaisQuery, Result<IEnumerable<HentaiDto>>>
     {
         public async Task<Result<IEnumerable<HentaiDto>>> Handle(GetAllHentaisQuery request, CancellationToken cancellationToken)
         {
-            var items = await hentaiRepository.GetAllHentais();
+            var items = await hentaiRepository.GetAllHentaisWithTags();
 
             return items.Select(x => new HentaiDto
             {
-                Id = x.Id,
-                ApiId = x.ApiId,
-                Title = x.Title,
-                Image = x.Image,
-                Episodes = x.Episodes,
-                Status = x.Status,
-                CreatedAt = x.CreatedAt
+                Id = x.Hentai.Id,
+                ApiId = x.Hentai.ApiId,
+                Title = x.Hentai.Title,
+                Image = x.Hentai.Image,
+                Episodes = x.Hentai.Episodes,
+                Status = x.Hentai.Status,
+                CreatedAt = x.Hentai.CreatedAt,
+                Tags = x.Tags
             }).ToList();
         }
     }

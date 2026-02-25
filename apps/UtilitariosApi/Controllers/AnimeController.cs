@@ -30,19 +30,19 @@ public class AnimeController(ISender sender) : ControllerBase
         var response = await sender.Send(command);
         return response.ToActionResult();
     }
-
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult> Update([FromRoute] int id, [FromBody] UpdateAnimeDto payload)
-    {
-        var response = await sender.Send(new UpdateAnimeCommand(id)
-        {
-            Title = payload.Title,
-            Image = payload.Image,
-            Episodes = payload.Episodes,
-            Status = payload.Status
-        });
-        return response.ToActionResult();
-    }
+    //se usa un api no se puede actualizar
+    //[HttpPut("{id:int}")]
+    //public async Task<ActionResult> Update([FromRoute] int id, [FromBody] UpdateAnimeDto payload)
+    //{
+    //    var response = await sender.Send(new UpdateAnimeCommand(id)
+    //    {
+    //        Title = payload.Title,
+    //        Image = payload.Image,
+    //        Episodes = payload.Episodes,
+    //        Status = payload.Status
+    //    });
+    //    return response.ToActionResult();
+    //}
 
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> Delete([FromRoute] int id)

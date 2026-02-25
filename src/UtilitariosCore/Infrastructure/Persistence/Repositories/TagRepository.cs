@@ -18,50 +18,82 @@ public class TagRepository(MssqlContext context) : ITagRepository
         return await db.QueryAsync<Tag>(sql, new { RefId = refId, Type = type });
     }
 
-    public async Task<bool> ReplaceTagsForRefId(int refId, TagType type, List<string> tagNames)
+    public async Task<IEnumerable<Tag>> GetAllTagsByType(TagType type)
+    {
+        var db = context.CreateDefaultConnection();
+        const string sql = "SELECT Id, Name, Type FROM Tag WHERE Type = @Type ORDER BY Name";
+        return await db.QueryAsync<Tag>(sql, new { Type = type });
+    }
+
+    public async Task<bool> ReplaceTagsForRefId(int refId, TagType type, List<int> tagIds)
     {
         var db = context.CreateDefaultConnection();
 
-        var incoming = tagNames
-            .Where(n => !string.IsNullOrWhiteSpace(n))
-            .Select(n => n.Trim())
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var incoming = tagIds.ToHashSet();
 
         // Tags actuales ligados a esta entidad
         var current = (await GetTagsByRefId(refId, type))
-            .Select(t => t.Name)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            .Select(t => t.Id)
+            .ToHashSet();
 
         // Eliminar los que ya no vienen
         var toRemove = current.Except(incoming).ToList();
-        foreach (var name in toRemove)
+        foreach (var id in toRemove)
         {
-            await db.ExecuteAsync(@"
-                DELETE tr FROM TagRelation tr
-                INNER JOIN Tag t ON t.Id = tr.TagId
-                WHERE tr.RefId = @RefId AND tr.Type = @Type AND t.Name = @Name",
-                new { RefId = refId, Type = type, Name = name });
+            await db.ExecuteAsync(
+                "DELETE FROM TagRelation WHERE RefId = @RefId AND Type = @Type AND TagId = @TagId",
+                new { RefId = refId, Type = type, TagId = id });
         }
 
         // Agregar los que son nuevos
         var toAdd = incoming.Except(current).ToList();
-        foreach (var name in toAdd)
+        foreach (var id in toAdd)
         {
-            // Crear el tag si no existe
-            await db.ExecuteAsync(@"
-                IF NOT EXISTS (SELECT 1 FROM Tag WHERE Name = @Name AND Type = @Type)
-                    INSERT INTO Tag (Name, Type) VALUES (@Name, @Type)",
-                new { Name = name, Type = type });
-
-            var tagId = await db.QuerySingleAsync<int>(
-                "SELECT Id FROM Tag WHERE Name = @Name AND Type = @Type",
-                new { Name = name, Type = type });
-
             await db.ExecuteAsync(
                 "INSERT INTO TagRelation (TagId, RefId, Type) VALUES (@TagId, @RefId, @Type)",
-                new { TagId = tagId, RefId = refId, Type = type });
+                new { TagId = id, RefId = refId, Type = type });
         }
 
         return true;
+    }
+
+    public async Task<Tag?> GetTagById(int id)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.QueryFirstOrDefaultAsync<Tag>(
+            "SELECT Id, Name, Type FROM Tag WHERE Id = @Id",
+            new { Id = id });
+    }
+
+    public async Task<int> CreateTag(Tag tag)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.QuerySingleAsync<int>(@"
+            INSERT INTO Tag (Name, Type) VALUES (@Name, @Type);
+            SELECT SCOPE_IDENTITY()", tag);
+    }
+
+    public async Task<bool> UpdateTag(Tag tag)
+    {
+        var db = context.CreateDefaultConnection();
+        var rows = await db.ExecuteAsync(
+            "UPDATE Tag SET Name = @Name WHERE Id = @Id", tag);
+        return rows > 0;
+    }
+
+    public async Task<bool> IsTagInUse(int id)
+    {
+        var db = context.CreateDefaultConnection();
+        var count = await db.QuerySingleAsync<int>(
+            "SELECT COUNT(1) FROM TagRelation WHERE TagId = @Id", new { Id = id });
+        return count > 0;
+    }
+
+    public async Task<bool> DeleteTag(int id)
+    {
+        var db = context.CreateDefaultConnection();
+        var rows = await db.ExecuteAsync(
+            "DELETE FROM Tag WHERE Id = @Id", new { Id = id });
+        return rows > 0;
     }
 }

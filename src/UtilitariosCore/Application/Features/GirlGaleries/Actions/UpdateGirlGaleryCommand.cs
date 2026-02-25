@@ -1,6 +1,8 @@
+using FluentValidation;
 using MediatR;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Shared.Responses;
+using UtilitariosCore.Shared.Utils;
 
 namespace UtilitariosCore.Application.Features.GirlGaleries.Actions;
 
@@ -8,6 +10,15 @@ public record UpdateGirlGaleryCommand(int Id) : IRequest<Result>
 {
     public string Name { get; set; } = string.Empty;
     public int? MediaId { get; set; }
+
+    public sealed class Validator : AbstractValidator<UpdateGirlGaleryCommand>
+    {
+        public Validator()
+        {
+            RuleFor(x => x.Id).GreaterThan(0).WithMessage("El ID debe ser mayor a 0.");
+            RuleFor(x => x.Name).NotEmpty().WithMessage("El nombre es requerido.");
+        }
+    }
 
     internal sealed class Handler(
         IGirlGaleryRepository repository,
@@ -23,12 +34,7 @@ public record UpdateGirlGaleryCommand(int Id) : IRequest<Result>
                 return Errors.NotFound();
             }
 
-            if (string.IsNullOrWhiteSpace(request.Name))
-            {
-                return Errors.BadRequest("Name is required.");
-            }
-
-            item.Name = request.Name;
+            item.Name = StringNormalizer.ToTitleCase(request.Name);
             await repository.UpdateGirlGalery(item);
 
             // Si se proporciona MediaId, intercambiar posiciones

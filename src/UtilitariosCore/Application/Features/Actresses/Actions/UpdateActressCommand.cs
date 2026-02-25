@@ -3,6 +3,7 @@ using MediatR;
 using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Shared.Responses;
+using UtilitariosCore.Shared.Utils;
 
 namespace UtilitariosCore.Application.Features.Actresses.Actions;
 
@@ -10,7 +11,7 @@ public record UpdateActressCommand : IRequest<Result>
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public List<string> Tags { get; set; } = [];
+    public List<int> TagIds { get; set; } = [];
 
     public sealed class Validator : AbstractValidator<UpdateActressCommand>
     {
@@ -31,10 +32,10 @@ public record UpdateActressCommand : IRequest<Result>
             var actress = await actressRepository.GetActressById(request.Id);
             if (actress == null) return Errors.NotFound("Actriz no encontrada.");
 
-            actress.Name = request.Name;
+            actress.Name = StringNormalizer.ToTitleCase(request.Name);
             await actressRepository.UpdateActress(actress);
 
-            await tagRepository.ReplaceTagsForRefId(request.Id, TagType.ActressJav, request.Tags);
+            await tagRepository.ReplaceTagsForRefId(request.Id, TagType.ActressJav, request.TagIds);
 
             return Results.NoContent();
         }
