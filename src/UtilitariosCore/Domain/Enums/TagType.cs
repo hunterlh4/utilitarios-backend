@@ -7,5 +7,7 @@ public enum TagType
     Post = 3,
     Other = 4,
     ActressAdult = 5,
-    Hentai = 6
+    Hentai = 6,
+    Jav = 7,
+    VideoAdult = 8
 }

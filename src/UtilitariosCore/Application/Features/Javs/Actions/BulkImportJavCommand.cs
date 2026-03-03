@@ -64,7 +64,7 @@ public record BulkImportJavCommand : IRequest<Result<BulkImportJavResult>>
                 // Registrar actrices y vincularlas al JAV
                 foreach (var actressName in actressNames)
                 {
-                    var existingActress = await actressJavRepository.GetActressByName(actressName);
+                    var existingActress = await actressJavRepository.GetActressJavByName(actressName);
 
                     int actressId;
                     if (existingActress != null)
@@ -73,7 +73,7 @@ public record BulkImportJavCommand : IRequest<Result<BulkImportJavResult>>
                     }
                     else
                     {
-                        actressId = await actressJavRepository.CreateActress(new ActressJav
+                        actressId = await actressJavRepository.CreateActressJav(new ActressJav
                         {
                             Name = actressName,
                             CreatedAt = DateTime.UtcNow

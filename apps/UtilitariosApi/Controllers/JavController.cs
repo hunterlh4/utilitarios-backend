@@ -59,6 +59,7 @@ public class JavController(ISender sender) : ControllerBase
         {
             Code = payload.Code,
             ActressIds = payload.ActressIds,
+            TagIds = payload.TagIds,
             Image = payload.Image,
             Links = payload.Links
         });

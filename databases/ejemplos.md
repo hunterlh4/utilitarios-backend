@@ -154,11 +154,11 @@ NIMA-055 (id=1) tiene 3 links de streaming
 ## Tag — ActressJav (type=1)
 | id | name | type |
 |----|------|------|
-| 1 | Creampie | 1 |
-| 2 | Big Tits | 1 |
-| 3 | Uncensored | 1 |
+| 1 | Big Ass | 1 |
+| 2 | Caderona | 1 |
+| 3 | Piel Morena | 1 |
 
-**type=1 → TagType.ActressJav** · UNIQUE por (Name, Type)
+**type=1 → TagType.ActressJav** · Características físicas de la actriz JAV (cuerpo, rasgos) · UNIQUE por (Name, Type)
 
 ---
 
@@ -170,8 +170,32 @@ NIMA-055 (id=1) tiene 3 links de streaming
 | 3 | 1 | 1 |
 | 1 | 2 | 1 |
 
-Yuria Yoshine (actriz id=1) tiene 3 tags: Creampie, Big Tits, Uncensored  
-Ai Sayama (actriz id=2) tiene 1 tag: Creampie
+Yuria Yoshine (actriz id=1) tiene 3 tags: Big Ass, Caderona, Piel Morena  
+Ai Sayama (actriz id=2) tiene 1 tag: Big Ass
+
+---
+
+## Tag — Jav (type=7)
+| id | name | type |
+|----|------|------|
+| 15 | Esposa | 7 |
+| 16 | Cuckold | 7 |
+| 17 | Uniforme | 7 |
+
+**type=7 → TagType.Jav** · Temática/contenido del video JAV (no características de la actriz)
+
+---
+
+## TagRelation — Jav (type=7)
+| tagId | refId | type |
+|-------|-------|------|
+| 15 | 1 | 7 |
+| 16 | 1 | 7 |
+| 17 | 2 | 7 |
+
+NIMA-055 (jav id=1) tiene 2 tags propios: Esposa, Cuckold  
+SSIS-123 (jav id=2) tiene 1 tag propio: Uniforme  
+**GetAllJavsQuery:** la respuesta fusiona tags del JAV + tags de sus actrices en una sola lista sin repetidos
 
 ---
 
@@ -233,10 +257,10 @@ Video id=2 tiene 1 actriz (Lana Rhoades)
 | id | name | type |
 |----|------|------|
 | 9 | Latina | 5 |
-| 10 | MILF | 5 |
-| 11 | Blowjob | 5 |
+| 10 | Caderona | 5 |
+| 11 | Delgada | 5 |
 
-**type=5 → TagType.ActressAdult** · tags propios de la actriz porno (no del video)
+**type=5 → TagType.ActressAdult** · Características físicas de la actriz porno (cuerpo, rasgos) · no del video
 
 ---
 
@@ -247,8 +271,32 @@ Video id=2 tiene 1 actriz (Lana Rhoades)
 | 10 | 1 | 5 |
 | 11 | 2 | 5 |
 
-Mia Khalifa (actriz id=1) tiene 2 tags: Latina, MILF  
-Lana Rhoades (actriz id=2) tiene 1 tag: Blowjob
+Mia Khalifa (actriz id=1) tiene 2 tags: Latina, Caderona  
+Lana Rhoades (actriz id=2) tiene 1 tag: Delgada
+
+---
+
+## Tag — VideoAdult (type=8)
+| id | name | type |
+|----|------|------|
+| 18 | Amateur | 8 |
+| 19 | Esposa | 8 |
+| 20 | POV | 8 |
+
+**type=8 → TagType.VideoAdult** · Temática/contenido del video porno (no características de la actriz)
+
+---
+
+## TagRelation — VideoAdult (type=8)
+| tagId | refId | type |
+|-------|-------|------|
+| 18 | 1 | 8 |
+| 19 | 1 | 8 |
+| 20 | 2 | 8 |
+
+Video id=1 (Mia Khalifa Best) tiene 2 tags propios: Amateur, Esposa  
+Video id=2 (Lana Rhoades Scene) tiene 1 tag propio: POV  
+**GetActressAdultByIdQuery:** cada video en la respuesta incluye su `Tags` lista propia
 
 ---
 
@@ -347,8 +395,8 @@ Kanojo x Kanojo (id=2) → Romance
 ## Tag (Tags genéricos)
 | id | name | type |
 |----|------|------|
-| 1 | Creampie | 1 |
-| 2 | Big Tits | 1 |
+| 1 | Big Ass | 1 |
+| 2 | Caderona | 1 |
 | 3 | React | 2 |
 | 4 | Angular | 2 |
 | 5 | SQL Server | 2 |
@@ -356,13 +404,19 @@ Kanojo x Kanojo (id=2) → Romance
 | 7 | diseño | 3 |
 | 8 | hooks | 3 |
 | 9 | Latina | 5 |
-| 10 | MILF | 5 |
-| 11 | Blowjob | 5 |
+| 10 | Caderona | 5 |
+| 11 | Delgada | 5 |
 | 12 | Romance | 6 |
 | 13 | Comedy | 6 |
 | 14 | Netorare | 6 |
+| 15 | Esposa | 7 |
+| 16 | Cuckold | 7 |
+| 17 | Uniforme | 7 |
+| 18 | Amateur | 8 |
+| 19 | Esposa | 8 |
+| 20 | POV | 8 |
 
-**type:** 1=ActressJav · 2=Project · 3=Post · 4=Other · 5=ActressAdult · 6=Hentai (TagType)  
+**type:** 1=ActressJav (características físicas) · 2=Project · 3=Post · 4=Other · 5=ActressAdult (características físicas) · 6=Hentai · 7=Jav (temática del video) · 8=VideoAdult (temática del video) (TagType)  
 Mismo nombre puede existir en distintos tipos (UNIQUE por Name+Type)
 
 ---
@@ -384,12 +438,20 @@ Mismo nombre puede existir en distintos tipos (UNIQUE por Name+Type)
 | 12 | 1 | 6 |
 | 13 | 1 | 6 |
 | 12 | 2 | 6 |
+| 15 | 1 | 7 |
+| 16 | 1 | 7 |
+| 17 | 2 | 7 |
+| 18 | 1 | 8 |
+| 19 | 1 | 8 |
+| 20 | 2 | 8 |
 
-ActressJav id=1 → Creampie, Big Tits  
+ActressJav id=1 → Big Ass, Caderona · ActressJav id=2 → Big Ass  
 Project id=1 → React, Angular, SQL Server  
 Post id=1 → ui, diseño · Post id=2 → hooks  
-ActressAdult id=1 → Latina, MILF · ActressAdult id=2 → Blowjob  
-Hentai id=1 → Romance, Comedy · Hentai id=2 → Romance
+ActressAdult id=1 → Latina, Caderona · ActressAdult id=2 → Delgada  
+Hentai id=1 → Romance, Comedy · Hentai id=2 → Romance  
+Jav id=1 → Esposa, Cuckold · Jav id=2 → Uniforme  
+VideoAdult id=1 → Amateur, Esposa · VideoAdult id=2 → POV
 
 
 ---

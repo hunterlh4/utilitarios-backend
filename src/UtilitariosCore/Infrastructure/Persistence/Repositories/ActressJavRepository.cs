@@ -8,13 +8,13 @@ namespace UtilitariosCore.Infrastructure.Persistence.Repositories;
 
 public class ActressJavRepository(MssqlContext context) : IActressJavRepository
 {
-    public async Task<int> CreateActress(ActressJav actress)
+    public async Task<int> CreateActressJav(ActressJav actress)
     {
         var db = context.CreateDefaultConnection();
 
         string sql = @"
-        INSERT INTO Actress (Name, Image, CreatedAt)
-        VALUES (@Name, @Image, @CreatedAt)
+        INSERT INTO ActressJav (Name, CreatedAt)
+        VALUES (@Name, @CreatedAt)
         SELECT SCOPE_IDENTITY()
         ";
 
@@ -22,13 +22,13 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
         return result;
     }
 
-    public async Task<bool> UpdateActress(ActressJav actress)
+    public async Task<bool> UpdateActressJav(ActressJav actress)
     {
         var db = context.CreateDefaultConnection();
 
         string sql = @"
-        UPDATE Actress
-        SET Name = @Name, Image = @Image
+        UPDATE ActressJav
+        SET Name = @Name
         WHERE Id = @Id
         ";
 
@@ -36,31 +36,31 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
         return result > 0;
     }
 
-    public async Task<ActressJav?> GetActressById(int id)
+    public async Task<ActressJav?> GetActressJavById(int id)
     {
         var db = context.CreateDefaultConnection();
-        string sql = "SELECT Id, Name, Image, CreatedAt FROM Actress WHERE Id = @Id";
+        string sql = "SELECT Id, Name, CreatedAt FROM ActressJav WHERE Id = @Id";
         var result = await db.QueryFirstOrDefaultAsync<ActressJav>(sql, new { Id = id });
         return result;
     }
 
-    public async Task<ActressJav?> GetActressByName(string name)
+    public async Task<ActressJav?> GetActressJavByName(string name)
     {
         var db = context.CreateDefaultConnection();
-        string sql = "SELECT Id, Name, Image, CreatedAt FROM Actress WHERE Name = @Name";
+        string sql = "SELECT Id, Name, CreatedAt FROM ActressJav WHERE Name = @Name";
         var result = await db.QueryFirstOrDefaultAsync<ActressJav>(sql, new { Name = name });
         return result;
     }
 
-    public async Task<IEnumerable<ActressJav>> GetAllActresses()
+    public async Task<IEnumerable<ActressJav>> GetAllActressJav()
     {
         var db = context.CreateDefaultConnection();
-        string sql = "SELECT Id, Name, Image, CreatedAt FROM Actress ORDER BY Name";
+        string sql = "SELECT Id, Name, CreatedAt FROM ActressJav ORDER BY Name";
         var result = await db.QueryAsync<ActressJav>(sql);
         return result;
     }
 
-    public async Task<ActressJavWithTagsDto?> GetActressWithTagsById(int id)
+    public async Task<ActressJavWithTagsDto?> GetActressJavWithTagsById(int id)
     {
         var db = context.CreateDefaultConnection();
 
@@ -76,7 +76,7 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
                 INNER JOIN Tag t ON t.Id = tr.TagId
                 WHERE tr.RefId = a.Id AND tr.Type = {(int)TagType.ActressJav}
             ) AS TagsRaw
-        FROM Actress a
+        FROM ActressJav a
         WHERE a.Id = @Id
         ";
 
@@ -95,7 +95,7 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
         };
     }
 
-    public async Task<IEnumerable<ActressJavDto>> GetAllActressesWithFirstImage()
+    public async Task<IEnumerable<ActressJavDto>> GetAllActressJavWithFirstImage()
     {
         var db = context.CreateDefaultConnection();
 
@@ -117,7 +117,7 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
                 INNER JOIN Tag t ON t.Id = tr.TagId
                 WHERE tr.RefId = a.Id AND tr.Type = {(int)TagType.ActressJav}
             ) AS TagsRaw
-        FROM Actress a
+        FROM ActressJav a
         ORDER BY a.Name
         ";
 

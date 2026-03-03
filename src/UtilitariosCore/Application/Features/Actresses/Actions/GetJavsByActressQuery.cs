@@ -6,24 +6,18 @@ using UtilitariosCore.Shared.Responses;
 
 namespace UtilitariosCore.Application.Features.Actresses.Actions;
 
-public record GetActressJavByIdQuery(int Id) : IRequest<Result<ActressJavDetailDto>>;
+public record GetJavsByActressQuery(int ActressId) : IRequest<Result<IEnumerable<JavSummaryDto>>>;
 
-internal sealed class GetActressJavByIdQueryHandler(
-    IActressJavRepository actressRepository,
+internal sealed class GetJavsByActressQueryHandler(
     IJavRepository javRepository,
-    ILinkRepository linkRepository,
     ITagRepository tagRepository)
-    : IRequestHandler<GetActressJavByIdQuery, Result<ActressJavDetailDto>>
+    : IRequestHandler<GetJavsByActressQuery, Result<IEnumerable<JavSummaryDto>>>
 {
-    public async Task<Result<ActressJavDetailDto>> Handle(GetActressJavByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<IEnumerable<JavSummaryDto>>> Handle(GetJavsByActressQuery request, CancellationToken cancellationToken)
     {
-        var actress = await actressRepository.GetActressJavWithTagsById(request.Id);
-        if (actress == null) return Errors.NotFound("Actriz no encontrada.");
+        var javsWithDetails = await javRepository.GetJavsWithDetailsByActressId(request.ActressId);
 
-        var links = await linkRepository.GetLinksByRefId(request.Id, LinkType.ActressJav);
-        var javsWithDetails = await javRepository.GetJavsWithDetailsByActressId(request.Id);
-
-        var javSummaries = new List<JavSummaryDto>();
+        var result = new List<JavSummaryDto>();
         foreach (var item in javsWithDetails)
         {
             var allTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -43,7 +37,7 @@ internal sealed class GetActressJavByIdQueryHandler(
                 });
             }
 
-            javSummaries.Add(new JavSummaryDto
+            result.Add(new JavSummaryDto
             {
                 Id = item.Jav.Id,
                 Code = item.Jav.Code,
@@ -55,20 +49,6 @@ internal sealed class GetActressJavByIdQueryHandler(
             });
         }
 
-        return new ActressJavDetailDto
-        {
-            Id = actress.Id,
-            Name = actress.Name,
-            Image = actress.Image,
-            CreatedAt = actress.CreatedAt,
-            Tags = actress.Tags,
-            Links = links.Select(l => new ActressLinkDto
-            {
-                Id = l.Id,
-                Url = l.Url,
-                OrderIndex = l.OrderIndex
-            }).ToList(),
-            Javs = javSummaries
-        };
+        return result;
     }
 }

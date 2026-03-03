@@ -15,6 +15,7 @@ public record CreateVideoAdultCommand : IRequest<Result<CreateVideoAdultDto>>
     public VideoAdultSource Source { get; set; }
     public string VideoUrl { get; set; } = string.Empty;
     public List<int> ActressIds { get; set; } = [];
+    public List<int> TagIds { get; set; } = [];
 
     public sealed class Validator : AbstractValidator<CreateVideoAdultCommand>
     {
@@ -27,6 +28,7 @@ public record CreateVideoAdultCommand : IRequest<Result<CreateVideoAdultDto>>
 
     internal sealed class Handler(
         IVideoAdultRepository videoAdultRepository,
+        ITagRepository tagRepository,
         ISender sender)
         : IRequestHandler<CreateVideoAdultCommand, Result<CreateVideoAdultDto>>
     {
@@ -65,6 +67,9 @@ public record CreateVideoAdultCommand : IRequest<Result<CreateVideoAdultDto>>
                 foreach (var actressId in request.ActressIds)
                     await videoAdultRepository.AddActressToVideo(videoId, actressId);
             }
+
+            if (request.TagIds.Count > 0)
+                await tagRepository.ReplaceTagsForRefId(videoId, TagType.VideoAdult, request.TagIds);
 
             return Results.Created(new CreateVideoAdultDto { Id = videoId });
         }

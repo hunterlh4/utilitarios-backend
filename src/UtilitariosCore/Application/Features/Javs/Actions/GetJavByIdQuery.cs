@@ -22,29 +22,20 @@ public record GetJavByIdQuery(int Id) : IRequest<Result<JavDto>>
                 return Errors.NotFound();
             }
 
-            var actresses = new List<ActressDto>();
-            foreach (var actressWithLinks in item.Actresses)
+            var actresses = item.Actresses.Select(a => new ActressDto
             {
-                var tags = await tagRepository.GetTagsByRefId(actressWithLinks.Actress.Id, TagType.ActressJav);
-                actresses.Add(new ActressDto
-                {
-                    Id = actressWithLinks.Actress.Id,
-                    Name = actressWithLinks.Actress.Name,
-                    Image = actressWithLinks.Actress.Image,
-                    Tags = tags.Select(t => t.Name).ToList(),
-                    Links = actressWithLinks.Links.Select(l => new LinkDto
-                    {
-                        Id = l.Id,
-                        Url = l.Url
-                    }).ToList()
-                });
-            }
+                Id = a.Actress.Id,
+                Name = a.Actress.Name
+            }).ToList();
+
+            var javTags = await tagRepository.GetTagsByRefId(item.Jav.Id, TagType.Jav);
 
             return new JavDto
             {
                 Id = item.Jav.Id,
                 Code = item.Jav.Code,
                 Actresses = actresses,
+                Tags = javTags.Select(t => t.Name).ToList(),
                 Image = item.Jav.Image,
                 Status = item.Jav.Status,
                 Links = item.JavLinks.Select(l => new LinkDto

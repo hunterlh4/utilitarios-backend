@@ -25,7 +25,7 @@ public record UpdateActressJavLinksCommand(int Id, List<string> Links) : IReques
     {
         public async Task<Result> Handle(UpdateActressJavLinksCommand request, CancellationToken cancellationToken)
         {
-            var actress = await actressRepository.GetActressById(request.Id);
+            var actress = await actressRepository.GetActressJavById(request.Id);
             if (actress == null) return Errors.NotFound("Actriz no encontrada.");
 
             var existingLinks = await linkRepository.GetLinksByRefId(request.Id, LinkType.ActressJav);

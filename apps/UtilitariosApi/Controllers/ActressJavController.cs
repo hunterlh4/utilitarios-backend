@@ -25,6 +25,13 @@ public class ActressJavController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
+    [HttpGet("{id:int}/javs")]
+    public async Task<ActionResult<IEnumerable<JavSummaryDto>>> GetJavsByActress([FromRoute] int id)
+    {
+        var response = await sender.Send(new GetJavsByActressQuery(id));
+        return response.ToActionResult();
+    }
+
     [HttpPost]
     public async Task<ActionResult<CreateActressJavDto>> Create([FromBody] CreateActressCommand command)
     {
@@ -35,7 +42,7 @@ public class ActressJavController(ISender sender) : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<ActionResult> Update([FromRoute] int id, [FromBody] UpdateActressJavRequest request)
     {
-        var response = await sender.Send(new UpdateActressCommand { Id = id, Name = request.Name });
+        var response = await sender.Send(new UpdateActressCommand { Id = id, Name = request.Name, TagIds = request.TagIds });
         return response.ToActionResult();
     }
 

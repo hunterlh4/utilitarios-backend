@@ -5,6 +5,7 @@ using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Domain.Models;
 using UtilitariosCore.Shared.Responses;
+using UtilitariosCore.Shared.Utils;
 
 namespace UtilitariosCore.Application.Features.Javs.Actions;
 
@@ -12,6 +13,7 @@ public class CreateJavCommand : IRequest<Result<CreateJavDto>>
 {
     public string Code { get; set; } = string.Empty;
     public List<int> ActressIds { get; set; } = new();
+    public List<int> TagIds { get; set; } = new();
     public string Image { get; set; } = string.Empty;
     public List<string> Links { get; set; } = new();
 
@@ -29,7 +31,8 @@ public class CreateJavCommand : IRequest<Result<CreateJavDto>>
 
     internal sealed class Handler(
         IJavRepository javRepository,
-        ILinkRepository linkRepository)
+        ILinkRepository linkRepository,
+        ITagRepository tagRepository)
         : IRequestHandler<CreateJavCommand, Result<CreateJavDto>>
     {
         public async Task<Result<CreateJavDto>> Handle(CreateJavCommand request, CancellationToken cancellationToken)
@@ -46,6 +49,9 @@ public class CreateJavCommand : IRequest<Result<CreateJavDto>>
 
             foreach (var actressId in request.ActressIds)
                 await javRepository.AddActressToJav(javId, actressId);
+
+            if (request.TagIds.Count > 0)
+                await tagRepository.ReplaceTagsForRefId(javId, TagType.Jav, request.TagIds);
 
             if (request.Links != null && request.Links.Count > 0)
             {

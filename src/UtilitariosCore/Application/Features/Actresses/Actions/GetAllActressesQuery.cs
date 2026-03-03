@@ -12,7 +12,7 @@ internal sealed class GetAllActressesQueryHandler(IActressJavRepository actressR
 {
     public async Task<Result<IEnumerable<ActressJavDto>>> Handle(GetAllActressesQuery request, CancellationToken cancellationToken)
     {
-        var result = await actressRepository.GetAllActressesWithFirstImage();
+        var result = await actressRepository.GetAllActressJavWithFirstImage();
         return result.ToList();
     }
 }

@@ -77,7 +77,7 @@ public class BulkCreateJavCommand : IRequest<Result<CreateJavDto>>
                 // Procesar cada actriz
                 foreach (var actressInput in request.Actresses)
                 {
-                    var actress = await actressJavRepository.GetActressByName(actressInput.Name);
+                    var actress = await actressJavRepository.GetActressJavByName(actressInput.Name);
 
                     int actressId;
 
@@ -88,7 +88,7 @@ public class BulkCreateJavCommand : IRequest<Result<CreateJavDto>>
                             Name = actressInput.Name,
                             CreatedAt = DateTime.UtcNow
                         };
-                        actressId = await actressJavRepository.CreateActress(newActress);
+                        actressId = await actressJavRepository.CreateActressJav(newActress);
                     }
                     else
                     {

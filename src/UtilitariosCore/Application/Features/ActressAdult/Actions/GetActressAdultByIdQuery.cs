@@ -17,34 +17,41 @@ internal sealed class GetActressAdultByIdQueryHandler(
 {
     public async Task<Result<ActressAdultDetailDto>> Handle(GetActressAdultByIdQuery request, CancellationToken cancellationToken)
     {
-        var actress = await actressAdultRepository.GetActressAdultById(request.Id);
+        var actress = await actressAdultRepository.GetActressAdultWithTagsAndImageById(request.Id);
         if (actress == null) return Errors.NotFound("Actriz no encontrada.");
 
         var videosGrouped = await videoAdultRepository.GetVideoAdultsWithActressesByActressId(request.Id);
         var links = await linkRepository.GetLinksByRefId(request.Id, LinkType.ActressAdult);
-        var tags = await tagRepository.GetTagsByRefId(request.Id, TagType.ActressAdult);
 
-        var videoList = videosGrouped.Select(v => new VideoAdultDto
+        var videoList = new List<VideoAdultDto>();
+        foreach (var v in videosGrouped)
         {
-            Id = v.VideoId,
-            Source = v.Source,
-            VideoUrl = v.VideoUrl,
-            Title = v.Title,
-            ThumbnailUrl = v.ThumbnailUrl,
-            Status = v.Status,
-            Actresses = v.Actresses.Select(a => new ActressSimpleDto
+            var videoTags = await tagRepository.GetTagsByRefId(v.VideoId, TagType.VideoAdult);
+            videoList.Add(new VideoAdultDto
             {
-                Id = a.Id,
-                Name = a.Name
-            }).ToList(),
-            CreatedAt = v.VideoCreatedAt
-        }).ToList();
+                Id = v.VideoId,
+                Source = v.Source,
+                VideoUrl = v.VideoUrl,
+                Title = v.Title,
+                ThumbnailUrl = v.ThumbnailUrl,
+                Status = v.Status,
+                Actresses = v.Actresses.Select(a => new ActressSimpleDto
+                {
+                    Id = a.Id,
+                    Name = a.Name
+                }).ToList(),
+                Tags = videoTags.Select(t => t.Name).ToList(),
+                CreatedAt = v.VideoCreatedAt
+            });
+        }
 
         return new ActressAdultDetailDto
         {
             Id = actress.Id,
             Name = actress.Name,
-            Tags = tags.Select(t => t.Name).ToList(),
+            Image = actress.Image,
+            CreatedAt = actress.CreatedAt,
+            Tags = actress.Tags,
             Links = links.Select(l => new LinkDto
             {
                 Id = l.Id,

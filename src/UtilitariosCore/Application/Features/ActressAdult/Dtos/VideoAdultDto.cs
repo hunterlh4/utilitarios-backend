@@ -11,5 +11,6 @@ public class VideoAdultDto
     public string? ThumbnailUrl { get; set; }
     public ContentStatus Status { get; set; }
     public List<ActressSimpleDto> Actresses { get; set; } = [];
+    public List<string> Tags { get; set; } = [];
     public DateTime CreatedAt { get; set; }
 }

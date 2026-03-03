@@ -11,6 +11,7 @@ public record UpdateJavCommand(int Id) : IRequest<Result>
 {
     public string Code { get; set; } = string.Empty;
     public List<int> ActressIds { get; set; } = new();
+    public List<int> TagIds { get; set; } = new();
     public string Image { get; set; } = string.Empty;
     public List<string> Links { get; set; } = new();
 
@@ -29,7 +30,8 @@ public record UpdateJavCommand(int Id) : IRequest<Result>
 
     internal sealed class Handler(
         IJavRepository javRepository,
-        ILinkRepository linkRepository)
+        ILinkRepository linkRepository,
+        ITagRepository tagRepository)
         : IRequestHandler<UpdateJavCommand, Result>
     {
         public async Task<Result> Handle(UpdateJavCommand request, CancellationToken cancellationToken)
@@ -72,6 +74,8 @@ public record UpdateJavCommand(int Id) : IRequest<Result>
                     CreatedAt = DateTime.UtcNow
                 });
             }
+
+            await tagRepository.ReplaceTagsForRefId(request.Id, TagType.Jav, request.TagIds);
 
             return Results.NoContent();
         }

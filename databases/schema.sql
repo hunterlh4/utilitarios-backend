@@ -79,8 +79,8 @@ CREATE TABLE ActressVideo (
     PRIMARY KEY (ActressAdultId, VideoAdultId)
 );
 
--- Actress table (actrices de JAV)
-CREATE TABLE Actress (
+-- ActressJav table (actrices de JAV)
+CREATE TABLE ActressJav (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(200) NOT NULL,
     CreatedAt DATETIME DEFAULT GETDATE()

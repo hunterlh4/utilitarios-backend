@@ -35,7 +35,7 @@ public record CreateActressCommand : IRequest<Result<CreateActressJavDto>>
                 CreatedAt = DateTime.UtcNow
             };
 
-            var actressId = await actressRepository.CreateActress(newActress);
+            var actressId = await actressRepository.CreateActressJav(newActress);
 
             if (request.TagIds.Count > 0)
                 await tagRepository.ReplaceTagsForRefId(actressId, TagType.ActressJav, request.TagIds);

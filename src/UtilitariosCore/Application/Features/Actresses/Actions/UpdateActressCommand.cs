@@ -29,11 +29,11 @@ public record UpdateActressCommand : IRequest<Result>
     {
         public async Task<Result> Handle(UpdateActressCommand request, CancellationToken cancellationToken)
         {
-            var actress = await actressRepository.GetActressById(request.Id);
+            var actress = await actressRepository.GetActressJavById(request.Id);
             if (actress == null) return Errors.NotFound("Actriz no encontrada.");
 
             actress.Name = StringNormalizer.ToTitleCase(request.Name);
-            await actressRepository.UpdateActress(actress);
+            await actressRepository.UpdateActressJav(actress);
 
             await tagRepository.ReplaceTagsForRefId(request.Id, TagType.ActressJav, request.TagIds);
 

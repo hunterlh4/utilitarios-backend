@@ -22,22 +22,18 @@ public class GetAllJavsQuery : IRequest<Result<IEnumerable<JavDto>>>
             {
                 var actresses = new List<ActressDto>();
                 var allTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                var javTags = await tagRepository.GetTagsByRefId(item.Jav.Id, TagType.Jav);
+                foreach (var tag in javTags) allTags.Add(tag.Name);
+
                 foreach (var actressWithLinks in item.Actresses)
                 {
                     var tags = await tagRepository.GetTagsByRefId(actressWithLinks.Actress.Id, TagType.ActressJav);
-                    var tagNames = tags.Select(t => t.Name).ToList();
-                    foreach (var tag in tagNames) allTags.Add(tag);
+                    foreach (var tag in tags) allTags.Add(tag.Name);
                     actresses.Add(new ActressDto
                     {
                         Id = actressWithLinks.Actress.Id,
-                        Name = actressWithLinks.Actress.Name,
-                        Image = actressWithLinks.Actress.Image,
-                        Tags = tagNames,
-                        Links = actressWithLinks.Links.Select(l => new LinkDto
-                        {
-                            Id = l.Id,
-                            Url = l.Url
-                        }).ToList()
+                        Name = actressWithLinks.Actress.Name
                     });
                 }
 

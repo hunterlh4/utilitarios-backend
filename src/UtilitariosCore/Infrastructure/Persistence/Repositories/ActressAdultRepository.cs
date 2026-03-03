@@ -52,6 +52,47 @@ public class ActressAdultRepository(MssqlContext context) : IActressAdultReposit
         return result;
     }
 
+    public async Task<ActressAdultDto?> GetActressAdultWithTagsAndImageById(int id)
+    {
+        var db = context.CreateDefaultConnection();
+
+        string sql = $@"
+        SELECT
+            a.Id,
+            a.Name,
+            a.CreatedAt,
+            (
+                SELECT TOP 1 m.Url
+                FROM Media m
+                WHERE m.Type = {(int)MediaType.ActressAdult}
+                AND m.RefId = a.Id
+                ORDER BY m.OrderIndex
+            ) AS Image,
+            (
+                SELECT STRING_AGG(t.Name, ',')
+                FROM TagRelation tr
+                INNER JOIN Tag t ON t.Id = tr.TagId
+                WHERE tr.RefId = a.Id AND tr.Type = {(int)TagType.ActressAdult}
+            ) AS TagsRaw
+        FROM ActressAdult a
+        WHERE a.Id = @Id
+        ";
+
+        var row = await db.QueryFirstOrDefaultAsync<ActressAdultRawDto>(sql, new { Id = id });
+        if (row is null) return null;
+
+        return new ActressAdultDto
+        {
+            Id = row.Id,
+            Name = row.Name,
+            CreatedAt = row.CreatedAt,
+            Image = row.Image,
+            Tags = string.IsNullOrEmpty(row.TagsRaw)
+                ? []
+                : [.. row.TagsRaw.Split(',')]
+        };
+    }
+
     public async Task<IEnumerable<ActressAdultDto>> GetAllActressAdultsWithFirstImage()
     {
         var db = context.CreateDefaultConnection();
