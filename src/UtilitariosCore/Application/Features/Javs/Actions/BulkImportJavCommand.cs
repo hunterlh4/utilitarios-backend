@@ -54,7 +54,7 @@ public record BulkImportJavCommand : IRequest<Result<BulkImportJavResult>>
                         {
                             Code = code,
                             Image = string.Empty,
-                            Status = ContentStatus.Pendiente,
+                            Status = ContentStatus.Pending,
                             CreatedAt = DateTime.UtcNow
                         });
                         result.JavsCreated++;

@@ -28,7 +28,15 @@ public class AccountProperty
 {
     public int Id { get; set; }
     public int AccountId { get; set; }
-    public AccountPropertyKey Key { get; set; }
-    public bool Value { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public required string Key { get; set; }
+    public required string Value { get; set; }
+}
+
+public class AccountRenewal
+{
+    public int Id { get; set; }
+    public int AccountId { get; set; }
+    public int Day { get; set; }
+    public int Month { get; set; }
+    public int Year { get; set; }
 }

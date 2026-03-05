@@ -122,18 +122,47 @@
 
 ---
 
+## YouTube — `api/youtube`
+
+- [x] `GET /?category=` — Lista todos los videos (filtrable por category: 1=Anime, 2=Serie, 3=Pelicula, 4=Shorts)
+- [x] `POST /` — Agregar video (envías URL + category, el backend obtiene metadatos vía oEmbed)
+- [x] `DELETE /{id}` — Eliminar video
+
+---
+
+## Events — `api/event`
+
+- [x] `GET /?year=&month=` — Lista eventos del mes (Google Calendar, default: mes actual)
+- [x] `POST /` — Crear evento en Google Calendar
+- [x] `DELETE /{eventId}` — Eliminar evento por ID de Google
+
+---
+
+## Payments — `api/payment`
+
+- [x] `GET /` — Lista todas las deudas con saldo actual + detalles (2 queries)
+- [x] `GET /{id}` — Detalle de deuda con todos sus movimientos (PaymentDetail)
+- [x] `POST /` — Crear deuda (PersonName + monto inicial, auto-crea primer PaymentDetail tipo deuda)
+- [x] `POST /{id}/detail` — Agregar movimiento: deuda/pago/interés_deuda/interés_pago
+- [x] `PUT /{id}/detail/{detailId}` — Editar movimiento existente
+- [x] `DELETE /{id}` — Eliminar deuda (cascada elimina sus detalles)
+- [x] `DELETE /{id}/detail/{detailId}` — Eliminar un movimiento específico
+
+---
+
+## Accounts — `api/account`
+
+- [x] `GET /?type=` — Lista todas las cuentas con properties y renewals (filtrable por type: 1=Email, 2=Steam, 3=Facebook, 4=Instagram, 5=Game, 6=Other, 7=Kiro)
+- [x] `GET /{id}` — Detalle de cuenta con properties y renewals
+- [x] `POST /` — Crear cuenta con properties y renewals
+- [x] `PUT /{id}` — Actualizar cuenta (reemplaza properties y renewals)
+- [x] `DELETE /{id}` — Eliminar cuenta
+
+---
+
 ---
 
 # Por implementar
-
-## YouTube — `api/youtube`
-
-- [ ] `GET /` — Lista todos los videos (filtrable por category)
-- [ ] `GET /{id}` — Detalle de video
-- [ ] `POST /` — Agregar video (obtiene metadata oEmbed de YouTube)
-- [ ] `DELETE /{id}` — Eliminar video
-
----
 
 ## Proyectos — `api/proyect`
 
@@ -155,57 +184,19 @@
 
 ---
 
-## Task Lists — `api/task-list`
+## Task Lists — `api/task`
 
-- [ ] `GET /` — Lista todas las listas de tareas
-- [ ] `GET /{id}` — Detalle con tareas
-- [ ] `POST /` — Crear lista
-- [ ] `PUT /{id}` — Actualizar lista
-- [ ] `PATCH /{id}/status` — Cambiar status
-- [ ] `POST /{id}/task` — Agregar tarea
-- [ ] `PATCH /{id}/task/{taskId}` — Completar/descompletar tarea
-- [ ] `DELETE /{id}` — Eliminar lista
-- [ ] `DELETE /{id}/task/{taskId}` — Eliminar tarea
-
----
-
-## Events — `api/event` ✅
-
-- [x] `GET /?year=&month=` — Lista eventos del mes (Google Calendar, default: mes actual)
-- [x] `POST /` — Crear evento en Google Calendar
-- [x] `DELETE /{eventId}` — Eliminar evento por ID de Google
+- [ ] `GET /` — Lista todas las tareas (filtrable por status: 1=en proceso, 2=completado)
+- [ ] `GET /{id}` — Detalle con sus TaskDetails
+- [ ] `POST /` — Crear task
+- [ ] `PUT /{id}` — Actualizar título o status
+- [ ] `DELETE /{id}` — Eliminar task (cascada elimina sus details)
+- [ ] `POST /{id}/detail` — Agregar detail a una task
+- [ ] `PATCH /{id}/detail/{detailId}` — Cambiar status del detail (1=pending, 2=complete)
+- [ ] `DELETE /{id}/detail/{detailId}` — Eliminar detail
 
 ---
 
-## Accounts — `api/account`
-
-- [ ] `GET /` — Lista todas las cuentas (filtrable por type)
-- [ ] `GET /{id}` — Detalle con relaciones y propiedades
-- [ ] `POST /` — Crear cuenta
-- [ ] `PUT /{id}` — Actualizar cuenta
-- [ ] `DELETE /{id}` — Eliminar cuenta
-
----
-
-## Payments — `api/payment` ✅
-
-- [x] `GET /` — Lista todas las deudas con saldo actual + detalles (2 queries)
-- [x] `GET /{id}` — Detalle de deuda con todos sus movimientos (PaymentDetail)
-- [x] `POST /` — Crear deuda (PersonName + monto inicial, auto-crea primer PaymentDetail tipo deuda)
-- [x] `POST /{id}/detail` — Agregar movimiento: deuda/pago/interés_deuda/interés_pago
-- [x] `PUT /{id}/detail/{detailId}` — Editar movimiento existente
-- [x] `DELETE /{id}` — Eliminar deuda (cascada elimina sus detalles)
-- [x] `DELETE /{id}/detail/{detailId}` — Eliminar un movimiento específico
-
----
-
-## Salary — `api/salary`
-
-- [ ] `GET /` — Obtener configuración actual
-- [ ] `POST /` — Crear configuración
-- [ ] `PUT /{id}` — Actualizar configuración
-
----
 
 ## Sellers — `api/seller`
 

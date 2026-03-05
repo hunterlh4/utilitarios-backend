@@ -41,7 +41,7 @@ public class CreateJavCommand : IRequest<Result<CreateJavDto>>
             {
                 Code = request.Code.ToUpper(),
                 Image = request.Image,
-                Status = ContentStatus.Proximamente,
+                Status = ContentStatus.Upcoming,
                 CreatedAt = DateTime.UtcNow
             };
 

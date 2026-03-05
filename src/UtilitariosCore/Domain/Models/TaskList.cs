@@ -2,7 +2,7 @@ using UtilitariosCore.Domain.Enums;
 
 namespace UtilitariosCore.Domain.Models;
 
-public class TaskList
+public class Task
 {
     public required string Id { get; set; }
     public required string Title { get; set; }
@@ -11,10 +11,11 @@ public class TaskList
     public DateTime? UpdatedAt { get; set; }
 }
 
-public class Task
+public class TaskDetail
 {
     public required string Id { get; set; }
-    public required string TaskListId { get; set; }
+    public required string TaskId { get; set; }
     public required string Title { get; set; }
-    public bool Completed { get; set; }
+    public TaskDetailStatus Status { get; set; }
+    public DateTime? Date { get; set; }
 }

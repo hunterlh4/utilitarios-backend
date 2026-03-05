@@ -61,6 +61,15 @@ public static class DependencyInyection
         services.AddScoped<IVideoAdultRepository, VideoAdultRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IYouTubeRepository, YouTubeRepository>();
+        services.AddScoped<IAccountRepository, AccountRepository>();
+        services.AddScoped<IProyectRepository, ProyectRepository>();
+        services.AddScoped<ISteamItemRepository, SteamItemRepository>();
+        services.AddScoped<ISteamItemDropRepository, SteamItemDropRepository>();
+        services.AddScoped<ISteamItemPurchaseRepository, SteamItemPurchaseRepository>();
+        services.AddScoped<IDotaHeroRepository, DotaHeroRepository>();
+        services.AddScoped<IDotaTreasureRepository, DotaTreasureRepository>();
+        services.AddScoped<IDotaCacheRepository, DotaCacheRepository>();
 
         // Google Calendar
         services.Configure<Infrastructure.Settings.GoogleCalendarSettings>(configuration.GetSection("Providers:GoogleCalendar"));

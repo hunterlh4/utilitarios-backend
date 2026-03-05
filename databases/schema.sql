@@ -5,7 +5,7 @@ CREATE TABLE Anime (
     Title NVARCHAR(500) NOT NULL,
     Image NVARCHAR(1000) NOT NULL,
     Episodes INT NOT NULL,
-    Status INT NOT NULL, -- 1: proximamente, 2: completado
+    Status INT NOT NULL, -- 1: upcoming, 2: completed
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
@@ -16,7 +16,7 @@ CREATE TABLE Hentai (
     Title NVARCHAR(500) NOT NULL,
     Image NVARCHAR(1000) NOT NULL,
     Episodes INT NOT NULL,
-    Status INT NOT NULL, -- 1: proximamente, 2: completado
+    Status INT NOT NULL, -- 1: upcoming, 2: completed
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
@@ -29,7 +29,7 @@ CREATE TABLE Series (
     Year INT,
     Rating DECIMAL(3,1),
     Type NVARCHAR(50),
-    Status INT NOT NULL, -- 1: proximamente, 2: completado
+    Status INT NOT NULL, -- 1: upcoming, 2: completed
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
@@ -67,7 +67,7 @@ CREATE TABLE VideoAdult (
     Title NVARCHAR(255),
     ThumbnailUrl NVARCHAR(1000),
     EmbedHtml NVARCHAR(MAX),
-    Status INT NOT NULL DEFAULT 1, -- 1: proximamente, 2: completado
+    Status INT NOT NULL DEFAULT 1, -- 1: upcoming, 2: completed
     CreatedAt DATETIME DEFAULT GETDATE(),
     UNIQUE (Source, ExternalId)
 );
@@ -91,7 +91,7 @@ CREATE TABLE Jav (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Code NVARCHAR(50) NOT NULL UNIQUE, -- NIMA-055
     Image NVARCHAR(1000) NOT NULL,
-    Status INT NOT NULL, -- 1: proximamente, 2: completado
+    Status INT NOT NULL, -- 1: upcoming, 2: completed, 3: pending
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
@@ -266,7 +266,7 @@ CREATE TABLE SteamItemPurchase (
 -- Account table (cuentas genéricas - correos, Steam, Facebook, etc.)
 CREATE TABLE Account (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    Type INT NOT NULL, -- 1: Email, 2: Steam, 3: Facebook, 4: Instagram, 5: Game, 6: Other
+    Type INT NOT NULL, -- 1: Email, 2: Steam, 3: Facebook, 4: Instagram, 5: Game, 6: Other, 7: Kiro
     Name NVARCHAR(200) NOT NULL, -- Main, Segunda, Tercera, etc.
     Username NVARCHAR(200), -- Usuario o correo
     Password NVARCHAR(200),
@@ -285,13 +285,21 @@ CREATE TABLE AccountRelation (
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
--- AccountProperty table (propiedades adicionales - solo booleanos)
+-- AccountProperty table (propiedades clave-valor: hasDota2=true, balance=500, planType=paid, etc.)
 CREATE TABLE AccountProperty (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     AccountId INT NOT NULL,
-    Device INT NOT NULL, -- 1: hasDota2, 2: hasCS2, 3: hasSteamMobile, 4: vacBanned
-    Value BIT DEFAULT 0, -- 0 = false, 1 = true
-    CreatedAt DATETIME DEFAULT GETDATE()
+    [Key] NVARCHAR(100) NOT NULL,  -- nombre de la propiedad
+    Value NVARCHAR(500) NOT NULL   -- valor como texto (true/false, número, string)
+);
+
+-- AccountRenewal table (fechas de renovación de servicios con plan de pago)
+CREATE TABLE AccountRenewal (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    AccountId INT NOT NULL,
+    Day INT NOT NULL,   -- día del mes (1-31)
+    Month INT NOT NULL, -- mes (1-12)
+    Year INT NOT NULL   -- año
 );
 
 -- Payment table (deudas/pagos por persona)
@@ -360,22 +368,23 @@ CREATE TABLE PostContentItem (
     OrderIndex INT NOT NULL
 );  
 
--- TaskList table (listas de tareas)
-CREATE TABLE TaskList (
+-- Task table (listas de tareas)
+CREATE TABLE Task (
     Id NVARCHAR(50) PRIMARY KEY, -- timestamp como string
     Title NVARCHAR(500) NOT NULL,
-    Status INT NOT NULL, -- 1: en proceso, 2: completado
+    Status INT NOT NULL, -- 1: in progress, 2: completed
     CreatedAt DATETIME NOT NULL,
     UpdatedAt DATETIME
 );
 
--- Task table (tareas individuales)
-CREATE TABLE Task (
+-- TaskDetail table (tareas individuales de una lista)
+CREATE TABLE TaskDetail (
     Id NVARCHAR(50) PRIMARY KEY,
-    TaskListId NVARCHAR(50) NOT NULL, -- FK a TaskList
+    TaskId NVARCHAR(50) NOT NULL, -- FK a Task
     Title NVARCHAR(500) NOT NULL,
-    Completed BIT NOT NULL DEFAULT 0, -- 0 = false, 1 = true
-    FOREIGN KEY (TaskListId) REFERENCES TaskList(Id) ON DELETE CASCADE
+    Status INT NOT NULL DEFAULT 1, -- 1: pending, 2: complete
+    Date DATETIME, -- deadline or completion date
+    FOREIGN KEY (TaskId) REFERENCES Task(Id) ON DELETE CASCADE
 );
 
 -- Event table (eventos de calendario)
@@ -439,6 +448,7 @@ CREATE INDEX IX_Account_Type ON Account(Type);
 CREATE INDEX IX_AccountRelation_Parent ON AccountRelation(ParentAccountId);
 CREATE INDEX IX_AccountRelation_Child ON AccountRelation(ChildAccountId);
 CREATE INDEX IX_AccountProperty_Account ON AccountProperty(AccountId);
+CREATE INDEX IX_AccountRenewal_Account ON AccountRenewal(AccountId);
 
 -- Índices para Payment y PaymentDetail
 CREATE INDEX IX_Payment_PersonName ON Payment(PersonName);
@@ -454,11 +464,11 @@ CREATE INDEX IX_Post_Date ON Post(Date DESC);
 CREATE INDEX IX_PostContent_PostId ON PostContent(PostId);
 CREATE INDEX IX_PostContentItem_PostContentId ON PostContentItem(PostContentId);
 
--- Índices para TaskList y Task
-CREATE INDEX IX_TaskList_Status ON TaskList(Status);
-CREATE INDEX IX_TaskList_CreatedAt ON TaskList(CreatedAt DESC);
-CREATE INDEX IX_Task_TaskListId ON Task(TaskListId);
-CREATE INDEX IX_Task_Completed ON Task(Completed);
+-- Índices para Task y TaskDetail
+CREATE INDEX IX_Task_Status ON Task(Status);
+CREATE INDEX IX_Task_CreatedAt ON Task(CreatedAt DESC);
+CREATE INDEX IX_TaskDetail_TaskId ON TaskDetail(TaskId);
+CREATE INDEX IX_TaskDetail_Status ON TaskDetail(Status);
 
 -- Índices para Event
 CREATE INDEX IX_Event_Type ON Event(Type);

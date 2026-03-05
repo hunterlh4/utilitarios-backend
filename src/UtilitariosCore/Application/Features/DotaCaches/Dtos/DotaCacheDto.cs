@@ -4,7 +4,10 @@ public class DotaCacheDto
 {
     public int Id { get; set; }
     public int TreasureId { get; set; }
+    public string TreasureName { get; set; } = string.Empty;
     public int HeroId { get; set; }
+    public string HeroName { get; set; } = string.Empty;
+    public string? HeroImage { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Photo { get; set; } = string.Empty;
     public decimal? Price { get; set; }

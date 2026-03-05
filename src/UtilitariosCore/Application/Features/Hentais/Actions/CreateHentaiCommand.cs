@@ -45,7 +45,7 @@ public class CreateHentaiCommand : IRequest<Result<CreateHentaiDto>>
                 Title = StringNormalizer.ToTitleCase(request.Title),
                 Image = request.Image,
                 Episodes = request.Episodes,
-                Status = ContentStatus.Proximamente,
+                Status = ContentStatus.Upcoming,
                 CreatedAt = DateTime.UtcNow
             };
 

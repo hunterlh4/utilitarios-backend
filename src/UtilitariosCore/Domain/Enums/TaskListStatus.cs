@@ -2,6 +2,12 @@ namespace UtilitariosCore.Domain.Enums;
 
 public enum TaskListStatus
 {
-    EnProceso = 1,
-    Completado = 2
+    InProgress = 1,
+    Completed = 2
+}
+
+public enum TaskDetailStatus
+{
+    Pending = 1,
+    Complete = 2
 }

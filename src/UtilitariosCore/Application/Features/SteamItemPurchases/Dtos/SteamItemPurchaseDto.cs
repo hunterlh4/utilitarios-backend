@@ -6,6 +6,9 @@ public class SteamItemPurchaseDto
 {
     public int Id { get; set; }
     public int SteamItemId { get; set; }
+    public string ItemName { get; set; } = string.Empty;
+    public string ItemImage { get; set; } = string.Empty;
+    public string ItemMarketUrl { get; set; } = string.Empty;
     public decimal PurchasePrice { get; set; }
     public decimal SalePrice { get; set; }
     public decimal? Profit { get; set; }

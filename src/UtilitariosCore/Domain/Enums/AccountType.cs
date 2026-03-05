@@ -7,5 +7,6 @@ public enum AccountType
     Facebook = 3,
     Instagram = 4,
     Game = 5,
-    Other = 6
+    Other = 6,
+    Kiro = 7
 }

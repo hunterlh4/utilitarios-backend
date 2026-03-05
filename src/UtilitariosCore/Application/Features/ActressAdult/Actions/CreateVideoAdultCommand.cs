@@ -56,7 +56,7 @@ public record CreateVideoAdultCommand : IRequest<Result<CreateVideoAdultDto>>
                 VideoUrl = request.VideoUrl,
                 Title = title,
                 ThumbnailUrl = thumbnailUrl,
-                Status = ContentStatus.Proximamente,
+                Status = ContentStatus.Upcoming,
                 CreatedAt = DateTime.UtcNow
             };
 
