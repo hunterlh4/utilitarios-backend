@@ -8,4 +8,5 @@ public class ActressAdultDetailDto
     public DateTime CreatedAt { get; set; }
     public List<string> Tags { get; set; } = [];
     public List<LinkDto> Links { get; set; } = [];
+    public List<VideoAdultDto> Videos { get; set; } = [];
 }

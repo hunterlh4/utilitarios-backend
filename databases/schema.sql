@@ -163,15 +163,15 @@ CREATE TABLE YouTube (
 CREATE TABLE Tag (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(100) NOT NULL,
-    Type INT NOT NULL, -- 1: ActressJav, 2: Project, 3: Post, 4: Other, 5: ActressAdult, 6: Hentai
+    Type INT NOT NULL, -- 1: ActressJav, 2: Project, 3: Post, 4: Other, 5: ActressAdult, 6: Hentai, 7: Jav, 8: VideoAdult
     UNIQUE (Name, Type) -- Mismo nombre puede existir en diferentes tipos
 );
 
 -- TagRelation table (relación genérica entre tags y entidades)
 CREATE TABLE TagRelation (
     TagId INT NOT NULL,
-    RefId INT NOT NULL, -- ID de la entidad (ActressJav, Project, Post, ActressAdult, Hentai)
-    Type INT NOT NULL, -- 1: ActressJav, 2: Project, 3: Post, 4: Other, 5: ActressAdult, 6: Hentai
+    RefId INT NOT NULL, -- ID de la entidad (ActressJav, Project, Post, ActressAdult, Hentai, Jav, VideoAdult)
+    Type INT NOT NULL, -- 1: ActressJav, 2: Project, 3: Post, 4: Other, 5: ActressAdult, 6: Hentai, 7: Jav, 8: VideoAdult
     PRIMARY KEY (TagId, RefId, Type)
 );
 
@@ -294,22 +294,24 @@ CREATE TABLE AccountProperty (
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
--- Person table (personas para control de dinero)
-CREATE TABLE Person (
+-- Payment table (deudas/pagos por persona)
+CREATE TABLE Payment (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    Name NVARCHAR(200) NOT NULL,
+    PersonName NVARCHAR(200) NOT NULL,   -- Nombre de la persona (string directo)
+    Amount DECIMAL(10,2) NOT NULL,       -- Monto inicial de la deuda
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
--- Payment table (pagos/deudas de dinero)
-CREATE TABLE Payment (
+-- PaymentDetail table (movimientos de una deuda: abonos, intereses, pagos)
+CREATE TABLE PaymentDetail (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    PersonId INT NOT NULL, -- ID de la persona
-    Type INT NOT NULL, -- 1: deuda, 2: pago, 3: interes_deuda, 4: interes_pago
-    Amount DECIMAL(10,2) NOT NULL,
-    Description NVARCHAR(500),
-    Date DATE NOT NULL,
-    CreatedAt DATETIME DEFAULT GETDATE()
+    PaymentId INT NOT NULL,              -- FK a Payment
+    Type INT NOT NULL,                  -- 1: deuda (+), 2: pago (-), 3: interés_deuda (+), 4: interés_pago (-)
+    Amount DECIMAL(10,2) NOT NULL,      -- Monto del movimiento (siempre positivo, el tipo define signo)
+    Date DATETIME NOT NULL,             -- Fecha del movimiento (sin hora)
+    Description NVARCHAR(500),          -- Detalle opcional del movimiento
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (PaymentId) REFERENCES Payment(Id) ON DELETE CASCADE
 );
 
 -- Salary table (configuración de sueldo)
@@ -438,9 +440,12 @@ CREATE INDEX IX_AccountRelation_Parent ON AccountRelation(ParentAccountId);
 CREATE INDEX IX_AccountRelation_Child ON AccountRelation(ChildAccountId);
 CREATE INDEX IX_AccountProperty_Account ON AccountProperty(AccountId);
 
--- Índices para Money (Person, Payment)
-CREATE INDEX IX_Payment_PersonId ON Payment(PersonId);
-CREATE INDEX IX_Payment_Date ON Payment(Date DESC);
+-- Índices para Payment y PaymentDetail
+CREATE INDEX IX_Payment_PersonName ON Payment(PersonName);
+CREATE INDEX IX_Payment_CreatedAt ON Payment(CreatedAt DESC);
+CREATE INDEX IX_PaymentDetail_PaymentId ON PaymentDetail(PaymentId);
+CREATE INDEX IX_PaymentDetail_Date ON PaymentDetail(Date DESC);
+CREATE INDEX IX_PaymentDetail_Type ON PaymentDetail(Type);
 
 -- Índices para Post
 CREATE INDEX IX_Post_Category ON Post(Category);

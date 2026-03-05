@@ -3,6 +3,7 @@ using MediatR;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Infrastructure.Persistence;
 using UtilitariosCore.Infrastructure.Persistence.Repositories;
+using UtilitariosCore.Infrastructure.Services.GoogleCalendar;
 using UtilitariosCore.Infrastructure.Services.Hostaway;
 using UtilitariosCore.Infrastructure.Services.ImageUpload;
 using UtilitariosCore.Shared.Behaviors;
@@ -59,6 +60,11 @@ public static class DependencyInyection
         services.AddScoped<IAnimeGaleryRepository, AnimeGaleryRepository>();
         services.AddScoped<IVideoAdultRepository, VideoAdultRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
+
+        // Google Calendar
+        services.Configure<Infrastructure.Settings.GoogleCalendarSettings>(configuration.GetSection("Providers:GoogleCalendar"));
+        services.AddSingleton<IGoogleCalendarService, GoogleCalendarService>();
 
         // Servicios de notificaciones
         services.AddSingleton<Infrastructure.Queue.AzureQueueClient>();

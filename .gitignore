@@ -364,3 +364,7 @@ FodyWeavers.xsd
 
 # Idea
 .idea/
+
+# Google Service Account credentials
+**/Infrastructure/Google/service-account.json
+databases/auth-utilitarios*.json
