@@ -19,9 +19,16 @@ public class ActressAdultController(ISender sender) : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<ActressAdultDetailDto>> GetById([FromRoute] int id)
+    public async Task<ActionResult<ActressAdultBasicDto>> GetById([FromRoute] int id)
     {
-        var response = await sender.Send(new GetActressAdultByIdQuery(id));
+        var response = await sender.Send(new GetActressAdultBasicByIdQuery(id));
+        return response.ToActionResult();
+    }
+
+    [HttpGet("{id:int}/detail")]
+    public async Task<ActionResult<ActressAdultDetailDto>> GetDetailById([FromRoute] int id)
+    {
+        var response = await sender.Send(new GetActressAdultDetailByIdQuery(id));
         return response.ToActionResult();
     }
 
