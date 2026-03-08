@@ -5,6 +5,7 @@ public class ActressAdultBasicDto
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public List<MediaDto> Images { get; set; } = new();
+    public List<int> TagIds { get; set; } = new();
 }
 
 public class MediaDto

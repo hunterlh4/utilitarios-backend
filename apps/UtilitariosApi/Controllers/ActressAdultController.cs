@@ -67,6 +67,13 @@ public class ActressAdultController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
+    [HttpDelete("video/{videoId:int}")]
+    public async Task<ActionResult> DeleteVideo([FromRoute] int videoId)
+    {
+        var response = await sender.Send(new DeleteVideoAdultCommand(videoId));
+        return response.ToActionResult();
+    }
+
     [HttpPatch("video/{videoId:int}/status")]
     public async Task<ActionResult> UpdateVideoStatus([FromRoute] int videoId, [FromBody] UpdateVideoAdultStatusRequest request)
     {

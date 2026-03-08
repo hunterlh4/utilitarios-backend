@@ -7,6 +7,7 @@ public interface IVideoAdultRepository
 {
     Task<int> CreateVideoAdult(VideoAdult videoAdult);
     Task<bool> UpdateVideoAdult(VideoAdult videoAdult);
+    Task<bool> DeleteVideoAdult(int videoAdultId);
     Task<VideoAdult?> GetVideoAdultById(int id);
     Task<IEnumerable<VideoAdult>> GetAllVideoAdults();
     Task<bool> AddActressToVideo(int videoAdultId, int actressId);

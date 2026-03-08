@@ -36,6 +36,21 @@ public class VideoAdultRepository(MssqlContext context) : IVideoAdultRepository
         return result > 0;
     }
 
+    public async Task<bool> DeleteVideoAdult(int videoAdultId)
+    {
+        var db = context.CreateDefaultConnection();
+
+        // Primero eliminar las relaciones con actrices
+        string deleteRelationsSql = "DELETE FROM ActressVideo WHERE video_id = @VideoId";
+        await db.ExecuteAsync(deleteRelationsSql, new { VideoId = videoAdultId });
+
+        // Luego eliminar el video
+        string deleteVideoSql = "DELETE FROM VideoAdult WHERE Id = @Id";
+        var result = await db.ExecuteAsync(deleteVideoSql, new { Id = videoAdultId });
+        
+        return result > 0;
+    }
+
     public async Task<VideoAdult?> GetVideoAdultById(int id)
     {
         var db = context.CreateDefaultConnection();

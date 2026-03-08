@@ -10,7 +10,8 @@ public record GetActressAdultBasicByIdQuery(int Id) : IRequest<Result<ActressAdu
 
 internal sealed class GetActressAdultBasicByIdQueryHandler(
     IActressAdultRepository actressAdultRepository,
-    IMediaRepository mediaRepository) 
+    IMediaRepository mediaRepository,
+    ITagRepository tagRepository) 
     : IRequestHandler<GetActressAdultBasicByIdQuery, Result<ActressAdultBasicDto>>
 {
     public async Task<Result<ActressAdultBasicDto>> Handle(GetActressAdultBasicByIdQuery request, CancellationToken cancellationToken)
@@ -25,6 +26,9 @@ internal sealed class GetActressAdultBasicByIdQueryHandler(
         // Obtener imágenes
         var media = await mediaRepository.GetMediaByRefId(request.Id, MediaType.ActressAdult);
         
+        // Obtener tags
+        var tags = await tagRepository.GetTagsByRefId(request.Id, TagType.ActressAdult);
+        
         var result = new ActressAdultBasicDto
         {
             Id = actress.Id,
@@ -34,7 +38,8 @@ internal sealed class GetActressAdultBasicByIdQueryHandler(
                 Id = m.Id,
                 Url = m.Url,
                 OrderIndex = m.OrderIndex
-            }).ToList()
+            }).ToList(),
+            TagIds = tags.Select(t => t.Id).ToList()
         };
 
         return result;
