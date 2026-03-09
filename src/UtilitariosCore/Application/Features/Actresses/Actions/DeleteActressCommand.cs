@@ -15,14 +15,13 @@ internal sealed class DeleteActressCommandHandler(
     {
         var actress = await actressRepository.GetActressJavById(request.Id);
         if (actress == null)
-            return Results.NotFound("Actriz no encontrada.");
+            return Errors.NotFound("Actriz no encontrada.");
 
-        // Eliminar imagen asociada si existe
-        if (!string.IsNullOrEmpty(actress.Image))
+        // Eliminar medias asociados si existen
+        var medias = await mediaRepository.GetMediaByRefId(request.Id, Domain.Enums.MediaType.ActressJav);
+        foreach (var media in medias)
         {
-            var media = await mediaRepository.GetMediaByUrl(actress.Image);
-            if (media != null)
-                await mediaRepository.DeleteMedia(media.Id);
+            await mediaRepository.DeleteMedia(media.Id);
         }
 
         await actressRepository.DeleteActressJav(request.Id);

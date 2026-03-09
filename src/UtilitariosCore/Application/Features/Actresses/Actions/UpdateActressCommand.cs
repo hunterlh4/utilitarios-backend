@@ -39,7 +39,7 @@ public record UpdateActressCommand : IRequest<Result>
             {
                 var exists = await actressRepository.CheckActressNameExists(normalizedName);
                 if (exists)
-                    return Results.BadRequest($"Ya existe otra actriz con el nombre '{normalizedName}'.");
+                    return Errors.BadRequest($"Ya existe otra actriz con el nombre '{normalizedName}'.");
             }
 
             actress.Name = normalizedName;

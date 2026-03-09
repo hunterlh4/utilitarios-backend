@@ -12,6 +12,6 @@ internal sealed class CheckActressNameExistsQueryHandler(IActressJavRepository a
     public async Task<Result<bool>> Handle(CheckActressNameExistsQuery request, CancellationToken cancellationToken)
     {
         var exists = await actressRepository.CheckActressNameExists(request.Name);
-        return Results.Ok(exists);
+        return exists;
     }
 }

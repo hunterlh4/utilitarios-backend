@@ -34,7 +34,7 @@ public record CreateActressCommand : IRequest<Result<CreateActressJavDto>>
             // Verificar si ya existe una actriz con ese nombre
             var exists = await actressRepository.CheckActressNameExists(normalizedName);
             if (exists)
-                return Results.BadRequest($"Ya existe una actriz con el nombre '{normalizedName}'.");
+                return Errors.BadRequest($"Ya existe una actriz con el nombre '{normalizedName}'.");
 
             var newActress = new ActressJav
             {

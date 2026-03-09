@@ -7,14 +7,14 @@ using UtilitariosCore.Domain.Models;
 
 namespace UtilitariosApi.Controllers;
 
-[Route("api/tags")]
+[Route("api/tag")]
 [ApiController]
 public class TagController(ISender sender) : ControllerBase
 {
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Tag>>> GetByType([FromQuery] TagType type)
+    [HttpGet("type/{type:int}")]
+    public async Task<ActionResult<IEnumerable<Tag>>> GetByType([FromRoute] int type)
     {
-        var response = await sender.Send(new GetTagsByTypeQuery(type));
+        var response = await sender.Send(new GetTagsByTypeQuery((TagType)type));
         return response.ToActionResult();
     }
 

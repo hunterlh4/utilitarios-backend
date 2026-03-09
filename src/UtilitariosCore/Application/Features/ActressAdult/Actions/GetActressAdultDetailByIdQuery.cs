@@ -74,7 +74,8 @@ internal sealed class GetActressAdultDetailByIdQueryHandler(
             {
                 Id = l.Id,
                 Url = l.Url,
-                Type = l.Type
+                Name = l.Name,
+                OrderIndex = l.OrderIndex
             }).ToList(),
             Videos = videoList
         };
