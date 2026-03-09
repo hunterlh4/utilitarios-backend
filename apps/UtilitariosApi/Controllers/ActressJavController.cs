@@ -25,6 +25,13 @@ public class ActressJavController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
+    [HttpGet("check/{name}")]
+    public async Task<bool> CheckNameExists([FromRoute] string name)
+    {
+        var response = await sender.Send(new CheckActressNameExistsQuery(name));
+        return response.Value;
+    }
+
     [HttpGet("{id:int}/javs")]
     public async Task<ActionResult<IEnumerable<JavSummaryDto>>> GetJavsByActress([FromRoute] int id)
     {
@@ -50,6 +57,13 @@ public class ActressJavController(ISender sender) : ControllerBase
     public async Task<ActionResult> UpdateLinks([FromRoute] int id, [FromBody] List<string> links)
     {
         var response = await sender.Send(new UpdateActressJavLinksCommand(id, links));
+        return response.ToActionResult();
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<ActionResult> Delete([FromRoute] int id)
+    {
+        var response = await sender.Send(new DeleteActressCommand(id));
         return response.ToActionResult();
     }
 }

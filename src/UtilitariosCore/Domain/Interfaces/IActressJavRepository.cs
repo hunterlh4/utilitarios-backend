@@ -10,6 +10,8 @@ public interface IActressJavRepository
     Task<ActressJav?> GetActressJavById(int id);
     Task<ActressJavWithTagsDto?> GetActressJavWithTagsById(int id);
     Task<ActressJav?> GetActressJavByName(string name);
+    Task<bool> CheckActressNameExists(string name);
     Task<IEnumerable<ActressJav>> GetAllActressJav();
     Task<IEnumerable<ActressJavDto>> GetAllActressJavWithFirstImage();
+    Task<bool> DeleteActressJav(int id);
 }

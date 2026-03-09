@@ -52,6 +52,22 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
         return result;
     }
 
+    public async Task<bool> CheckActressNameExists(string name)
+    {
+        var db = context.CreateDefaultConnection();
+        string sql = "SELECT COUNT(1) FROM ActressJav WHERE LOWER(Name) = LOWER(@Name)";
+        var count = await db.ExecuteScalarAsync<int>(sql, new { Name = name });
+        return count > 0;
+    }
+
+    public async Task<bool> DeleteActressJav(int id)
+    {
+        var db = context.CreateDefaultConnection();
+        string sql = "DELETE FROM ActressJav WHERE Id = @Id";
+        var result = await db.ExecuteAsync(sql, new { Id = id });
+        return result > 0;
+    }
+
     public async Task<IEnumerable<ActressJav>> GetAllActressJav()
     {
         var db = context.CreateDefaultConnection();
@@ -116,7 +132,12 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
                 FROM TagRelation tr
                 INNER JOIN Tag t ON t.Id = tr.TagId
                 WHERE tr.RefId = a.Id AND tr.Type = {(int)TagType.ActressJav}
-            ) AS TagsRaw
+            ) AS TagsRaw,
+            (
+                SELECT COUNT(DISTINCT ja.JavId)
+                FROM JavActress ja
+                WHERE ja.ActressId = a.Id
+            ) AS JavCount
         FROM ActressJav a
         ORDER BY a.Name
         ";
@@ -130,7 +151,8 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
             Image = r.Image,
             Tags = string.IsNullOrEmpty(r.TagsRaw)
                 ? []
-                : [.. r.TagsRaw.Split(',')]
+                : [.. r.TagsRaw.Split(',')],
+            JavCount = r.JavCount
         });
     }
 }

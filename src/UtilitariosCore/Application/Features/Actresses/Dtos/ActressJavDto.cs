@@ -7,4 +7,5 @@ public class ActressJavDto
     public string? Image { get; set; }
     public DateTime CreatedAt { get; set; }
     public List<string> Tags { get; set; } = [];
+    public int JavCount { get; set; }
 }

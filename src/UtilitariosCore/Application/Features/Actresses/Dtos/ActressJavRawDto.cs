@@ -7,4 +7,5 @@ internal class ActressJavRawDto
     public DateTime CreatedAt { get; set; }
     public string? Image { get; set; }
     public string? TagsRaw { get; set; }
+    public int JavCount { get; set; }
 }

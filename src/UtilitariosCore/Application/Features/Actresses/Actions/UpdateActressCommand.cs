@@ -32,7 +32,17 @@ public record UpdateActressCommand : IRequest<Result>
             var actress = await actressRepository.GetActressJavById(request.Id);
             if (actress == null) return Errors.NotFound("Actriz no encontrada.");
 
-            actress.Name = StringNormalizer.ToTitleCase(request.Name);
+            var normalizedName = StringNormalizer.ToTitleCase(request.Name);
+            
+            // Verificar si el nombre cambió y si ya existe otra actriz con ese nombre
+            if (actress.Name != normalizedName)
+            {
+                var exists = await actressRepository.CheckActressNameExists(normalizedName);
+                if (exists)
+                    return Results.BadRequest($"Ya existe otra actriz con el nombre '{normalizedName}'.");
+            }
+
+            actress.Name = normalizedName;
             await actressRepository.UpdateActressJav(actress);
 
             await tagRepository.ReplaceTagsForRefId(request.Id, TagType.ActressJav, request.TagIds);
