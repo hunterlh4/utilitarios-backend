@@ -9,6 +9,7 @@ public interface IVideoAdultRepository
     Task<bool> UpdateVideoAdult(VideoAdult videoAdult);
     Task<bool> DeleteVideoAdult(int videoAdultId);
     Task<VideoAdult?> GetVideoAdultById(int id);
+    Task<VideoAdult?> GetVideoAdultBySourceAndExternalId(string source, string externalId);
     Task<IEnumerable<VideoAdult>> GetAllVideoAdults();
     Task<bool> AddActressToVideo(int videoAdultId, int actressId);
     Task<bool> RemoveActressFromVideo(int videoAdultId, int actressId);

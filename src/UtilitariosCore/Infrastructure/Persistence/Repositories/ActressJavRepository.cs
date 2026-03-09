@@ -151,7 +151,7 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
             Image = r.Image,
             Tags = string.IsNullOrEmpty(r.TagsRaw)
                 ? []
-                : [.. r.TagsRaw.Split(',')],
+                : [.. r.TagsRaw.Split(',').Select(t => t.Trim())],
             JavCount = r.JavCount
         });
     }

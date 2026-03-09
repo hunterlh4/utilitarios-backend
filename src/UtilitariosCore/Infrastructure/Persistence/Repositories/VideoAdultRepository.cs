@@ -59,6 +59,14 @@ public class VideoAdultRepository(MssqlContext context) : IVideoAdultRepository
         return result;
     }
 
+    public async Task<VideoAdult?> GetVideoAdultBySourceAndExternalId(string source, string externalId)
+    {
+        var db = context.CreateDefaultConnection();
+        string sql = "SELECT Id, Source, external_id as ExternalId, video_url as VideoUrl, Title, thumbnail_url as ThumbnailUrl, embed_html as EmbedHtml, Status, CreatedAt FROM VideoAdult WHERE Source = @Source AND external_id = @ExternalId";
+        var result = await db.QueryFirstOrDefaultAsync<VideoAdult>(sql, new { Source = source, ExternalId = externalId });
+        return result;
+    }
+
     public async Task<IEnumerable<VideoAdult>> GetAllVideoAdults()
     {
         var db = context.CreateDefaultConnection();

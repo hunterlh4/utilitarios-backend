@@ -38,6 +38,13 @@ public record CreateVideoAdultCommand : IRequest<Result<CreateVideoAdultDto>>
             var externalId = ExtractExternalId(request.VideoUrl, request.Source);
             if (string.IsNullOrWhiteSpace(externalId)) return Errors.BadRequest("No se pudo extraer el ID del video desde la URL.");
 
+            // Verificar si el video ya existe
+            var existingVideo = await videoAdultRepository.GetVideoAdultBySourceAndExternalId(sourceName, externalId);
+            if (existingVideo != null)
+            {
+                return Errors.BadRequest($"Este video ya existe en la base de datos (ID: {existingVideo.Id})");
+            }
+
             var metadataResult = await sender.Send(new GetMetadataQuery(request.VideoUrl), cancellationToken);
 
             string? title = null;
@@ -56,7 +63,7 @@ public record CreateVideoAdultCommand : IRequest<Result<CreateVideoAdultDto>>
                 VideoUrl = request.VideoUrl,
                 Title = title,
                 ThumbnailUrl = thumbnailUrl,
-                Status = ContentStatus.Upcoming,
+                Status = ContentStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };
 

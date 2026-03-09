@@ -2,7 +2,7 @@ namespace UtilitariosCore.Domain.Enums;
 
 public enum ContentStatus
 {
-    Upcoming = 1,
-    Completed = 2,
-    Pending = 3
+    Upcoming = 2,
+    Completed = 1,
+    Pending = 0
 }

@@ -74,7 +74,7 @@ public class ActressAdultController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
-    [HttpPatch("video/{videoId:int}/status")]
+    [HttpPut("video/{videoId:int}/status")]
     public async Task<ActionResult> UpdateVideoStatus([FromRoute] int videoId, [FromBody] UpdateVideoAdultStatusRequest request)
     {
         var response = await sender.Send(new UpdateVideoAdultStatusCommand { VideoId = videoId, Status = request.Status });
