@@ -52,7 +52,8 @@ public record UpdateActressAdultLinksCommand(int Id, List<string> Links) : IRequ
                         Type = LinkType.ActressAdult,
                         RefId = request.Id,
                         Url = url,
-                        OrderIndex = orderIndex
+                        OrderIndex = orderIndex,
+                        CreatedAt = DateTime.UtcNow
                     });
                 }
             }

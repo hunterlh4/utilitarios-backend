@@ -31,7 +31,7 @@ public record CreateActressAdultCommand : IRequest<Result<CreateActressAdultDto>
         {
             var newActress = new ActressAdult
             {
-                Name = StringNormalizer.ToTitleCase(request.Name),
+                Name = StringNormalizer.ToTitleCaseWithNumbers(request.Name),
                 CreatedAt = DateTime.UtcNow
             };
 

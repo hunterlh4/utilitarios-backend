@@ -93,7 +93,8 @@ public record CreateVideoAdultCommand : IRequest<Result<CreateVideoAdultDto>>
 
                 if (source == VideoAdultSource.Xvideos)
                 {
-                    var match = Regex.Match(url, @"/video(\d+)/");
+                    // Xvideos usa formato: /video.XXXXXX/ o /video/XXXXXX/
+                    var match = Regex.Match(url, @"/video[./]([a-zA-Z0-9]+)");
                     return match.Success ? match.Groups[1].Value : string.Empty;
                 }
 

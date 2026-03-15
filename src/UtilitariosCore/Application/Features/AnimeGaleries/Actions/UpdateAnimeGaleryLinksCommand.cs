@@ -52,7 +52,8 @@ public record UpdateAnimeGaleryLinksCommand(int Id, List<string> Links) : IReque
                         Type = LinkType.AnimeGalery,
                         RefId = request.Id,
                         Url = url,
-                        OrderIndex = orderIndex
+                        OrderIndex = orderIndex,
+                        CreatedAt = DateTime.UtcNow
                     });
                 }
             }

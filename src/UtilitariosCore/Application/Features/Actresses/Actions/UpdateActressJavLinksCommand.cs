@@ -52,7 +52,8 @@ public record UpdateActressJavLinksCommand(int Id, List<string> Links) : IReques
                         Type = LinkType.ActressJav,
                         RefId = request.Id,
                         Url = url,
-                        OrderIndex = orderIndex
+                        OrderIndex = orderIndex,
+                        CreatedAt = DateTime.UtcNow
                     });
                 }
             }

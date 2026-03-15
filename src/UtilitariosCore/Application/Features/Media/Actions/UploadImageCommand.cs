@@ -28,11 +28,24 @@ public record UploadImageCommand(byte[] ImageData, string FileName, MediaType Ty
         public async Task<Result<UploadImageDto>> Handle(UploadImageCommand request, CancellationToken cancellationToken)
         {
             using var stream = new MemoryStream(request.ImageData);
-            var uploadResult = await imgBBService.UploadImageAsync(stream, request.FileName);
+            // Cambiar extensión a .webp ya que siempre se sube en ese formato
+            var fileNameWithWebpExtension = Path.GetFileNameWithoutExtension(request.FileName) + ".webp";
+            var uploadResult = await imgBBService.UploadImageAsync(stream, fileNameWithWebpExtension);
 
             if (uploadResult == null) return Errors.BadRequest("Error al subir la imagen a ImgBB.");
 
             var existingMedia = await mediaRepository.GetMediaByRefId(request.RefId, request.Type);
+
+            // Si es ActressAdult, eliminar todas las imágenes anteriores de la BD
+            if (request.Type == MediaType.ActressAdult && existingMedia.Any())
+            {
+                foreach (var mediaData in existingMedia)
+                {
+                    await mediaRepository.DeleteMedia(mediaData.Id);
+                }
+                existingMedia = [];
+            }
+
             var nextOrderIndex = existingMedia.Any() ? existingMedia.Max(m => m.OrderIndex) + 1 : 1;
 
             var media = new Domain.Models.Media

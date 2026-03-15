@@ -52,7 +52,8 @@ public record UpdateGirlGaleryLinksCommand(int Id, List<string> Links) : IReques
                         Type = LinkType.GirlGalery,
                         RefId = request.Id,
                         Url = url,
-                        OrderIndex = orderIndex
+                        OrderIndex = orderIndex,
+                        CreatedAt = DateTime.UtcNow
                     });
                 }
             }

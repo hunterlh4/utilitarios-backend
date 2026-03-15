@@ -66,7 +66,7 @@ internal sealed class UpdateProyectLinksCommandHandler(
                     Url = item.Url,
                     Name = item.Name,
                     OrderIndex = item.OrderIndex,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.UtcNow
                 });
             }
         }

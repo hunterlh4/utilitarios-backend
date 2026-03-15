@@ -57,7 +57,7 @@ internal sealed class CreateProyectCommandHandler(
                         RefId = id,
                         Url = request.Links[i],
                         OrderIndex = i + 1,
-                        CreatedAt = DateTime.Now
+                        CreatedAt = DateTime.UtcNow
                     });
             }
         }

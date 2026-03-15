@@ -1,5 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
 using UtilitariosCore.Application.Features.Media.Dtos;
 using UtilitariosCore.Domain.Interfaces;
 
@@ -32,10 +34,18 @@ public class ImgBBService : IImgBBService
             throw new ArgumentException($"Invalid file type. Allowed: {string.Join(", ", allowedExtensions)}");
         }
 
+        // Convertir imagen a WebP
+        fileStream.Position = 0;
+        using var image = await Image.LoadAsync(fileStream);
+        
+        var webpStream = new MemoryStream();
+        var encoder = new WebpEncoder { Quality = 80 };
+        await image.SaveAsync(webpStream, encoder);
+        webpStream.Position = 0;
+
         // Convertir a base64
-        using var memoryStream = new MemoryStream();
-        await fileStream.CopyToAsync(memoryStream);
-        var base64 = Convert.ToBase64String(memoryStream.ToArray());
+        var imageBytes = webpStream.ToArray();
+        var base64 = Convert.ToBase64String(imageBytes);
 
         // Preparar request
         var formData = new MultipartFormDataContent();

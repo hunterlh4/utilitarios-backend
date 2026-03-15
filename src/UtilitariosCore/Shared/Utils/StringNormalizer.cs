@@ -7,6 +7,25 @@ namespace UtilitariosCore.Shared.Utils;
 public static class StringNormalizer
 {
     /// <summary>
+    /// Quita tildes y diacríticos, elimina todo lo que no sea letra, número o espacio,
+    /// y aplica Title Case: primera letra de cada palabra en mayúscula, resto minúscula.
+    /// Permite números en el nombre.
+    /// Ejemplo: "ángelA 2024  márTÍNez" → "Angela 2024 Martinez"
+    /// </summary>
+    public static string ToTitleCaseWithNumbers(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return input;
+
+        var withoutAccents = RemoveAccents(input);
+        var onlyLettersAndNumbers = Regex.Replace(withoutAccents, @"[^a-zA-Z0-9\s]", string.Empty);
+        var trimmed = Regex.Replace(onlyLettersAndNumbers.Trim(), @"\s+", " ");
+
+        if (string.IsNullOrWhiteSpace(trimmed)) return trimmed;
+
+        return CultureInfo.InvariantCulture.TextInfo.ToTitleCase(trimmed.ToLower());
+    }
+
+    /// <summary>
     /// Quita tildes y diacríticos, elimina todo lo que no sea letra o espacio,
     /// y aplica Title Case: primera letra de cada palabra en mayúscula, resto minúscula.
     /// Ejemplo: "ángelA  márTÍNez" → "Angela Martinez"

@@ -32,7 +32,7 @@ public record UpdateActressAdultCommand : IRequest<Result>
             var actress = await actressAdultRepository.GetActressAdultById(request.Id);
             if (actress == null) return Errors.NotFound("Actriz no encontrada.");
 
-            actress.Name = StringNormalizer.ToTitleCase(request.Name);
+            actress.Name = StringNormalizer.ToTitleCaseWithNumbers(request.Name);
             await actressAdultRepository.UpdateActressAdult(actress);
 
             await tagRepository.ReplaceTagsForRefId(request.Id, TagType.ActressAdult, request.Tags);
