@@ -3,6 +3,7 @@ using UtilitariosCore.Application.Features.ActressAdults.Dtos;
 using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Domain.Models;
+using UtilitariosCore.Shared.Utils;
 
 namespace UtilitariosCore.Infrastructure.Persistence.Repositories;
 
@@ -50,6 +51,16 @@ public class ActressAdultRepository(MssqlContext context) : IActressAdultReposit
         string sql = "SELECT Id, Name, CreatedAt FROM ActressAdult WHERE Name = @Name";
         var result = await db.QueryFirstOrDefaultAsync<ActressAdult>(sql, new { Name = name });
         return result;
+    }
+
+    public async Task<bool> CheckActressNameExists(string canonicalForm)
+    {
+        var db = context.CreateDefaultConnection();
+        // Obtiene todos los nombres y compara usando forma canónica
+        string sql = "SELECT Name FROM ActressAdult";
+        var names = await db.QueryAsync<string>(sql);
+        
+        return names.Any(n => StringNormalizer.GetCanonicalFormForComparison(n).Equals(canonicalForm, StringComparison.OrdinalIgnoreCase));
     }
 
     public async Task<ActressAdultDto?> GetActressAdultWithTagsAndImageById(int id)

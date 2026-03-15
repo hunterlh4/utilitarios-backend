@@ -9,5 +9,6 @@ public interface IActressAdultRepository
     Task<Models.ActressAdult?> GetActressAdultById(int id);
     Task<ActressAdultDto?> GetActressAdultWithTagsAndImageById(int id);
     Task<Models.ActressAdult?> GetActressAdultByName(string name);
+    Task<bool> CheckActressNameExists(string name);
     Task<IEnumerable<ActressAdultDto>> GetAllActressAdultsWithFirstImage();
 }

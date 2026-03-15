@@ -72,6 +72,21 @@ public static class StringNormalizer
             .ToList();
     }
 
+    /// <summary>
+    /// Normaliza un nombre para comparación: obtiene un "canonical form" ordenando las palabras.
+    /// Esto permite detectar nombres invertidos sin cambiar el nombre guardado.
+    /// Ejemplo: "Rodriguez Pepe" → "Pepe Rodriguez" (solo para comparar)
+    /// </summary>
+    public static string GetCanonicalFormForComparison(string input)
+    {
+        var normalized = ToTitleCaseWithNumbers(input);
+        if (string.IsNullOrWhiteSpace(normalized)) return normalized;
+
+        var words = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        Array.Sort(words);
+        return string.Join(" ", words);
+    }
+
     private static string RemoveAccents(string input)
     {
         var normalized = input.Normalize(NormalizationForm.FormD);

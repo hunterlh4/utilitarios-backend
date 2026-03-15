@@ -29,9 +29,17 @@ public record CreateActressAdultCommand : IRequest<Result<CreateActressAdultDto>
     {
         public async Task<Result<CreateActressAdultDto>> Handle(CreateActressAdultCommand request, CancellationToken cancellationToken)
         {
+            var normalizedName = StringNormalizer.ToTitleCaseWithNumbers(request.Name);
+            var canonicalForm = StringNormalizer.GetCanonicalFormForComparison(request.Name);
+            
+            // Verificar si ya existe una actriz con ese nombre (detecta nombres invertidos)
+            var exists = await actressAdultRepository.CheckActressNameExists(canonicalForm);
+            if (exists)
+                return Errors.BadRequest($"Ya existe una actriz con el nombre '{normalizedName}'.");
+
             var newActress = new ActressAdult
             {
-                Name = StringNormalizer.ToTitleCaseWithNumbers(request.Name),
+                Name = normalizedName,
                 CreatedAt = DateTime.UtcNow
             };
 

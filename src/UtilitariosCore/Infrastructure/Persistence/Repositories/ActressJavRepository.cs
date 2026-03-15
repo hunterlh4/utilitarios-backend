@@ -3,6 +3,7 @@ using UtilitariosCore.Application.Features.Actresses.Dtos;
 using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Domain.Models;
+using UtilitariosCore.Shared.Utils;
 
 namespace UtilitariosCore.Infrastructure.Persistence.Repositories;
 
@@ -52,12 +53,14 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
         return result;
     }
 
-    public async Task<bool> CheckActressNameExists(string name)
+    public async Task<bool> CheckActressNameExists(string canonicalForm)
     {
         var db = context.CreateDefaultConnection();
-        string sql = "SELECT COUNT(1) FROM ActressJav WHERE LOWER(Name) = LOWER(@Name)";
-        var count = await db.ExecuteScalarAsync<int>(sql, new { Name = name });
-        return count > 0;
+        // Obtiene todos los nombres y compara usando forma canónica
+        string sql = "SELECT Name FROM ActressJav";
+        var names = await db.QueryAsync<string>(sql);
+        
+        return names.Any(n => StringNormalizer.GetCanonicalFormForComparison(n).Equals(canonicalForm, StringComparison.OrdinalIgnoreCase));
     }
 
     public async Task<bool> DeleteActressJav(int id)

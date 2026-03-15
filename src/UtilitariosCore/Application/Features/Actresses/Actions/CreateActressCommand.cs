@@ -30,9 +30,10 @@ public record CreateActressCommand : IRequest<Result<CreateActressJavDto>>
         public async Task<Result<CreateActressJavDto>> Handle(CreateActressCommand request, CancellationToken cancellationToken)
         {
             var normalizedName = StringNormalizer.ToTitleCase(request.Name);
+            var canonicalForm = StringNormalizer.GetCanonicalFormForComparison(request.Name);
             
-            // Verificar si ya existe una actriz con ese nombre
-            var exists = await actressRepository.CheckActressNameExists(normalizedName);
+            // Verificar si ya existe una actriz con ese nombre (detecta nombres invertidos)
+            var exists = await actressRepository.CheckActressNameExists(canonicalForm);
             if (exists)
                 return Errors.BadRequest($"Ya existe una actriz con el nombre '{normalizedName}'.");
 

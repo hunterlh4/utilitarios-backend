@@ -32,7 +32,19 @@ public record UpdateActressAdultCommand : IRequest<Result>
             var actress = await actressAdultRepository.GetActressAdultById(request.Id);
             if (actress == null) return Errors.NotFound("Actriz no encontrada.");
 
-            actress.Name = StringNormalizer.ToTitleCaseWithNumbers(request.Name);
+            var normalizedName = StringNormalizer.ToTitleCaseWithNumbers(request.Name);
+            var canonicalForm = StringNormalizer.GetCanonicalFormForComparison(request.Name);
+            var currentCanonicalForm = StringNormalizer.GetCanonicalFormForComparison(actress.Name);
+            
+            // Verificar si el nombre cambió y si ya existe otra actriz con ese nombre (detecta nombres invertidos)
+            if (currentCanonicalForm != canonicalForm)
+            {
+                var exists = await actressAdultRepository.CheckActressNameExists(canonicalForm);
+                if (exists)
+                    return Errors.BadRequest($"Ya existe otra actriz con el nombre '{normalizedName}'.");
+            }
+
+            actress.Name = normalizedName;
             await actressAdultRepository.UpdateActressAdult(actress);
 
             await tagRepository.ReplaceTagsForRefId(request.Id, TagType.ActressAdult, request.Tags);
