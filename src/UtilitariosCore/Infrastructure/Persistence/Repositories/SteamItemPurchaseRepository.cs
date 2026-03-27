@@ -10,8 +10,8 @@ public class SteamItemPurchaseRepository(MssqlContext context) : ISteamItemPurch
 {
     private const string SelectWithItem = @"
         SELECT p.Id, p.SteamItemId, s.Name AS ItemName, s.Image AS ItemImage,
-               s.MarketUrl AS ItemMarketUrl, p.PurchasePrice, p.SalePrice, p.Profit,
-               p.Status, p.PurchaseDate, p.SaleDate, p.CreatedAt
+               s.MarketUrl AS ItemMarketUrl, s.Game AS ItemGame, p.PurchasePrice, p.SalePrice, p.Profit,
+               p.Status, p.CreatedAt
         FROM SteamItemPurchase p
         INNER JOIN SteamItem s ON s.Id = p.SteamItemId";
 

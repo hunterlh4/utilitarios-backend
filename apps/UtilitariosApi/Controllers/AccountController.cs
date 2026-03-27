@@ -39,6 +39,13 @@ public class AccountController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
+    [HttpPatch("{id:int}/use")]
+    public async Task<ActionResult> UpdateLastConnection([FromRoute] int id)
+    {
+        var response = await sender.Send(new UpdateLastConnectionCommand(id));
+        return response.ToActionResult();
+    }
+
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> Delete([FromRoute] int id)
     {

@@ -3,6 +3,7 @@ using UtilitariosCore.Application.Features.Accounts.Dtos;
 using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Domain.Models;
+using DomainTask = UtilitariosCore.Domain.Models.Task;
 
 namespace UtilitariosCore.Infrastructure.Persistence.Repositories;
 
@@ -36,7 +37,7 @@ public class AccountRepository(MssqlContext context) : IAccountRepository
 
         // Query 3: renovaciones
         var renewals = (await db.QueryAsync<AccountRenewalDto>(
-            "SELECT Id, AccountId, Day, Month, Year FROM AccountRenewal WHERE AccountId IN @Ids ORDER BY Year, Month, Day",
+            "SELECT Id, AccountId, Day FROM AccountRenewal WHERE AccountId IN @Ids ORDER BY Day",
             new { Ids = accountIds })).ToList();
 
         var propsByAccount = properties.GroupBy(p => p.AccountId)
@@ -70,7 +71,7 @@ public class AccountRepository(MssqlContext context) : IAccountRepository
             new { Id = id })).ToList();
 
         account.Renewals = (await db.QueryAsync<AccountRenewalDto>(
-            "SELECT Id, AccountId, Day, Month, Year FROM AccountRenewal WHERE AccountId = @Id ORDER BY Year, Month, Day",
+            "SELECT Id, AccountId, Day FROM AccountRenewal WHERE AccountId = @Id ORDER BY Day",
             new { Id = id })).ToList();
 
         return account;
@@ -107,8 +108,8 @@ public class AccountRepository(MssqlContext context) : IAccountRepository
         foreach (var renewal in renewals)
         {
             await db.ExecuteAsync(
-                "INSERT INTO AccountRenewal (AccountId, Day, Month, Year) VALUES (@AccountId, @Day, @Month, @Year)",
-                new { AccountId = accountId, renewal.Day, renewal.Month, renewal.Year });
+                "INSERT INTO AccountRenewal (AccountId, Day) VALUES (@AccountId, @Day)",
+                new { AccountId = accountId, renewal.Day });
         }
 
         return accountId;
@@ -153,8 +154,8 @@ public class AccountRepository(MssqlContext context) : IAccountRepository
         foreach (var renewal in renewals)
         {
             await db.ExecuteAsync(
-                "INSERT INTO AccountRenewal (AccountId, Day, Month, Year) VALUES (@AccountId, @Day, @Month, @Year)",
-                new { AccountId = account.Id, renewal.Day, renewal.Month, renewal.Year });
+                "INSERT INTO AccountRenewal (AccountId, Day) VALUES (@AccountId, @Day)",
+                new { AccountId = account.Id, renewal.Day });
         }
 
         return true;
@@ -173,5 +174,11 @@ public class AccountRepository(MssqlContext context) : IAccountRepository
     {
         var db = context.CreateDefaultConnection();
         return await db.QuerySingleAsync<int>("SELECT COUNT(1) FROM Account WHERE Id = @Id", new { Id = id }) > 0;
+    }
+
+    public async Task<bool> UpdateLastConnection(int id, DateTime date)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.ExecuteAsync("UPDATE Account SET LastConnection = @Date WHERE Id = @Id", new { Id = id, Date = date })>0;
     }
 }

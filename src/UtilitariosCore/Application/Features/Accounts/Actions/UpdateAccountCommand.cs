@@ -9,7 +9,7 @@ using UtilitariosCore.Shared.Responses;
 namespace UtilitariosCore.Application.Features.Accounts.Actions;
 
 public record UpdateAccountPropertyRequest(string Key, string Value);
-public record UpdateAccountRenewalRequest(int Day, int Month, int Year);
+public record UpdateAccountRenewalRequest(int Day);
 
 public record UpdateAccountCommand(
     int Id,
@@ -46,8 +46,6 @@ public class UpdateAccountCommandValidator : AbstractValidator<UpdateAccountComm
         RuleForEach(x => x.Renewals).ChildRules(r =>
         {
             r.RuleFor(x => x.Day).InclusiveBetween(1, 31).WithMessage("Day debe ser entre 1 y 31.");
-            r.RuleFor(x => x.Month).InclusiveBetween(1, 12).WithMessage("Month debe ser entre 1 y 12.");
-            r.RuleFor(x => x.Year).GreaterThan(2000).WithMessage("Year debe ser mayor a 2000.");
         }).When(x => x.Renewals is not null);
     }
 }
@@ -79,7 +77,7 @@ internal sealed class UpdateAccountCommandHandler(IAccountRepository accountRepo
             .ToList();
 
         var renewals = (request.Renewals ?? [])
-            .Select(r => new AccountRenewal { Day = r.Day, Month = r.Month, Year = r.Year })
+            .Select(r => new AccountRenewal { Day = r.Day })
             .ToList();
 
         bool updated = await accountRepository.Update(account, properties, renewals);

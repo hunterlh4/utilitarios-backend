@@ -1,6 +1,7 @@
 using UtilitariosCore.Application.Features.Accounts.Dtos;
 using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Models;
+using DomainTask = UtilitariosCore.Domain.Models.Task;
 
 namespace UtilitariosCore.Domain.Interfaces;
 
@@ -12,4 +13,5 @@ public interface IAccountRepository
     Task<bool> Update(Account account, List<AccountProperty> properties, List<AccountRenewal> renewals);
     Task<bool> Delete(int id);
     Task<bool> Exists(int id);
+    Task<bool> UpdateLastConnection(int id, DateTime date);
 }

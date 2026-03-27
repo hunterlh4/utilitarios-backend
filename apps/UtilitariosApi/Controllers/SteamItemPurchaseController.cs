@@ -25,14 +25,19 @@ public class SteamItemPurchaseController(ISender sender) : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public async Task<ActionResult> Update(int id, [FromBody] UpdateSteamItemPurchaseCommand command)
+    public async Task<ActionResult> Update([FromRoute] int id, [FromBody] UpdateSteamItemPurchaseDto dto)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(new UpdateSteamItemPurchaseCommand(id)
+        {
+            SteamItemId = dto.SteamItemId,
+            PurchasePrice = dto.PurchasePrice,
+            SalePrice = dto.SalePrice,
+        });
         return result.ToActionResult();
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<ActionResult> Delete([FromRoute] int id)
     {
         var result = await sender.Send(new DeleteSteamItemPurchaseCommand(id));
         return result.ToActionResult();

@@ -294,13 +294,11 @@ CREATE TABLE AccountProperty (
     Value NVARCHAR(500) NOT NULL   -- valor como texto (true/false, número, string)
 );
 
--- AccountRenewal table (fechas de renovación de servicios con plan de pago)
+-- AccountRenewal table (día de renovación mensual)
 CREATE TABLE AccountRenewal (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     AccountId INT NOT NULL,
-    Day INT NOT NULL,   -- día del mes (1-31)
-    Month INT NOT NULL, -- mes (1-12)
-    Year INT NOT NULL   -- año
+    Day INT NOT NULL   -- día del mes en que renueva (1-31)
 );
 
 -- Payment table (deudas/pagos por persona)

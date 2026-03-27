@@ -9,12 +9,7 @@ namespace UtilitariosCore.Application.Features.SteamItemPurchases.Actions;
 
 public record CreateSteamItemPurchaseCommand(
     int SteamItemId,
-    decimal PurchasePrice,
-    decimal SalePrice,
-    decimal? Profit,
-    PurchaseStatus Status,
-    DateTime PurchaseDate,
-    DateTime? SaleDate
+    decimal PurchasePrice
 ) : IRequest<Result<int>>;
 
 public class CreateSteamItemPurchaseCommandValidator : AbstractValidator<CreateSteamItemPurchaseCommand>
@@ -40,11 +35,11 @@ internal sealed class CreateSteamItemPurchaseCommandHandler(
         {
             SteamItemId = request.SteamItemId,
             PurchasePrice = request.PurchasePrice,
-            SalePrice = request.SalePrice,
-            Profit = request.Profit,
-            Status = request.Status,
-            PurchaseDate = request.PurchaseDate,
-            SaleDate = request.SaleDate,
+            SalePrice = 0,
+            Profit = null,
+            Status = PurchaseStatus.Comprado,
+            PurchaseDate = DateTime.Now,
+            SaleDate = null,
             CreatedAt = DateTime.Now
         };
         return await repository.Create(purchase);
