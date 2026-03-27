@@ -5,15 +5,16 @@ using UtilitariosCore.Shared.Responses;
 
 namespace UtilitariosCore.Application.Features.SteamItems.Actions;
 
-public record UpdateSteamItemCommand(
-    int Id,
-    string Name,
-    string Image,
-    string? Price,
-    GameType Game,
-    string MarketUrl,
-    SteamItemStatus Status
-) : IRequest<Result>;
+public record UpdateSteamItemCommand(int Id) : IRequest<Result>
+{
+    public string? ExternalId { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Image { get; init; } = string.Empty;
+    public decimal Price { get; init; }
+    public GameType Game { get; init; }
+    public string MarketUrl { get; init; } = string.Empty;
+    public SteamItemStatus Status { get; init; }
+}
 
 internal sealed class UpdateSteamItemCommandHandler(ISteamItemRepository repository)
     : IRequestHandler<UpdateSteamItemCommand, Result>
@@ -23,6 +24,7 @@ internal sealed class UpdateSteamItemCommandHandler(ISteamItemRepository reposit
         var item = await repository.GetById(request.Id);
         if (item is null) return Errors.NotFound("Item no encontrado.");
 
+        item.ExternalId = request.ExternalId;
         item.Name = request.Name;
         item.Image = request.Image;
         item.Price = request.Price;

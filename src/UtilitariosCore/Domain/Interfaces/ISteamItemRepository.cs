@@ -10,4 +10,5 @@ public interface ISteamItemRepository
     Task<bool> Update(SteamItem item);
     Task<bool> Delete(int id);
     Task<bool> Exists(int id);
+    Task<bool> ExistsByExternalId(string externalId);
 }

@@ -11,14 +11,14 @@ public class SteamItemRepository(MssqlContext context) : ISteamItemRepository
     {
         var db = context.CreateDefaultConnection();
         return await db.QueryAsync<SteamItem>(
-            "SELECT Id, Name, Image, Price, Game, MarketUrl, Status, CreatedAt FROM SteamItem ORDER BY CreatedAt DESC");
+            "SELECT Id, ExternalId, Name, Image, Price, Game, MarketUrl, Status, CreatedAt FROM SteamItem ORDER BY CreatedAt DESC");
     }
 
     public async Task<SteamItem?> GetById(int id)
     {
         var db = context.CreateDefaultConnection();
         return await db.QueryFirstOrDefaultAsync<SteamItem>(
-            "SELECT Id, Name, Image, Price, Game, MarketUrl, Status, CreatedAt FROM SteamItem WHERE Id = @Id",
+            "SELECT Id, ExternalId, Name, Image, Price, Game, MarketUrl, Status, CreatedAt FROM SteamItem WHERE Id = @Id",
             new { Id = id });
     }
 
@@ -26,8 +26,8 @@ public class SteamItemRepository(MssqlContext context) : ISteamItemRepository
     {
         var db = context.CreateDefaultConnection();
         return await db.QuerySingleAsync<int>(@"
-            INSERT INTO SteamItem (Name, Image, Price, Game, MarketUrl, Status, CreatedAt)
-            VALUES (@Name, @Image, @Price, @Game, @MarketUrl, @Status, @CreatedAt);
+            INSERT INTO SteamItem (ExternalId, Name, Image, Price, Game, MarketUrl, Status, CreatedAt)
+            VALUES (@ExternalId, @Name, @Image, @Price, @Game, @MarketUrl, @Status, @CreatedAt);
             SELECT SCOPE_IDENTITY();", item);
     }
 
@@ -35,7 +35,7 @@ public class SteamItemRepository(MssqlContext context) : ISteamItemRepository
     {
         var db = context.CreateDefaultConnection();
         int rows = await db.ExecuteAsync(@"
-            UPDATE SteamItem SET Name = @Name, Image = @Image, Price = @Price,
+            UPDATE SteamItem SET ExternalId = @ExternalId, Name = @Name, Image = @Image, Price = @Price,
             Game = @Game, MarketUrl = @MarketUrl, Status = @Status WHERE Id = @Id", item);
         return rows > 0;
     }
@@ -52,5 +52,12 @@ public class SteamItemRepository(MssqlContext context) : ISteamItemRepository
         var db = context.CreateDefaultConnection();
         return await db.QuerySingleAsync<int>(
             "SELECT COUNT(1) FROM SteamItem WHERE Id = @Id", new { Id = id }) > 0;
+    }
+
+    public async Task<bool> ExistsByExternalId(string externalId)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.QuerySingleAsync<int>(
+            "SELECT COUNT(1) FROM SteamItem WHERE ExternalId = @ExternalId", new { ExternalId = externalId }) > 0;
     }
 }

@@ -4,14 +4,13 @@ using UtilitariosCore.Shared.Responses;
 
 namespace UtilitariosCore.Application.Features.SteamItemDrops.Actions;
 
-public record UpdateSteamItemDropCommand(
-    int Id,
-    int SteamItemId,
-    int Quantity,
-    decimal Price,
-    decimal SalePrice,
-    decimal Total
-) : IRequest<Result>;
+public record UpdateSteamItemDropCommand(int Id) : IRequest<Result>
+{
+    public int SteamItemId { get; init; }
+    public int Quantity { get; init; }
+    public decimal Price { get; init; }
+    public decimal SalePrice { get; init; }
+}
 
 internal sealed class UpdateSteamItemDropCommandHandler(
     ISteamItemDropRepository repository,
@@ -28,8 +27,12 @@ internal sealed class UpdateSteamItemDropCommandHandler(
 
         var drop = new Domain.Models.SteamItemDrop
         {
-            Id = request.Id, SteamItemId = request.SteamItemId, Quantity = request.Quantity,
-            Price = request.Price, SalePrice = request.SalePrice, Total = request.Total,
+            Id = request.Id,
+            SteamItemId = request.SteamItemId,
+            Quantity = request.Quantity,
+            Price = request.Price,
+            SalePrice = request.SalePrice,
+            Total = request.Quantity * request.SalePrice,
             CreatedAt = DateTime.Now
         };
         await repository.Update(drop);

@@ -230,9 +230,10 @@ CREATE TABLE DotaMedia (
 -- SteamItem table (catálogo de items de Steam)
 CREATE TABLE SteamItem (
     Id INT IDENTITY(1,1) PRIMARY KEY,
+    ExternalId NVARCHAR(200), -- ID del item en Steam (market hash name o classid)
     Name NVARCHAR(300) NOT NULL,
     Image NVARCHAR(1000) NOT NULL,
-    Price NVARCHAR(50), -- "$0.64"
+    Price decimal(10,2), -- precio en soles "S/. 2.50"
     Game INT NOT NULL, -- 1: dota2, 2: cs2
     MarketUrl NVARCHAR(1000) NOT NULL,
     Status INT NOT NULL, -- 1: historial, 2: por_comprar

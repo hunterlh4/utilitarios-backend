@@ -10,8 +10,7 @@ public record CreateSteamItemDropCommand(
     int SteamItemId,
     int Quantity,
     decimal Price,
-    decimal SalePrice,
-    decimal Total
+    decimal SalePrice
 ) : IRequest<Result<int>>;
 
 public class CreateSteamItemDropCommandValidator : AbstractValidator<CreateSteamItemDropCommand>
@@ -22,7 +21,6 @@ public class CreateSteamItemDropCommandValidator : AbstractValidator<CreateSteam
         RuleFor(x => x.Quantity).GreaterThan(0);
         RuleFor(x => x.Price).GreaterThanOrEqualTo(0);
         RuleFor(x => x.SalePrice).GreaterThanOrEqualTo(0);
-        RuleFor(x => x.Total).GreaterThanOrEqualTo(0);
     }
 }
 
@@ -42,7 +40,7 @@ internal sealed class CreateSteamItemDropCommandHandler(
             Quantity = request.Quantity,
             Price = request.Price,
             SalePrice = request.SalePrice,
-            Total = request.Total,
+            Total = request.Quantity * request.SalePrice,
             CreatedAt = DateTime.Now
         };
         return await repository.Create(drop);

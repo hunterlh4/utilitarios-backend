@@ -5,9 +5,10 @@ namespace UtilitariosCore.Domain.Models;
 public class SteamItem
 {
     public int Id { get; set; }
+    public string? ExternalId { get; set; }
     public required string Name { get; set; }
     public required string Image { get; set; }
-    public string? Price { get; set; }
+    public decimal Price { get; set; }
     public GameType Game { get; set; }
     public required string MarketUrl { get; set; }
     public SteamItemStatus Status { get; set; }

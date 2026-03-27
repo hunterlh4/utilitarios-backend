@@ -25,9 +25,15 @@ public class SteamItemDropController(ISender sender) : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public async Task<ActionResult> Update(int id, [FromBody] UpdateSteamItemDropCommand command)
+    public async Task<ActionResult> Update([FromRoute] int id, [FromBody] UpdateSteamItemDropDto dto)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(new UpdateSteamItemDropCommand(id)
+        {
+            SteamItemId = dto.SteamItemId,
+            Quantity = dto.Quantity,
+            Price = dto.Price,
+            SalePrice = dto.SalePrice,
+        });
         return result.ToActionResult();
     }
 
