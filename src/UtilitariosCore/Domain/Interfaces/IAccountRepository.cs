@@ -1,17 +1,34 @@
 using UtilitariosCore.Application.Features.Accounts.Dtos;
-using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Models;
-using DomainTask = UtilitariosCore.Domain.Models.Task;
 
 namespace UtilitariosCore.Domain.Interfaces;
 
 public interface IAccountRepository
 {
-    Task<IEnumerable<AccountDto>> GetAll(AccountType? type = null);
-    Task<AccountDto?> GetById(int id);
-    Task<int> Create(Account account, List<AccountProperty> properties, List<AccountRenewal> renewals);
-    Task<bool> Update(Account account, List<AccountProperty> properties, List<AccountRenewal> renewals);
-    Task<bool> Delete(int id);
-    Task<bool> Exists(int id);
-    Task<bool> UpdateLastConnection(int id, DateTime date);
+    Task<IEnumerable<AccountEmailDto>> GetEmails();
+    Task<IEnumerable<AccountSteamDto>> GetSteams();
+    Task<IEnumerable<AccountGitHubDto>> GetGitHubs();
+    Task<IEnumerable<AccountGeneralDto>> GetGenerals();
+    Task<AccountKiroDto?> GetKiro();
+
+    Task<int> CreateEmail(AccountEmail account);
+    Task<bool> UpdateEmail(AccountEmail account);
+    Task<bool> DeleteEmail(int id);
+
+    Task<int> CreateSteam(AccountSteam account);
+    Task<bool> UpdateSteam(AccountSteam account);
+    Task<bool> DeleteSteam(int id);
+
+    Task<int> CreateGitHub(AccountGitHub account);
+    Task<bool> UpdateGitHub(AccountGitHub account);
+    Task<bool> DeleteGitHub(int id);
+
+    Task<int> CreateGeneral(AccountGeneral account);
+    Task<bool> UpdateGeneral(AccountGeneral account);
+    Task<bool> DeleteGeneral(int id);
+
+    Task<int> CreateKiro(AccountKiro account);
+    Task<bool> UpdateKiro(AccountKiro account);
+    Task<bool> UseKiro(int id);
+    Task<int> ResetKiro(DateTime threshold);
 }

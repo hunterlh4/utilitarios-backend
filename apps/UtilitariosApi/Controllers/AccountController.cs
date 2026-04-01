@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using UtilitariosApi.Shared.Extensions;
 using UtilitariosCore.Application.Features.Accounts.Actions;
 using UtilitariosCore.Application.Features.Accounts.Dtos;
-using UtilitariosCore.Domain.Enums;
 
 namespace UtilitariosApi.Controllers;
 
@@ -11,45 +10,160 @@ namespace UtilitariosApi.Controllers;
 [ApiController]
 public class AccountController(ISender sender) : ControllerBase
 {
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<AccountDto>>> GetAll([FromQuery] AccountType? type = null)
+    // Email
+    [HttpGet("email")]
+    public async Task<ActionResult<IEnumerable<AccountEmailDto>>> GetEmails()
     {
-        var response = await sender.Send(new GetAllAccountsQuery(type));
+        var response = await sender.Send(new GetAllEmailAccountsQuery());
         return response.ToActionResult();
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<AccountDto>> GetById([FromRoute] int id)
-    {
-        var response = await sender.Send(new GetAccountByIdQuery(id));
-        return response.ToActionResult();
-    }
-
-    [HttpPost]
-    public async Task<ActionResult<int>> Create([FromBody] CreateAccountCommand command)
+    [HttpPost("email")]
+    public async Task<ActionResult<int>> CreateEmail([FromBody] CreateEmailAccountCommand command)
     {
         var response = await sender.Send(command);
         return response.ToActionResult();
     }
 
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult> Update([FromRoute] int id, [FromBody] UpdateAccountCommand command)
+    [HttpPut("email/{id:int}")]
+    public async Task<ActionResult> UpdateEmail([FromRoute] int id, [FromBody] UpdateEmailAccountCommand command)
     {
-        var response = await sender.Send(command with { Id = id });
+        command.Id = id;
+        var response = await sender.Send(command);
         return response.ToActionResult();
     }
 
-    [HttpPatch("{id:int}/use")]
-    public async Task<ActionResult> UpdateLastConnection([FromRoute] int id)
+    [HttpDelete("email/{id:int}")]
+    public async Task<ActionResult> DeleteEmail([FromRoute] int id)
     {
-        var response = await sender.Send(new UpdateLastConnectionCommand(id));
+        var response = await sender.Send(new DeleteEmailAccountCommand(id));
         return response.ToActionResult();
     }
 
-    [HttpDelete("{id:int}")]
-    public async Task<ActionResult> Delete([FromRoute] int id)
+    // Steam
+    [HttpGet("steam")]
+    public async Task<ActionResult<IEnumerable<AccountSteamDto>>> GetSteams()
     {
-        var response = await sender.Send(new DeleteAccountCommand(id));
+        var response = await sender.Send(new GetAllSteamAccountsQuery());
+        return response.ToActionResult();
+    }
+
+    [HttpPost("steam")]
+    public async Task<ActionResult<int>> CreateSteam([FromBody] CreateSteamAccountCommand command)
+    {
+        var response = await sender.Send(command);
+        return response.ToActionResult();
+    }
+
+    [HttpPut("steam/{id:int}")]
+    public async Task<ActionResult> UpdateSteam([FromRoute] int id, [FromBody] UpdateSteamAccountCommand command)
+    {
+        command.Id = id;
+        var response = await sender.Send(command);
+        return response.ToActionResult();
+    }
+
+    [HttpDelete("steam/{id:int}")]
+    public async Task<ActionResult> DeleteSteam([FromRoute] int id)
+    {
+        var response = await sender.Send(new DeleteSteamAccountCommand(id));
+        return response.ToActionResult();
+    }
+
+    // GitHub
+    [HttpGet("github")]
+    public async Task<ActionResult<IEnumerable<AccountGitHubDto>>> GetGitHubs()
+    {
+        var response = await sender.Send(new GetAllGitHubAccountsQuery());
+        return response.ToActionResult();
+    }
+
+    [HttpPost("github")]
+    public async Task<ActionResult<int>> CreateGitHub([FromBody] CreateGitHubAccountCommand command)
+    {
+        var response = await sender.Send(command);
+        return response.ToActionResult();
+    }
+
+    [HttpPut("github/{id:int}")]
+    public async Task<ActionResult> UpdateGitHub([FromRoute] int id, [FromBody] UpdateGitHubAccountCommand command)
+    {
+        command.Id = id;
+        var response = await sender.Send(command);
+        return response.ToActionResult();
+    }
+
+    [HttpDelete("github/{id:int}")]
+    public async Task<ActionResult> DeleteGitHub([FromRoute] int id)
+    {
+        var response = await sender.Send(new DeleteGitHubAccountCommand(id));
+        return response.ToActionResult();
+    }
+
+    // General
+    [HttpGet("general")]
+    public async Task<ActionResult<IEnumerable<AccountGeneralDto>>> GetGenerals()
+    {
+        var response = await sender.Send(new GetAllGeneralAccountsQuery());
+        return response.ToActionResult();
+    }
+
+    [HttpPost("general")]
+    public async Task<ActionResult<int>> CreateGeneral([FromBody] CreateGeneralAccountCommand command)
+    {
+        var response = await sender.Send(command);
+        return response.ToActionResult();
+    }
+
+    [HttpPut("general/{id:int}")]
+    public async Task<ActionResult> UpdateGeneral([FromRoute] int id, [FromBody] UpdateGeneralAccountCommand command)
+    {
+        command.Id = id;
+        var response = await sender.Send(command);
+        return response.ToActionResult();
+    }
+
+    [HttpDelete("general/{id:int}")]
+    public async Task<ActionResult> DeleteGeneral([FromRoute] int id)
+    {
+        var response = await sender.Send(new DeleteGeneralAccountCommand(id));
+        return response.ToActionResult();
+    }
+
+    // Kiro
+    [HttpGet("kiro")]
+    public async Task<ActionResult<AccountKiroDto?>> GetKiro()
+    {
+        var response = await sender.Send(new GetKiroAccountQuery());
+        return response.ToActionResult();
+    }
+
+    [HttpPost("kiro")]
+    public async Task<ActionResult<int>> CreateKiro([FromBody] CreateKiroAccountCommand command)
+    {
+        var response = await sender.Send(command);
+        return response.ToActionResult();
+    }
+
+    [HttpPut("kiro/{id:int}")]
+    public async Task<ActionResult> UpdateKiro([FromRoute] int id, [FromBody] UpdateKiroAccountCommand command)
+    {
+        command.Id = id;
+        var response = await sender.Send(command);
+        return response.ToActionResult();
+    }
+
+    [HttpPatch("kiro/{id:int}/use")]
+    public async Task<ActionResult> UseKiro([FromRoute] int id)
+    {
+        var response = await sender.Send(new UseKiroAccountCommand(id));
+        return response.ToActionResult();
+    }
+
+    [HttpPost("kiro/reset")]
+    public async Task<ActionResult<int>> ResetKiro()
+    {
+        var response = await sender.Send(new ResetKiroAccountCommand());
         return response.ToActionResult();
     }
 }

@@ -1,8 +1,8 @@
 using UtilitariosCore.Domain.Enums;
 
-namespace UtilitariosCore.Application.Features.Accounts.Dtos;
+namespace UtilitariosCore.Domain.Models;
 
-public class AccountEmailDto
+public class AccountEmail
 {
     public int Id { get; set; }
     public string Provider { get; set; } = string.Empty;
@@ -10,15 +10,13 @@ public class AccountEmailDto
     public string Password { get; set; } = string.Empty;
     public string? Phone { get; set; }
     public int? RecoveryEmailId { get; set; }
-    public string? RecoveryEmail { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
-public class AccountSteamDto
+public class AccountSteam
 {
     public int Id { get; set; }
     public int? EmailId { get; set; }
-    public string? EmailAddress { get; set; }
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public string? Phone { get; set; }
@@ -30,45 +28,33 @@ public class AccountSteamDto
     public DateTime CreatedAt { get; set; }
 }
 
-public class AccountGitHubDto
+public class AccountGitHub
 {
     public int Id { get; set; }
     public int? EmailId { get; set; }
-    public string? EmailAddress { get; set; }
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public string? ProfileUrl { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
-public class AccountGeneralDto
+public class AccountGeneral
 {
     public int Id { get; set; }
     public GeneralPlatform Platform { get; set; }
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public int? EmailId { get; set; }
-    public string? EmailAddress { get; set; }
     public string? ProfileUrl { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
-public class AccountKiroDto
+public class AccountKiro
 {
     public int Id { get; set; }
     public LinkedAccountType LinkedType { get; set; }
     public int RefId { get; set; }
-    public string LinkedDisplay { get; set; } = string.Empty;
-    public bool IsNew { get; set; }
+    public bool IsNew { get; set; } = true;
     public DateTime? LastUsed { get; set; }
     public DateTime CreatedAt { get; set; }
-}
-
-public class AccountAllDto
-{
-    public List<AccountEmailDto> Emails { get; set; } = [];
-    public List<AccountSteamDto> Steams { get; set; } = [];
-    public List<AccountGitHubDto> GitHubs { get; set; } = [];
-    public List<AccountGeneralDto> Generals { get; set; } = [];
-    public AccountKiroDto? Kiro { get; set; }
 }

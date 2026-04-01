@@ -1,184 +1,188 @@
 using Dapper;
 using UtilitariosCore.Application.Features.Accounts.Dtos;
-using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Domain.Models;
-using DomainTask = UtilitariosCore.Domain.Models.Task;
 
 namespace UtilitariosCore.Infrastructure.Persistence.Repositories;
 
 public class AccountRepository(MssqlContext context) : IAccountRepository
 {
-    public async Task<IEnumerable<AccountDto>> GetAll(AccountType? type = null)
+    public async Task<IEnumerable<AccountEmailDto>> GetEmails()
     {
         var db = context.CreateDefaultConnection();
-
-        string whereClause = type.HasValue ? "WHERE a.Type = @Type" : string.Empty;
-
-        // Query 1: cuentas principales
-        string sqlAccounts = $@"
-        SELECT
-            Id, Type, Name, Username, Password, ProfileUrl,
-            PhoneNumber, RecoveryEmail, LastConnection, CreatedAt
-        FROM Account a
-        {whereClause}
-        ORDER BY a.CreatedAt DESC";
-
-        var accounts = (await db.QueryAsync<AccountDto>(sqlAccounts, new { Type = type })).ToList();
-
-        if (accounts.Count == 0) return accounts;
-
-        var accountIds = accounts.Select(a => a.Id).ToList();
-
-        // Query 2: propiedades
-        var properties = (await db.QueryAsync<AccountPropertyDto>(
-            "SELECT Id, AccountId, [Key], Value FROM AccountProperty WHERE AccountId IN @Ids",
-            new { Ids = accountIds })).ToList();
-
-        // Query 3: renovaciones
-        var renewals = (await db.QueryAsync<AccountRenewalDto>(
-            "SELECT Id, AccountId, Day FROM AccountRenewal WHERE AccountId IN @Ids ORDER BY Day",
-            new { Ids = accountIds })).ToList();
-
-        var propsByAccount = properties.GroupBy(p => p.AccountId)
-            .ToDictionary(g => g.Key, g => g.ToList());
-        var renewalsByAccount = renewals.GroupBy(r => r.AccountId)
-            .ToDictionary(g => g.Key, g => g.ToList());
-
-        foreach (var account in accounts)
-        {
-            account.Properties = propsByAccount.TryGetValue(account.Id, out var props) ? props : [];
-            account.Renewals = renewalsByAccount.TryGetValue(account.Id, out var ren) ? ren : [];
-        }
-
-        return accounts;
+        return await db.QueryAsync<AccountEmailDto>(@"
+            SELECT e.Id, e.Provider, e.Email, e.Password, e.Phone,
+                   e.RecoveryEmailId, r.Email AS RecoveryEmail, e.CreatedAt
+            FROM AccountEmail e
+            LEFT JOIN AccountEmail r ON r.Id = e.RecoveryEmailId
+            ORDER BY e.CreatedAt DESC");
     }
 
-    public async Task<AccountDto?> GetById(int id)
+    public async Task<IEnumerable<AccountSteamDto>> GetSteams()
     {
         var db = context.CreateDefaultConnection();
-
-        var account = await db.QueryFirstOrDefaultAsync<AccountDto>(
-            @"SELECT Id, Type, Name, Username, Password, ProfileUrl,
-              PhoneNumber, RecoveryEmail, LastConnection, CreatedAt
-              FROM Account WHERE Id = @Id",
-            new { Id = id });
-
-        if (account is null) return null;
-
-        account.Properties = (await db.QueryAsync<AccountPropertyDto>(
-            "SELECT Id, AccountId, [Key], Value FROM AccountProperty WHERE AccountId = @Id",
-            new { Id = id })).ToList();
-
-        account.Renewals = (await db.QueryAsync<AccountRenewalDto>(
-            "SELECT Id, AccountId, Day FROM AccountRenewal WHERE AccountId = @Id ORDER BY Day",
-            new { Id = id })).ToList();
-
-        return account;
+        return await db.QueryAsync<AccountSteamDto>(@"
+            SELECT s.Id, s.EmailId, e.Email AS EmailAddress, s.Username, s.Password,
+                   s.Phone, s.ProfileUrl, s.HasDota2, s.HasCS2, s.IsUnlimited, s.IsVacBanned, s.CreatedAt
+            FROM AccountSteam s
+            LEFT JOIN AccountEmail e ON e.Id = s.EmailId
+            ORDER BY s.CreatedAt DESC");
     }
 
-    public async Task<int> Create(Account account, List<AccountProperty> properties, List<AccountRenewal> renewals)
+    public async Task<IEnumerable<AccountGitHubDto>> GetGitHubs()
     {
         var db = context.CreateDefaultConnection();
-
-        int accountId = await db.QuerySingleAsync<int>(@"
-        INSERT INTO Account (Type, Name, Username, Password, ProfileUrl, PhoneNumber, RecoveryEmail, LastConnection, CreatedAt)
-        VALUES (@Type, @Name, @Username, @Password, @ProfileUrl, @PhoneNumber, @RecoveryEmail, @LastConnection, @CreatedAt);
-        SELECT SCOPE_IDENTITY();",
-        new
-        {
-            account.Type,
-            account.Name,
-            account.Username,
-            account.Password,
-            account.ProfileUrl,
-            account.PhoneNumber,
-            account.RecoveryEmail,
-            account.LastConnection,
-            account.CreatedAt
-        });
-
-        foreach (var prop in properties)
-        {
-            await db.ExecuteAsync(
-                "INSERT INTO AccountProperty (AccountId, [Key], Value) VALUES (@AccountId, @Key, @Value)",
-                new { AccountId = accountId, prop.Key, prop.Value });
-        }
-
-        foreach (var renewal in renewals)
-        {
-            await db.ExecuteAsync(
-                "INSERT INTO AccountRenewal (AccountId, Day) VALUES (@AccountId, @Day)",
-                new { AccountId = accountId, renewal.Day });
-        }
-
-        return accountId;
+        return await db.QueryAsync<AccountGitHubDto>(@"
+            SELECT g.Id, g.EmailId, e.Email AS EmailAddress, g.Username, g.Password, g.ProfileUrl, g.CreatedAt
+            FROM AccountGitHub g
+            LEFT JOIN AccountEmail e ON e.Id = g.EmailId
+            ORDER BY g.CreatedAt DESC");
     }
 
-    public async Task<bool> Update(Account account, List<AccountProperty> properties, List<AccountRenewal> renewals)
+    public async Task<IEnumerable<AccountGeneralDto>> GetGenerals()
     {
         var db = context.CreateDefaultConnection();
-
-        int rows = await db.ExecuteAsync(@"
-        UPDATE Account SET
-            Type = @Type, Name = @Name, Username = @Username, Password = @Password,
-            ProfileUrl = @ProfileUrl, PhoneNumber = @PhoneNumber, RecoveryEmail = @RecoveryEmail,
-            LastConnection = @LastConnection
-        WHERE Id = @Id",
-        new
-        {
-            account.Id,
-            account.Type,
-            account.Name,
-            account.Username,
-            account.Password,
-            account.ProfileUrl,
-            account.PhoneNumber,
-            account.RecoveryEmail,
-            account.LastConnection
-        });
-
-        if (rows == 0) return false;
-
-        // Reemplazar propiedades y renovaciones
-        await db.ExecuteAsync("DELETE FROM AccountProperty WHERE AccountId = @Id", new { account.Id });
-        await db.ExecuteAsync("DELETE FROM AccountRenewal WHERE AccountId = @Id", new { account.Id });
-
-        foreach (var prop in properties)
-        {
-            await db.ExecuteAsync(
-                "INSERT INTO AccountProperty (AccountId, [Key], Value) VALUES (@AccountId, @Key, @Value)",
-                new { AccountId = account.Id, prop.Key, prop.Value });
-        }
-
-        foreach (var renewal in renewals)
-        {
-            await db.ExecuteAsync(
-                "INSERT INTO AccountRenewal (AccountId, Day) VALUES (@AccountId, @Day)",
-                new { AccountId = account.Id, renewal.Day });
-        }
-
-        return true;
+        return await db.QueryAsync<AccountGeneralDto>(@"
+            SELECT g.Id, g.Platform, g.Username, g.Password, g.EmailId, e.Email AS EmailAddress, g.ProfileUrl, g.CreatedAt
+            FROM AccountGeneral g
+            LEFT JOIN AccountEmail e ON e.Id = g.EmailId
+            ORDER BY g.Platform, g.CreatedAt DESC");
     }
 
-    public async Task<bool> Delete(int id)
+    public async Task<AccountKiroDto?> GetKiro()
     {
         var db = context.CreateDefaultConnection();
-        await db.ExecuteAsync("DELETE FROM AccountProperty WHERE AccountId = @Id", new { Id = id });
-        await db.ExecuteAsync("DELETE FROM AccountRenewal WHERE AccountId = @Id", new { Id = id });
-        int rows = await db.ExecuteAsync("DELETE FROM Account WHERE Id = @Id", new { Id = id });
+        return await db.QueryFirstOrDefaultAsync<AccountKiroDto>(@"
+            SELECT k.Id, k.LinkedType, k.RefId, k.IsNew, k.LastUsed, k.CreatedAt,
+                   CASE k.LinkedType WHEN 1 THEN e.Email WHEN 2 THEN gh.Username END AS LinkedDisplay
+            FROM AccountKiro k
+            LEFT JOIN AccountEmail e ON k.LinkedType = 1 AND e.Id = k.RefId
+            LEFT JOIN AccountGitHub gh ON k.LinkedType = 2 AND gh.Id = k.RefId");
+    }
+
+    public async Task<int> CreateEmail(AccountEmail a)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.QuerySingleAsync<int>(@"
+            INSERT INTO AccountEmail (Provider, Email, Password, Phone, RecoveryEmailId, CreatedAt)
+            VALUES (@Provider, @Email, @Password, @Phone, @RecoveryEmailId, @CreatedAt);
+            SELECT SCOPE_IDENTITY();", a);
+    }
+
+    public async Task<bool> UpdateEmail(AccountEmail a)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.ExecuteAsync(@"
+            UPDATE AccountEmail SET Provider=@Provider, Email=@Email, Password=@Password,
+            Phone=@Phone, RecoveryEmailId=@RecoveryEmailId WHERE Id=@Id", a) > 0;
+    }
+
+    public async Task<bool> DeleteEmail(int id)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.ExecuteAsync("DELETE FROM AccountEmail WHERE Id=@Id", new { Id = id }) > 0;
+    }
+
+    public async Task<int> CreateSteam(AccountSteam a)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.QuerySingleAsync<int>(@"
+            INSERT INTO AccountSteam (EmailId, Username, Password, Phone, ProfileUrl, HasDota2, HasCS2, IsUnlimited, IsVacBanned, CreatedAt)
+            VALUES (@EmailId, @Username, @Password, @Phone, @ProfileUrl, @HasDota2, @HasCS2, @IsUnlimited, @IsVacBanned, @CreatedAt);
+            SELECT SCOPE_IDENTITY();", a);
+    }
+
+    public async Task<bool> UpdateSteam(AccountSteam a)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.ExecuteAsync(@"
+            UPDATE AccountSteam SET EmailId=@EmailId, Username=@Username, Password=@Password, Phone=@Phone,
+            ProfileUrl=@ProfileUrl, HasDota2=@HasDota2, HasCS2=@HasCS2, IsUnlimited=@IsUnlimited, IsVacBanned=@IsVacBanned
+            WHERE Id=@Id", a) > 0;
+    }
+
+    public async Task<bool> DeleteSteam(int id)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.ExecuteAsync("DELETE FROM AccountSteam WHERE Id=@Id", new { Id = id }) > 0;
+    }
+
+    public async Task<int> CreateGitHub(AccountGitHub a)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.QuerySingleAsync<int>(@"
+            INSERT INTO AccountGitHub (EmailId, Username, Password, ProfileUrl, CreatedAt)
+            VALUES (@EmailId, @Username, @Password, @ProfileUrl, @CreatedAt);
+            SELECT SCOPE_IDENTITY();", a);
+    }
+
+    public async Task<bool> UpdateGitHub(AccountGitHub a)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.ExecuteAsync(@"
+            UPDATE AccountGitHub SET EmailId=@EmailId, Username=@Username, Password=@Password, ProfileUrl=@ProfileUrl
+            WHERE Id=@Id", a) > 0;
+    }
+
+    public async Task<bool> DeleteGitHub(int id)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.ExecuteAsync("DELETE FROM AccountGitHub WHERE Id=@Id", new { Id = id }) > 0;
+    }
+
+    public async Task<int> CreateGeneral(AccountGeneral a)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.QuerySingleAsync<int>(@"
+            INSERT INTO AccountGeneral (Platform, Username, Password, EmailId, ProfileUrl, CreatedAt)
+            VALUES (@Platform, @Username, @Password, @EmailId, @ProfileUrl, @CreatedAt);
+            SELECT SCOPE_IDENTITY();", a);
+    }
+
+    public async Task<bool> UpdateGeneral(AccountGeneral a)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.ExecuteAsync(@"
+            UPDATE AccountGeneral SET Platform=@Platform, Username=@Username, Password=@Password,
+            EmailId=@EmailId, ProfileUrl=@ProfileUrl WHERE Id=@Id", a) > 0;
+    }
+
+    public async Task<bool> DeleteGeneral(int id)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.ExecuteAsync("DELETE FROM AccountGeneral WHERE Id=@Id", new { Id = id }) > 0;
+    }
+
+    public async Task<int> CreateKiro(AccountKiro a)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.QuerySingleAsync<int>(@"
+            INSERT INTO AccountKiro (LinkedType, RefId, IsNew, LastUsed, CreatedAt)
+            VALUES (@LinkedType, @RefId, @IsNew, @LastUsed, @CreatedAt);
+            SELECT SCOPE_IDENTITY();", a);
+    }
+
+    public async Task<bool> UpdateKiro(AccountKiro a)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.ExecuteAsync(@"
+            UPDATE AccountKiro SET LinkedType=@LinkedType, RefId=@RefId, IsNew=@IsNew, LastUsed=@LastUsed WHERE Id=@Id", a) > 0;
+    }
+
+    public async Task<bool> UseKiro(int id)
+    {
+        var db = context.CreateDefaultConnection();
+        int rows = await db.ExecuteAsync("UPDATE AccountKiro SET LastUsed=@Now, IsNew=0 WHERE Id=@Id", new { Id = id, Now = DateTime.Now });
         return rows > 0;
     }
 
-    public async Task<bool> Exists(int id)
+    public async Task<int> ResetKiro(DateTime threshold)
     {
         var db = context.CreateDefaultConnection();
-        return await db.QuerySingleAsync<int>("SELECT COUNT(1) FROM Account WHERE Id = @Id", new { Id = id }) > 0;
-    }
-
-    public async Task<bool> UpdateLastConnection(int id, DateTime date)
-    {
-        var db = context.CreateDefaultConnection();
-        return await db.ExecuteAsync("UPDATE Account SET LastConnection = @Date WHERE Id = @Id", new { Id = id, Date = date })>0;
+        // Limpia LastUsed solo si IsNew=0 y LastUsed < threshold (día 1 del mes actual en hora Perú)
+        return await db.ExecuteAsync(@"
+            UPDATE AccountKiro SET LastUsed = NULL
+            WHERE IsNew = 0 AND LastUsed IS NOT NULL AND LastUsed < @Threshold",
+            new { Threshold = threshold });
     }
 }

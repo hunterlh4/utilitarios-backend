@@ -264,41 +264,61 @@ CREATE TABLE SteamItemPurchase (
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
--- Account table (cuentas genéricas - correos, Steam, Facebook, etc.)
-CREATE TABLE Account (
+-- AccountEmail table
+CREATE TABLE AccountEmail (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    Type INT NOT NULL, -- 1: Email, 2: Steam, 3: Facebook, 4: Instagram, 5: Game, 6: Other, 7: Kiro
-    Name NVARCHAR(200) NOT NULL, -- Main, Segunda, Tercera, etc.
-    Username NVARCHAR(200), -- Usuario o correo
-    Password NVARCHAR(200),
-    ProfileUrl NVARCHAR(1000), -- URL del perfil (Steam, Facebook, Instagram, etc.)
-    PhoneNumber NVARCHAR(20),
-    RecoveryEmail NVARCHAR(200),
-    LastConnection DATETIME, -- Última conexión (para cualquier tipo de cuenta)
+    Provider NVARCHAR(50) NOT NULL,        -- gmail, outlook, otro
+    Email NVARCHAR(200) NOT NULL,
+    Password NVARCHAR(200) NOT NULL,
+    Phone NVARCHAR(20),
+    RecoveryEmailId INT,                   -- FK a otra AccountEmail (correo de recuperación)
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
--- AccountRelation table (relaciones entre cuentas)
-CREATE TABLE AccountRelation (
+-- AccountSteam table
+CREATE TABLE AccountSteam (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    ParentAccountId INT NOT NULL, -- Cuenta padre (ej: correo)
-    ChildAccountId INT NOT NULL, -- Cuenta hija (ej: Steam que usa ese correo)
+    EmailId INT,                           -- FK a AccountEmail (opcional)
+    Username NVARCHAR(200) NOT NULL,
+    Password NVARCHAR(200) NOT NULL,
+    Phone NVARCHAR(20),
+    ProfileUrl NVARCHAR(1000),
+    HasDota2 BIT NOT NULL DEFAULT 0,
+    HasCS2 BIT NOT NULL DEFAULT 0,
+    IsUnlimited BIT NOT NULL DEFAULT 0,
+    IsVacBanned BIT NOT NULL DEFAULT 0,
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
--- AccountProperty table (propiedades clave-valor: hasDota2=true, balance=500, planType=paid, etc.)
-CREATE TABLE AccountProperty (
+-- AccountGitHub table
+CREATE TABLE AccountGitHub (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    AccountId INT NOT NULL,
-    [Key] NVARCHAR(100) NOT NULL,  -- nombre de la propiedad
-    Value NVARCHAR(500) NOT NULL   -- valor como texto (true/false, número, string)
+    EmailId INT,                           -- FK a AccountEmail (opcional)
+    Username NVARCHAR(200) NOT NULL,
+    Password NVARCHAR(200) NOT NULL,
+    ProfileUrl NVARCHAR(1000),
+    CreatedAt DATETIME DEFAULT GETDATE()
 );
 
--- AccountRenewal table (día de renovación mensual)
-CREATE TABLE AccountRenewal (
+-- AccountGeneral table (Facebook, Instagram, Rakion, LOL, etc.)
+CREATE TABLE AccountGeneral (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    AccountId INT NOT NULL,
-    Day INT NOT NULL   -- día del mes en que renueva (1-31)
+    Platform INT NOT NULL,                 -- enum: 1=Facebook, 2=Instagram, 3=Rakion, 4=LOL, 5=Other
+    Username NVARCHAR(200) NOT NULL,
+    Password NVARCHAR(200) NOT NULL,
+    EmailId INT,                           -- FK a AccountEmail (opcional)
+    ProfileUrl NVARCHAR(1000),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- AccountKiro table (una sola cuenta, referencia a Email o GitHub)
+CREATE TABLE AccountKiro (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    LinkedType INT NOT NULL,               -- 1: Email, 2: GitHub
+    RefId INT NOT NULL,                    -- Id de AccountEmail o AccountGitHub
+    IsNew BIT NOT NULL DEFAULT 1,
+    LastUsed DATETIME,
+    CreatedAt DATETIME DEFAULT GETDATE()
 );
 
 -- Payment table (deudas/pagos por persona)
@@ -443,11 +463,11 @@ CREATE INDEX IX_Jav_CreatedAt ON Jav(CreatedAt DESC);
 CREATE INDEX IX_YouTube_CreatedAt ON YouTube(CreatedAt DESC);
 
 -- Índices para Account
-CREATE INDEX IX_Account_Type ON Account(Type);
-CREATE INDEX IX_AccountRelation_Parent ON AccountRelation(ParentAccountId);
-CREATE INDEX IX_AccountRelation_Child ON AccountRelation(ChildAccountId);
-CREATE INDEX IX_AccountProperty_Account ON AccountProperty(AccountId);
-CREATE INDEX IX_AccountRenewal_Account ON AccountRenewal(AccountId);
+CREATE INDEX IX_AccountSteam_EmailId ON AccountSteam(EmailId);
+CREATE INDEX IX_AccountGitHub_EmailId ON AccountGitHub(EmailId);
+CREATE INDEX IX_AccountGeneral_Platform ON AccountGeneral(Platform);
+CREATE INDEX IX_AccountGeneral_EmailId ON AccountGeneral(EmailId);
+CREATE INDEX IX_AccountKiro_LinkedType ON AccountKiro(LinkedType);
 
 -- Índices para Payment y PaymentDetail
 CREATE INDEX IX_Payment_PersonName ON Payment(PersonName);
