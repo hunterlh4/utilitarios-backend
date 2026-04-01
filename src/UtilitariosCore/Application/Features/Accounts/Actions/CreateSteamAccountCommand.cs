@@ -17,6 +17,7 @@ public record CreateSteamAccountCommand : IRequest<Result<int>>
     public bool HasCS2 { get; set; }
     public bool IsUnlimited { get; set; }
     public bool IsVacBanned { get; set; }
+    public bool HasSteamMobile { get; set; }
 
     public sealed class Validator : AbstractValidator<CreateSteamAccountCommand>
     {
@@ -35,7 +36,8 @@ public record CreateSteamAccountCommand : IRequest<Result<int>>
             {
                 EmailId = r.EmailId, Username = r.Username, Password = r.Password,
                 Phone = r.Phone, ProfileUrl = r.ProfileUrl,
-                HasDota2 = r.HasDota2, HasCS2 = r.HasCS2, IsUnlimited = r.IsUnlimited, IsVacBanned = r.IsVacBanned,
+                HasDota2 = r.HasDota2, HasCS2 = r.HasCS2, IsUnlimited = r.IsUnlimited,
+                IsVacBanned = r.IsVacBanned, HasSteamMobile = r.HasSteamMobile,
                 CreatedAt = DateTime.Now
             });
             return Results.Created(id);

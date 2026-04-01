@@ -25,6 +25,7 @@ public class AccountSteam
     public bool HasCS2 { get; set; }
     public bool IsUnlimited { get; set; }
     public bool IsVacBanned { get; set; }
+    public bool HasSteamMobile { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 

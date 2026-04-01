@@ -23,7 +23,7 @@ public class AccountRepository(MssqlContext context) : IAccountRepository
         var db = context.CreateDefaultConnection();
         return await db.QueryAsync<AccountSteamDto>(@"
             SELECT s.Id, s.EmailId, e.Email AS EmailAddress, s.Username, s.Password,
-                   s.Phone, s.ProfileUrl, s.HasDota2, s.HasCS2, s.IsUnlimited, s.IsVacBanned, s.CreatedAt
+                   s.Phone, s.ProfileUrl, s.HasDota2, s.HasCS2, s.IsUnlimited, s.IsVacBanned, s.HasSteamMobile, s.CreatedAt
             FROM AccountSteam s
             LEFT JOIN AccountEmail e ON e.Id = s.EmailId
             ORDER BY s.CreatedAt DESC");
@@ -87,8 +87,8 @@ public class AccountRepository(MssqlContext context) : IAccountRepository
     {
         var db = context.CreateDefaultConnection();
         return await db.QuerySingleAsync<int>(@"
-            INSERT INTO AccountSteam (EmailId, Username, Password, Phone, ProfileUrl, HasDota2, HasCS2, IsUnlimited, IsVacBanned, CreatedAt)
-            VALUES (@EmailId, @Username, @Password, @Phone, @ProfileUrl, @HasDota2, @HasCS2, @IsUnlimited, @IsVacBanned, @CreatedAt);
+            INSERT INTO AccountSteam (EmailId, Username, Password, Phone, ProfileUrl, HasDota2, HasCS2, IsUnlimited, IsVacBanned, HasSteamMobile, CreatedAt)
+            VALUES (@EmailId, @Username, @Password, @Phone, @ProfileUrl, @HasDota2, @HasCS2, @IsUnlimited, @IsVacBanned, @HasSteamMobile, @CreatedAt);
             SELECT SCOPE_IDENTITY();", a);
     }
 
@@ -97,7 +97,7 @@ public class AccountRepository(MssqlContext context) : IAccountRepository
         var db = context.CreateDefaultConnection();
         return await db.ExecuteAsync(@"
             UPDATE AccountSteam SET EmailId=@EmailId, Username=@Username, Password=@Password, Phone=@Phone,
-            ProfileUrl=@ProfileUrl, HasDota2=@HasDota2, HasCS2=@HasCS2, IsUnlimited=@IsUnlimited, IsVacBanned=@IsVacBanned
+            ProfileUrl=@ProfileUrl, HasDota2=@HasDota2, HasCS2=@HasCS2, IsUnlimited=@IsUnlimited, IsVacBanned=@IsVacBanned, HasSteamMobile=@HasSteamMobile
             WHERE Id=@Id", a) > 0;
     }
 

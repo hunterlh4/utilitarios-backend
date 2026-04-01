@@ -287,6 +287,7 @@ CREATE TABLE AccountSteam (
     HasCS2 BIT NOT NULL DEFAULT 0,
     IsUnlimited BIT NOT NULL DEFAULT 0,
     IsVacBanned BIT NOT NULL DEFAULT 0,
+    HasSteamMobile BIT NOT NULL DEFAULT 0,
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
