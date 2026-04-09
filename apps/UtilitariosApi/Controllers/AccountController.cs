@@ -10,7 +10,7 @@ namespace UtilitariosApi.Controllers;
 [ApiController]
 public class AccountController(ISender sender) : ControllerBase
 {
-    // Email
+    #region Account-email
     [HttpGet("email")]
     public async Task<ActionResult<IEnumerable<AccountEmailDto>>> GetEmails()
     {
@@ -39,8 +39,9 @@ public class AccountController(ISender sender) : ControllerBase
         var response = await sender.Send(new DeleteEmailAccountCommand(id));
         return response.ToActionResult();
     }
+    #endregion
 
-    // Steam
+    #region Account-steam
     [HttpGet("steam")]
     public async Task<ActionResult<IEnumerable<AccountSteamDto>>> GetSteams()
     {
@@ -69,8 +70,9 @@ public class AccountController(ISender sender) : ControllerBase
         var response = await sender.Send(new DeleteSteamAccountCommand(id));
         return response.ToActionResult();
     }
+    #endregion
 
-    // GitHub
+    #region Account-github
     [HttpGet("github")]
     public async Task<ActionResult<IEnumerable<AccountGitHubDto>>> GetGitHubs()
     {
@@ -99,8 +101,9 @@ public class AccountController(ISender sender) : ControllerBase
         var response = await sender.Send(new DeleteGitHubAccountCommand(id));
         return response.ToActionResult();
     }
+    #endregion
 
-    // General
+    #region Account-general
     [HttpGet("general")]
     public async Task<ActionResult<IEnumerable<AccountGeneralDto>>> GetGenerals()
     {
@@ -129,10 +132,11 @@ public class AccountController(ISender sender) : ControllerBase
         var response = await sender.Send(new DeleteGeneralAccountCommand(id));
         return response.ToActionResult();
     }
-
-    // Kiro
+    #endregion
+    
+    #region Account-kiro
     [HttpGet("kiro")]
-    public async Task<ActionResult<AccountKiroDto?>> GetKiro()
+    public async Task<ActionResult<IEnumerable<AccountKiroDto>>> GetKiro()
     {
         var response = await sender.Send(new GetKiroAccountQuery());
         return response.ToActionResult();
@@ -166,4 +170,5 @@ public class AccountController(ISender sender) : ControllerBase
         var response = await sender.Send(new ResetKiroAccountCommand());
         return response.ToActionResult();
     }
+    #endregion
 }

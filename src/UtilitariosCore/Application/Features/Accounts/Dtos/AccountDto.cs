@@ -28,6 +28,7 @@ public class AccountSteamDto
     public bool IsUnlimited { get; set; }
     public bool IsVacBanned { get; set; }
     public bool HasSteamMobile { get; set; }
+    public DateTime? LastPurchaseDate { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
@@ -65,11 +66,3 @@ public class AccountKiroDto
     public DateTime CreatedAt { get; set; }
 }
 
-public class AccountAllDto
-{
-    public List<AccountEmailDto> Emails { get; set; } = [];
-    public List<AccountSteamDto> Steams { get; set; } = [];
-    public List<AccountGitHubDto> GitHubs { get; set; } = [];
-    public List<AccountGeneralDto> Generals { get; set; } = [];
-    public AccountKiroDto? Kiro { get; set; }
-}

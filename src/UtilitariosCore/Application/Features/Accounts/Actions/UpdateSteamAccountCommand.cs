@@ -18,6 +18,7 @@ public record UpdateSteamAccountCommand : IRequest<Result>
     public bool IsUnlimited { get; set; }
     public bool IsVacBanned { get; set; }
     public bool HasSteamMobile { get; set; }
+    public DateTime? LastPurchaseDate { get; set; }
 
     internal sealed class Handler(IAccountRepository repo) : IRequestHandler<UpdateSteamAccountCommand, Result>
     {
@@ -28,7 +29,8 @@ public record UpdateSteamAccountCommand : IRequest<Result>
                 Id = r.Id, EmailId = r.EmailId, Username = r.Username, Password = r.Password,
                 Phone = r.Phone, ProfileUrl = r.ProfileUrl,
                 HasDota2 = r.HasDota2, HasCS2 = r.HasCS2, IsUnlimited = r.IsUnlimited,
-                IsVacBanned = r.IsVacBanned, HasSteamMobile = r.HasSteamMobile
+                IsVacBanned = r.IsVacBanned, HasSteamMobile = r.HasSteamMobile,
+                LastPurchaseDate = r.LastPurchaseDate
             });
             return Results.NoContent();
         }

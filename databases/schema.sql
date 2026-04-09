@@ -288,6 +288,7 @@ CREATE TABLE AccountSteam (
     IsUnlimited BIT NOT NULL DEFAULT 0,
     IsVacBanned BIT NOT NULL DEFAULT 0,
     HasSteamMobile BIT NOT NULL DEFAULT 0,
+    LastPurchaseDate DATETIME, -- Fecha del último movimiento (compra o venta)
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
