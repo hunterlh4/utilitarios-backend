@@ -4,6 +4,7 @@ using UtilitariosApi.Shared.Extensions;
 using UtilitariosCore.Application.Features.Actresses.Actions;
 using UtilitariosCore.Application.Features.Actresses.Dtos;
 using UtilitariosCore.Application.Features.Actresses.Requests;
+using UtilitariosCore.Shared.Dtos;
 
 namespace UtilitariosApi.Controllers;
 
@@ -36,6 +37,31 @@ public class ActressJavController(ISender sender) : ControllerBase
     public async Task<ActionResult<IEnumerable<JavSummaryDto>>> GetJavsByActress([FromRoute] int id)
     {
         var response = await sender.Send(new GetJavsByActressQuery(id));
+        return response.ToActionResult();
+    }
+
+    [HttpGet("export")]
+    public async Task<ActionResult<ExcelFileDto>> ExportExcel()
+    {
+        var response = await sender.Send(new ExportActressJavExcelQuery());
+        return response.ToActionResult();
+    }
+
+    [HttpPost("import")]
+    public async Task<ActionResult<ImportExcelResult>> ImportExcel([FromForm] IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest("Archivo Excel requerido.");
+
+        await using var stream = file.OpenReadStream();
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+
+        var response = await sender.Send(new ImportActressJavExcelCommand
+        {
+            FileBytes = memory.ToArray()
+        });
+
         return response.ToActionResult();
     }
 

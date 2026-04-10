@@ -1,15 +1,17 @@
 using UtilitariosCore.Application.Features.ActressAdults.Dtos;
+using UtilitariosCore.Domain.Models;
 
 namespace UtilitariosCore.Domain.Interfaces;
 
 public interface IActressAdultRepository
 {
-    Task<int> CreateActressAdult(Models.ActressAdult actress);
-    Task<bool> UpdateActressAdult(Models.ActressAdult actress);
+    Task<int> CreateActressAdult(ActressAdult actress);
+    Task<bool> UpdateActressAdult(ActressAdult actress);
     Task<bool> UpdateActressAdultImage(int id, string imageUrl);
-    Task<Models.ActressAdult?> GetActressAdultById(int id);
+    Task<IEnumerable<ActressAdult>> GetAllActressAdults();
+    Task<ActressAdult?> GetActressAdultById(int id);
     Task<ActressAdultDto?> GetActressAdultWithTagsAndImageById(int id);
-    Task<Models.ActressAdult?> GetActressAdultByName(string name);
+    Task<ActressAdult?> GetActressAdultByName(string name);
     Task<bool> CheckActressNameExists(string name);
     Task<IEnumerable<ActressAdultDto>> GetAllActressAdultsWithFirstImage();
 }

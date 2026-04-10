@@ -93,4 +93,122 @@ public static class ExcelHelper
 
         return result;
     }
+
+    public static MemoryStream CreateActressJavExcel(List<ActressJav> actresses)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("ActressJav");
+
+        worksheet.Cells[1, 1].Value = "Name";
+        worksheet.Cells[1, 2].Value = "Image";
+
+        var headerRange = worksheet.Cells[1, 1, 1, 2];
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+        int row = 2;
+        foreach (var actress in actresses)
+        {
+            worksheet.Cells[row, 1].Value = actress.Name;
+            worksheet.Cells[row, 2].Value = actress.Image;
+            row++;
+        }
+
+        worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    public static List<ActressJav> ReadActressJavExcel(Stream excelStream)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage(excelStream);
+        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+
+        var result = new List<ActressJav>();
+        if (worksheet?.Dimension is null)
+            return result;
+
+        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+        {
+            var name = worksheet.Cells[row, 1].Text?.Trim() ?? string.Empty;
+            var image = worksheet.Cells[row, 2].Text?.Trim();
+
+            if (string.IsNullOrWhiteSpace(name) && string.IsNullOrWhiteSpace(image))
+                continue;
+
+            result.Add(new ActressJav
+            {
+                Name = name,
+                Image = image,
+            });
+        }
+
+        return result;
+    }
+
+    public static MemoryStream CreateActressAdultExcel(List<ActressAdult> actresses)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("ActressAdult");
+
+        worksheet.Cells[1, 1].Value = "Name";
+        worksheet.Cells[1, 2].Value = "Image";
+
+        var headerRange = worksheet.Cells[1, 1, 1, 2];
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+        int row = 2;
+        foreach (var actress in actresses)
+        {
+            worksheet.Cells[row, 1].Value = actress.Name;
+            worksheet.Cells[row, 2].Value = actress.Image;
+            row++;
+        }
+
+        worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    public static List<ActressAdult> ReadActressAdultExcel(Stream excelStream)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage(excelStream);
+        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+
+        var result = new List<ActressAdult>();
+        if (worksheet?.Dimension is null)
+            return result;
+
+        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+        {
+            var name = worksheet.Cells[row, 1].Text?.Trim() ?? string.Empty;
+            var image = worksheet.Cells[row, 2].Text?.Trim();
+
+            if (string.IsNullOrWhiteSpace(name) && string.IsNullOrWhiteSpace(image))
+                continue;
+
+            result.Add(new ActressAdult
+            {
+                Name = name,
+                Image = image,
+            });
+        }
+
+        return result;
+    }
 }

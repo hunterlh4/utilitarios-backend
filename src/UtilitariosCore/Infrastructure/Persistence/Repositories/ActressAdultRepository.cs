@@ -77,6 +77,13 @@ public class ActressAdultRepository(MssqlContext context) : IActressAdultReposit
         return names.Any(n => StringNormalizer.GetCanonicalFormForComparison(n).Equals(canonicalForm, StringComparison.OrdinalIgnoreCase));
     }
 
+    public async Task<IEnumerable<ActressAdult>> GetAllActressAdults()
+    {
+        var db = context.CreateDefaultConnection();
+        const string sql = "SELECT Id, Name, Image, CreatedAt FROM ActressAdult ORDER BY Name";
+        return await db.QueryAsync<ActressAdult>(sql);
+    }
+
     public async Task<ActressAdultDto?> GetActressAdultWithTagsAndImageById(int id)
     {
         var db = context.CreateDefaultConnection();

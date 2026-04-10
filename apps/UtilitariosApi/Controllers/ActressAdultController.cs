@@ -4,6 +4,7 @@ using UtilitariosApi.Shared.Extensions;
 using UtilitariosCore.Application.Features.ActressAdults.Actions;
 using UtilitariosCore.Application.Features.ActressAdults.Dtos;
 using UtilitariosCore.Application.Features.ActressAdults.Requests;
+using UtilitariosCore.Shared.Dtos;
 
 namespace UtilitariosApi.Controllers;
 
@@ -29,6 +30,31 @@ public class ActressAdultController(ISender sender) : ControllerBase
     public async Task<ActionResult<ActressAdultDetailDto>> GetDetailById([FromRoute] int id)
     {
         var response = await sender.Send(new GetActressAdultDetailByIdQuery(id));
+        return response.ToActionResult();
+    }
+
+    [HttpGet("export")]
+    public async Task<ActionResult<ExcelFileDto>> ExportExcel()
+    {
+        var response = await sender.Send(new ExportActressAdultExcelQuery());
+        return response.ToActionResult();
+    }
+
+    [HttpPost("import")]
+    public async Task<ActionResult<ImportExcelResult>> ImportExcel([FromForm] IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest("Archivo Excel requerido.");
+
+        await using var stream = file.OpenReadStream();
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+
+        var response = await sender.Send(new ImportActressAdultExcelCommand
+        {
+            FileBytes = memory.ToArray()
+        });
+
         return response.ToActionResult();
     }
 
