@@ -12,8 +12,7 @@ internal sealed class GetActressAdultDetailByIdQueryHandler(
     IActressAdultRepository actressAdultRepository,
     IVideoAdultRepository videoAdultRepository,
     ITagRepository tagRepository,
-    ILinkRepository linkRepository,
-    IMediaRepository mediaRepository) 
+    ILinkRepository linkRepository) 
     : IRequestHandler<GetActressAdultDetailByIdQuery, Result<ActressAdultDetailDto>>
 {
     public async Task<Result<ActressAdultDetailDto>> Handle(GetActressAdultDetailByIdQuery request, CancellationToken cancellationToken)
@@ -24,10 +23,6 @@ internal sealed class GetActressAdultDetailByIdQueryHandler(
         {
             return Errors.NotFound("Actress not found.");
         }
-
-        // Obtener imagen principal
-        var media = await mediaRepository.GetMediaByRefId(request.Id, MediaType.ActressAdult);
-        var mainImage = media.OrderBy(m => m.OrderIndex).FirstOrDefault();
 
         // Obtener tags de la actriz
         var actressTags = await tagRepository.GetTagsByRefId(request.Id, TagType.ActressAdult);
@@ -67,7 +62,7 @@ internal sealed class GetActressAdultDetailByIdQueryHandler(
         {
             Id = actress.Id,
             Name = actress.Name,
-            Image = mainImage?.Url,
+            Image = actress.Image,
             CreatedAt = actress.CreatedAt,
             Tags = actressTags.Select(t => t.Name).ToList(),
             Links = links.Select(l => new LinkDto

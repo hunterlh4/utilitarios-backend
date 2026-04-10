@@ -14,8 +14,8 @@ public class ActressAdultRepository(MssqlContext context) : IActressAdultReposit
         var db = context.CreateDefaultConnection();
 
         string sql = @"
-        INSERT INTO ActressAdult (Name, CreatedAt)
-        VALUES (@Name, @CreatedAt);
+        INSERT INTO ActressAdult (Name, Image, CreatedAt)
+        VALUES (@Name, @Image, @CreatedAt);
         SELECT SCOPE_IDENTITY();
         ";
 
@@ -40,7 +40,7 @@ public class ActressAdultRepository(MssqlContext context) : IActressAdultReposit
     public async Task<ActressAdult?> GetActressAdultById(int id)
     {
         var db = context.CreateDefaultConnection();
-        string sql = "SELECT Id, Name, CreatedAt FROM ActressAdult WHERE Id = @Id";
+        string sql = "SELECT Id, Name, Image, CreatedAt FROM ActressAdult WHERE Id = @Id";
         var result = await db.QueryFirstOrDefaultAsync<ActressAdult>(sql, new { Id = id });
         return result;
     }
@@ -48,9 +48,23 @@ public class ActressAdultRepository(MssqlContext context) : IActressAdultReposit
     public async Task<ActressAdult?> GetActressAdultByName(string name)
     {
         var db = context.CreateDefaultConnection();
-        string sql = "SELECT Id, Name, CreatedAt FROM ActressAdult WHERE Name = @Name";
+        string sql = "SELECT Id, Name, Image, CreatedAt FROM ActressAdult WHERE Name = @Name";
         var result = await db.QueryFirstOrDefaultAsync<ActressAdult>(sql, new { Name = name });
         return result;
+    }
+
+    public async Task<bool> UpdateActressAdultImage(int id, string imageUrl)
+    {
+        var db = context.CreateDefaultConnection();
+
+        string sql = @"
+        UPDATE ActressAdult
+        SET Image = @Image
+        WHERE Id = @Id
+        ";
+
+        var result = await db.ExecuteAsync(sql, new { Id = id, Image = imageUrl });
+        return result > 0;
     }
 
     public async Task<bool> CheckActressNameExists(string canonicalForm)
@@ -71,14 +85,8 @@ public class ActressAdultRepository(MssqlContext context) : IActressAdultReposit
         SELECT
             a.Id,
             a.Name,
+            a.Image,
             a.CreatedAt,
-            (
-                SELECT TOP 1 m.Url
-                FROM Media m
-                WHERE m.Type = {(int)MediaType.ActressAdult}
-                AND m.RefId = a.Id
-                ORDER BY m.OrderIndex
-            ) AS Image,
             (
                 SELECT STRING_AGG(t.Name, ',')
                 FROM TagRelation tr
@@ -112,14 +120,8 @@ public class ActressAdultRepository(MssqlContext context) : IActressAdultReposit
         SELECT
             a.Id,
             a.Name,
+            a.Image,
             a.CreatedAt,
-            (
-                SELECT TOP 1 m.Url
-                FROM Media m
-                WHERE m.Type = {(int)MediaType.ActressAdult}
-                AND m.RefId = a.Id
-                ORDER BY m.OrderIndex
-            ) AS Image,
             (
                 SELECT STRING_AGG(t.Name, ',')
                 FROM TagRelation tr

@@ -10,7 +10,6 @@ public record GetActressAdultBasicByIdQuery(int Id) : IRequest<Result<ActressAdu
 
 internal sealed class GetActressAdultBasicByIdQueryHandler(
     IActressAdultRepository actressAdultRepository,
-    IMediaRepository mediaRepository,
     ITagRepository tagRepository) 
     : IRequestHandler<GetActressAdultBasicByIdQuery, Result<ActressAdultBasicDto>>
 {
@@ -23,9 +22,6 @@ internal sealed class GetActressAdultBasicByIdQueryHandler(
             return Errors.NotFound("Actress not found.");
         }
 
-        // Obtener imágenes
-        var media = await mediaRepository.GetMediaByRefId(request.Id, MediaType.ActressAdult);
-        
         // Obtener tags
         var tags = await tagRepository.GetTagsByRefId(request.Id, TagType.ActressAdult);
         
@@ -33,12 +29,7 @@ internal sealed class GetActressAdultBasicByIdQueryHandler(
         {
             Id = actress.Id,
             Name = actress.Name,
-            Images = media.OrderBy(m => m.OrderIndex).Select(m => new MediaDto
-            {
-                Id = m.Id,
-                Url = m.Url,
-                OrderIndex = m.OrderIndex
-            }).ToList(),
+            Image = actress.Image,
             TagIds = tags.Select(t => t.Id).ToList()
         };
 

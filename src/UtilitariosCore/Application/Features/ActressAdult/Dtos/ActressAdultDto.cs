@@ -4,15 +4,8 @@ public class ActressAdultBasicDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public List<MediaDto> Images { get; set; } = new();
+    public string? Image { get; set; }
     public List<int> TagIds { get; set; } = new();
-}
-
-public class MediaDto
-{
-    public int Id { get; set; }
-    public string Url { get; set; } = string.Empty;
-    public int OrderIndex { get; set; }
 }
 
 public class ActressAdultDto

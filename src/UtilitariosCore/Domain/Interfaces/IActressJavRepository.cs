@@ -7,6 +7,7 @@ public interface IActressJavRepository
 {
     Task<int> CreateActressJav(ActressJav actress);
     Task<bool> UpdateActressJav(ActressJav actress);
+    Task<bool> UpdateActressJavImage(int id, string imageUrl);
     Task<ActressJav?> GetActressJavById(int id);
     Task<ActressJavWithTagsDto?> GetActressJavWithTagsById(int id);
     Task<ActressJav?> GetActressJavByName(string name);

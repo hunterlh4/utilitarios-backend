@@ -6,6 +6,7 @@ public interface IActressAdultRepository
 {
     Task<int> CreateActressAdult(Models.ActressAdult actress);
     Task<bool> UpdateActressAdult(Models.ActressAdult actress);
+    Task<bool> UpdateActressAdultImage(int id, string imageUrl);
     Task<Models.ActressAdult?> GetActressAdultById(int id);
     Task<ActressAdultDto?> GetActressAdultWithTagsAndImageById(int id);
     Task<Models.ActressAdult?> GetActressAdultByName(string name);

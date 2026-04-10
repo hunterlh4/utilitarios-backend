@@ -14,8 +14,8 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
         var db = context.CreateDefaultConnection();
 
         string sql = @"
-        INSERT INTO ActressJav (Name, CreatedAt)
-        VALUES (@Name, @CreatedAt)
+        INSERT INTO ActressJav (Name, Image, CreatedAt)
+        VALUES (@Name, @Image, @CreatedAt)
         SELECT SCOPE_IDENTITY()
         ";
 
@@ -40,7 +40,7 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
     public async Task<ActressJav?> GetActressJavById(int id)
     {
         var db = context.CreateDefaultConnection();
-        string sql = "SELECT Id, Name, CreatedAt FROM ActressJav WHERE Id = @Id";
+        string sql = "SELECT Id, Name, Image, CreatedAt FROM ActressJav WHERE Id = @Id";
         var result = await db.QueryFirstOrDefaultAsync<ActressJav>(sql, new { Id = id });
         return result;
     }
@@ -48,9 +48,23 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
     public async Task<ActressJav?> GetActressJavByName(string name)
     {
         var db = context.CreateDefaultConnection();
-        string sql = "SELECT Id, Name, CreatedAt FROM ActressJav WHERE Name = @Name";
+        string sql = "SELECT Id, Name, Image, CreatedAt FROM ActressJav WHERE Name = @Name";
         var result = await db.QueryFirstOrDefaultAsync<ActressJav>(sql, new { Name = name });
         return result;
+    }
+
+    public async Task<bool> UpdateActressJavImage(int id, string imageUrl)
+    {
+        var db = context.CreateDefaultConnection();
+
+        string sql = @"
+        UPDATE ActressJav
+        SET Image = @Image
+        WHERE Id = @Id
+        ";
+
+        var result = await db.ExecuteAsync(sql, new { Id = id, Image = imageUrl });
+        return result > 0;
     }
 
     public async Task<bool> CheckActressNameExists(string canonicalForm)
@@ -74,7 +88,7 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
     public async Task<IEnumerable<ActressJav>> GetAllActressJav()
     {
         var db = context.CreateDefaultConnection();
-        string sql = "SELECT Id, Name, CreatedAt FROM ActressJav ORDER BY Name";
+        string sql = "SELECT Id, Name, Image, CreatedAt FROM ActressJav ORDER BY Name";
         var result = await db.QueryAsync<ActressJav>(sql);
         return result;
     }
@@ -122,14 +136,8 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
         SELECT
             a.Id,
             a.Name,
+            a.Image,
             a.CreatedAt,
-            (
-                SELECT TOP 1 m.Url
-                FROM Media m
-                WHERE m.Type = {(int)MediaType.ActressJav}
-                AND m.RefId = a.Id
-                ORDER BY m.OrderIndex
-            ) AS Image,
             (
                 SELECT STRING_AGG(t.Name, ',')
                 FROM TagRelation tr

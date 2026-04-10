@@ -53,6 +53,26 @@ public class ActressAdultController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
+    [HttpPost("{id:int}/image")]
+    public async Task<ActionResult> UploadImage([FromRoute] int id, [FromForm] IFormFile image)
+    {
+        if (image is null || image.Length == 0)
+            return BadRequest("La imagen es requerida.");
+
+        await using var stream = image.OpenReadStream();
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+
+        var response = await sender.Send(new UploadActressAdultImageCommand
+        {
+            ActressId = id,
+            ImageData = memory.ToArray(),
+            FileName = image.FileName
+        });
+
+        return response.ToActionResult();
+    }
+
     [HttpPost("video")]
     public async Task<ActionResult<CreateVideoAdultDto>> CreateVideo([FromBody] CreateVideoAdultCommand command)
     {
