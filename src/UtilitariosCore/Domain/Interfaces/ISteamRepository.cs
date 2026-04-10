@@ -6,6 +6,8 @@ public interface ISteamRepository
 {
     Task<IEnumerable<SteamItem>> GetAllItems();
     Task<SteamItem> GetByIdItems(int id);
+    Task<SteamItem?> GetItemByExternalIdAsync(string externalId);
+    Task<SteamItem?> GetItemByNameAndGameAsync(string name, int game);
     Task<int> CreateItems(SteamItem item);
     Task<bool> UpdateItems(SteamItem item);
     Task<bool> DeleteItems(int id);

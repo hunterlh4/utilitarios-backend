@@ -181,7 +181,8 @@ CREATE TABLE Seller (
     Name NVARCHAR(200),
     Whatsapp NVARCHAR(20), -- +1234567890
     Products NVARCHAR(MAX), -- Lista de productos que vende
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null
 );
 
 -- DotaHero table (héroes de Dota 2)
@@ -189,7 +190,8 @@ CREATE TABLE DotaHero (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(100) NOT NULL UNIQUE,
     Image NVARCHAR(1000),
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null,
 );
 
 -- DotaTreasure table (cofres de Dota 2)
@@ -200,7 +202,8 @@ CREATE TABLE DotaTreasure (
     ImagePresentation NVARCHAR(1000),
     Year INT NOT NULL,
     Type INT, -- 1: Treasure I, 2: Treasure II, NULL: sin número
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null,
 );
 
 -- DotaCache table (sets de cache)
@@ -214,7 +217,9 @@ CREATE TABLE DotaCache (
     Quantity INT,
     Total DECIMAL(10,2),
     Owner NVARCHAR(200),
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null,
+
 );
 
 -- DotaMedia table (fotos para cofres y cache)
@@ -237,7 +242,8 @@ CREATE TABLE SteamItem (
     Game INT NOT NULL, -- 1: dota2, 2: cs2
     MarketUrl NVARCHAR(1000) NOT NULL,
     Status INT NOT NULL, -- 1: historial, 2: por_comprar
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null
 );
 
 -- SteamItemDrop table (drops semanales - items que tengo)
@@ -248,7 +254,8 @@ CREATE TABLE SteamItemDrop (
     Price DECIMAL(10,2), -- Precio unitario
     SalePrice DECIMAL(10,2), -- Precio de venta
     Total DECIMAL(10,2), -- quantity * salePrice
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null,
 );
 
 -- SteamItemPurchase table (compras de items de Steam)
@@ -261,7 +268,8 @@ CREATE TABLE SteamItemPurchase (
     Status INT NOT NULL, -- 1: comprado, 2: vendido
     PurchaseDate DATETIME NOT NULL, -- Fecha de compra
     SaleDate DATETIME, -- Fecha de venta (opcional)
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null
 );
 
 -- AccountEmail table
@@ -272,7 +280,9 @@ CREATE TABLE AccountEmail (
     Password NVARCHAR(200) NOT NULL,
     Phone NVARCHAR(20),
     RecoveryEmailId INT,                   -- FK a otra AccountEmail (correo de recuperación)
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null
+
 );
 
 -- AccountSteam table
@@ -289,7 +299,8 @@ CREATE TABLE AccountSteam (
     IsVacBanned BIT NOT NULL DEFAULT 0,
     HasSteamMobile BIT NOT NULL DEFAULT 0,
     LastPurchaseDate DATETIME, -- Fecha del último movimiento (compra o venta)
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null
 );
 
 -- AccountGitHub table
@@ -299,7 +310,8 @@ CREATE TABLE AccountGitHub (
     Username NVARCHAR(200) NOT NULL,
     Password NVARCHAR(200) NOT NULL,
     ProfileUrl NVARCHAR(1000),
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null
 );
 
 -- AccountGeneral table (Facebook, Instagram, Rakion, LOL, etc.)
@@ -310,7 +322,8 @@ CREATE TABLE AccountGeneral (
     Password NVARCHAR(200) NOT NULL,
     EmailId INT,                           -- FK a AccountEmail (opcional)
     ProfileUrl NVARCHAR(1000),
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null
 );
 
 -- AccountKiro table (una sola cuenta, referencia a Email o GitHub)
@@ -320,7 +333,8 @@ CREATE TABLE AccountKiro (
     RefId INT NOT NULL,                    -- Id de AccountEmail o AccountGitHub
     IsNew BIT NOT NULL DEFAULT 1,
     LastUsed DATETIME,
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null
 );
 
 -- Payment table (deudas/pagos por persona)
@@ -328,7 +342,9 @@ CREATE TABLE Payment (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     PersonName NVARCHAR(200) NOT NULL,   -- Nombre de la persona (string directo)
     Amount DECIMAL(10,2) NOT NULL,       -- Monto inicial de la deuda
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null
+
 );
 
 -- PaymentDetail table (movimientos de una deuda: abonos, intereses, pagos)
@@ -340,6 +356,7 @@ CREATE TABLE PaymentDetail (
     Date DATETIME NOT NULL,             -- Fecha del movimiento (sin hora)
     Description NVARCHAR(500),          -- Detalle opcional del movimiento
     CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null,
     FOREIGN KEY (PaymentId) REFERENCES Payment(Id) ON DELETE CASCADE
 );
 
@@ -353,7 +370,9 @@ CREATE TABLE Salary (
     SecondFortnightNet DECIMAL(10,2) NOT NULL, -- Segunda quincena neta
     Cts DECIMAL(10,2), -- CTS semestral
     Bonus DECIMAL(10,2), -- Gratificación semestral
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null
+
 );
 
 -- Post table (publicaciones/manuales)
@@ -365,7 +384,8 @@ CREATE TABLE Post (
     Subcategory NVARCHAR(100),
     Slug NVARCHAR(200) NOT NULL UNIQUE,
     Date DATE NOT NULL,
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null 
 );
 
 -- PostContent table (bloques de contenido)
@@ -378,7 +398,9 @@ CREATE TABLE PostContent (
     Url NVARCHAR(1000), -- Para imagen
     Alt NVARCHAR(500), -- Para imagen
     OrderIndex INT NOT NULL,
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME null
+
 );
 
 -- PostContentItem table (items de lista)
@@ -395,8 +417,7 @@ CREATE TABLE Task (
     Title NVARCHAR(500) NOT NULL,
     Status INT NOT NULL, -- 1: in progress, 2: completed
     CreatedAt DATETIME NOT NULL,
-    UpdatedAt DATETIME
-);
+    UpdatedAt DATETIME null
 
 -- TaskDetail table (tareas individuales de una lista)
 CREATE TABLE TaskDetail (

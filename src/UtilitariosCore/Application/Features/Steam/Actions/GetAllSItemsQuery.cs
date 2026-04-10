@@ -15,7 +15,8 @@ internal sealed class GetAllSteamItemsQueryHandler(ISteamRepository repository)
         var items = await repository.GetAllItems();
         return items.Select(i => new SteamItemDto
         {
-            Id = i.Id, 
+            Id = i.Id,
+            ExternalId = i.ExternalId,
             Name = i.Name, 
             Image = i.Image, 
             Price = i.Price,

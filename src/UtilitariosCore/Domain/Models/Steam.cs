@@ -13,6 +13,7 @@ public class SteamItem
     public required string MarketUrl { get; set; }
     public SteamItemStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }
 
 

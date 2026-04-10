@@ -10,15 +10,33 @@ public class SteamRepository(MssqlContext context) : ISteamRepository
     public async Task<IEnumerable<SteamItem>> GetAllItems()
     {
         var db = context.CreateDefaultConnection();
-        string sql = "SELECT Id, ExternalId, Name, Image, Price, Game, MarketUrl, Status, CreatedAt FROM SteamItem ORDER BY CreatedAt DESC";
+        string sql = "SELECT Id, ExternalId, Name, Image, Price, Game, MarketUrl, Status, CreatedAt, UpdatedAt FROM SteamItem ORDER BY CreatedAt DESC";
         return await db.QueryAsync<SteamItem>(sql);
     }
 
     public async Task<SteamItem> GetByIdItems(int id)
     {
         var db = context.CreateDefaultConnection();
-        string sql ="SELECT Id, ExternalId, Name, Image, Price, Game, MarketUrl, Status, CreatedAt FROM SteamItem WHERE Id = @Id";
+        string sql ="SELECT Id, ExternalId, Name, Image, Price, Game, MarketUrl, Status, CreatedAt, UpdatedAt FROM SteamItem WHERE Id = @Id";
         return await db.QueryFirstOrDefaultAsync<SteamItem>(sql,new { Id = id });
+    }
+
+    public async Task<SteamItem?> GetItemByExternalIdAsync(string externalId)
+    {
+        var db = context.CreateDefaultConnection();
+        string sql = "SELECT Id, ExternalId, Name, Image, Price, Game, MarketUrl, Status, CreatedAt, UpdatedAt FROM SteamItem WHERE ExternalId = @ExternalId";
+        return await db.QueryFirstOrDefaultAsync<SteamItem>(sql, new { ExternalId = externalId });
+    }
+
+    public async Task<SteamItem?> GetItemByNameAndGameAsync(string name, int game)
+    {
+        var db = context.CreateDefaultConnection();
+        string sql = @"
+            SELECT TOP 1 Id, ExternalId, Name, Image, Price, Game, MarketUrl, Status, CreatedAt, UpdatedAt
+            FROM SteamItem
+            WHERE Name = @Name AND Game = @Game
+            ORDER BY Id DESC";
+        return await db.QueryFirstOrDefaultAsync<SteamItem>(sql, new { Name = name, Game = game });
     }
 
     public async Task<int> CreateItems(SteamItem item)
@@ -36,7 +54,7 @@ public class SteamRepository(MssqlContext context) : ISteamRepository
         var db = context.CreateDefaultConnection();
         string sql = @"
             UPDATE SteamItem SET ExternalId = @ExternalId, Name = @Name, Image = @Image, Price = @Price,
-            Game = @Game, MarketUrl = @MarketUrl, Status = @Status WHERE Id = @Id";
+            Game = @Game, MarketUrl = @MarketUrl, Status = @Status, UpdatedAt = @UpdatedAt WHERE Id = @Id";
         int rows = await db.ExecuteAsync(sql, item);
         return rows > 0;
     }

@@ -15,6 +15,7 @@ using UtilitariosCore.Application.Features.SteamItemPurchases.Actions;
 using UtilitariosCore.Application.Features.SteamItemPurchases.Dtos;
 using UtilitariosCore.Application.Features.SteamItems.Actions;
 using UtilitariosCore.Application.Features.SteamItems.Dtos;
+using UtilitariosCore.Shared.Dtos;
 
 namespace UtilitariosApi.Controllers;
 
@@ -48,6 +49,31 @@ public class SteamController(ISender sender) : ControllerBase
     public async Task<ActionResult<BulkCreateSteamItemResult>> BulkCreate([FromBody] List<BulkCreateSteamItemDto> items)
     {
         var result = await sender.Send(new BulkCreateSteamItemCommand { Items = items });
+        return result.ToActionResult();
+    }
+
+    [HttpGet("item/export")]
+    public async Task<ActionResult<ExcelFileDto>> ExportItemsExcel()
+    {
+        var result = await sender.Send(new ExportSteamItemsExcelQuery());
+        return result.ToActionResult();
+    }
+
+    [HttpPost("item/import")]
+    public async Task<ActionResult<ImportExcelResult>> ImportItemsExcel([FromForm] IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest("Archivo Excel requerido.");
+
+        await using var stream = file.OpenReadStream();
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+
+        var result = await sender.Send(new ImportSteamItemsExcelCommand
+        {
+            FileBytes = memory.ToArray()
+        });
+
         return result.ToActionResult();
     }
 

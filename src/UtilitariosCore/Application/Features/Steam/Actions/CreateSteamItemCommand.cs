@@ -32,10 +32,35 @@ public record CreateSteamItemCommand : IRequest<Result<int>>
     {
         public async Task<Result<int>> Handle(CreateSteamItemCommand request, CancellationToken cancellationToken)
         {
-            if (!string.IsNullOrEmpty(request.ExternalId))
+            var existingByNameAndGame = await repository.GetItemByNameAndGameAsync(request.Name, (int)request.Game);
+
+            // Si ya existe por nombre+juego, actualizar (incluye completar ExternalId faltante)
+            if (existingByNameAndGame != null)
             {
-                var exists = await repository.ExistsByExternalIdItems(request.ExternalId);
-                if (exists) return Errors.BadRequest("El item ya existe en la base de datos.");
+                if (!string.IsNullOrWhiteSpace(request.ExternalId))
+                {
+                    var existingByExternalId = await repository.GetItemByExternalIdAsync(request.ExternalId);
+                    if (existingByExternalId != null && existingByExternalId.Id != existingByNameAndGame.Id)
+                        return Errors.BadRequest("El externalId ya pertenece a otro item.");
+                }
+
+                existingByNameAndGame.ExternalId = !string.IsNullOrWhiteSpace(request.ExternalId)
+                    ? request.ExternalId
+                    : existingByNameAndGame.ExternalId;
+                existingByNameAndGame.Image = request.Image;
+                existingByNameAndGame.Price = request.Price;
+                existingByNameAndGame.MarketUrl = request.MarketUrl;
+                existingByNameAndGame.UpdatedAt = DateTime.Now;
+
+                await repository.UpdateItems(existingByNameAndGame);
+                return existingByNameAndGame.Id;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.ExternalId))
+            {
+                var existsByExternalId = await repository.ExistsByExternalIdItems(request.ExternalId);
+                if (existsByExternalId)
+                    return Errors.BadRequest("El item ya existe en la base de datos.");
             }
 
             var item = new SteamItem
