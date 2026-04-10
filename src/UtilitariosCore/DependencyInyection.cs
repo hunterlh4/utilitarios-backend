@@ -47,7 +47,6 @@ public static class DependencyInyection
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUserDetailRepository, UserDetailRepository>();
-        services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IAnimeRepository, AnimeRepository>();
         services.AddScoped<IHentaiRepository, HentaiRepository>();
         services.AddScoped<IJavRepository, JavRepository>();
@@ -64,12 +63,8 @@ public static class DependencyInyection
         services.AddScoped<IYouTubeRepository, YouTubeRepository>();
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IProyectRepository, ProyectRepository>();
-        services.AddScoped<ISteamItemRepository, SteamItemRepository>();
-        services.AddScoped<ISteamItemDropRepository, SteamItemDropRepository>();
-        services.AddScoped<ISteamItemPurchaseRepository, SteamItemPurchaseRepository>();
-        services.AddScoped<IDotaHeroRepository, DotaHeroRepository>();
-        services.AddScoped<IDotaTreasureRepository, DotaTreasureRepository>();
-        services.AddScoped<IDotaCacheRepository, DotaCacheRepository>();
+        services.AddScoped<IPermissionRepository, PermissionRepository>();
+        services.AddScoped<ISteamRepository, SteamRepository>();
 
         // Google Calendar
         services.Configure<Infrastructure.Settings.GoogleCalendarSettings>(configuration.GetSection("Providers:GoogleCalendar"));
