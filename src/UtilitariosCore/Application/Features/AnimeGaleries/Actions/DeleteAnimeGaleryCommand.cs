@@ -6,7 +6,7 @@ namespace UtilitariosCore.Application.Features.AnimeGaleries.Actions;
 
 public record DeleteAnimeGaleryCommand(int Id) : IRequest<Result>;
 
-internal sealed class DeleteAnimeGaleryCommandHandler(IAnimeGaleryRepository repository) 
+internal sealed class DeleteAnimeGaleryCommandHandler(IGaleryRepository repository) 
     : IRequestHandler<DeleteAnimeGaleryCommand, Result>
 {
     public async Task<Result> Handle(DeleteAnimeGaleryCommand request, CancellationToken cancellationToken)

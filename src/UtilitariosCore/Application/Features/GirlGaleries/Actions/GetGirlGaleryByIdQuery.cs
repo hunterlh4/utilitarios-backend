@@ -9,7 +9,7 @@ namespace UtilitariosCore.Application.Features.GirlGaleries.Actions;
 public record GetGirlGaleryByIdQuery(int Id) : IRequest<Result<GirlGaleryDetailDto>>;
 
 internal sealed class GetGirlGaleryByIdQueryHandler(
-    IGirlGaleryRepository repository,
+    IGaleryRepository repository,
     IMediaRepository mediaRepository,
     ILinkRepository linkRepository)
     : IRequestHandler<GetGirlGaleryByIdQuery, Result<GirlGaleryDetailDto>>
@@ -26,7 +26,6 @@ internal sealed class GetGirlGaleryByIdQueryHandler(
         var media = await mediaRepository.GetMediaByRefId(item.Id, MediaType.GirlGalery);
         var mediaList = media
             .OrderBy(m => m.OrderIndex)
-            .Skip(1)
             .Select(m => new MediaDto
             {
                 Id = m.Id,
@@ -49,6 +48,7 @@ internal sealed class GetGirlGaleryByIdQueryHandler(
         {
             Id = item.Id,
             Name = item.Name,
+            Image = item.Image,
             Media = mediaList,
             Links = linkList,
             CreatedAt = item.CreatedAt

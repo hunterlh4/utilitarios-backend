@@ -19,7 +19,7 @@ public record UpdateAnimeGaleryLinksCommand(int Id, List<string> Links) : IReque
     }
 
     internal sealed class Handler(
-        IAnimeGaleryRepository repository,
+        IGaleryRepository repository,
         ILinkRepository linkRepository)
         : IRequestHandler<UpdateAnimeGaleryLinksCommand, Result>
     {

@@ -20,7 +20,7 @@ public class CreateAnimeGaleryCommand : IRequest<Result<CreateAnimeGaleryDto>>
         }
     }
 
-    internal sealed class Handler(IAnimeGaleryRepository repository) 
+    internal sealed class Handler(IGaleryRepository repository) 
         : IRequestHandler<CreateAnimeGaleryCommand, Result<CreateAnimeGaleryDto>>
     {
         public async Task<Result<CreateAnimeGaleryDto>> Handle(CreateAnimeGaleryCommand request, CancellationToken cancellationToken)

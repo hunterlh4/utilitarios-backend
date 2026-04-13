@@ -6,7 +6,7 @@ namespace UtilitariosCore.Application.Features.GirlGaleries.Actions;
 
 public record DeleteGirlGaleryCommand(int Id) : IRequest<Result>;
 
-internal sealed class DeleteGirlGaleryCommandHandler(IGirlGaleryRepository repository) 
+internal sealed class DeleteGirlGaleryCommandHandler(IGaleryRepository repository) 
     : IRequestHandler<DeleteGirlGaleryCommand, Result>
 {
     public async Task<Result> Handle(DeleteGirlGaleryCommand request, CancellationToken cancellationToken)

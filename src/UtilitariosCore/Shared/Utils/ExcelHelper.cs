@@ -3,6 +3,7 @@ using OfficeOpenXml.Style;
 using System.Globalization;
 using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Models;
+using UtilitariosCore.Shared.Dtos;
 
 namespace UtilitariosCore.Shared.Utils;
 
@@ -455,6 +456,192 @@ public static class ExcelHelper
                 Name = name,
                 Image = image,
             });
+        }
+
+        return result;
+    }
+
+    public static MemoryStream CreateAnimeGaleryExcel(List<AnimeGalery> galeries, List<GaleryMediaExcelRow> mediaRows)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+
+        var galerySheet = package.Workbook.Worksheets.Add("AnimeGaleries");
+        galerySheet.Cells[1, 1].Value = "Id";
+        galerySheet.Cells[1, 2].Value = "Name";
+        galerySheet.Cells[1, 3].Value = "Image";
+
+        var galeryHeader = galerySheet.Cells[1, 1, 1, 3];
+        galeryHeader.Style.Font.Bold = true;
+        galeryHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        galeryHeader.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+
+        int row = 2;
+        foreach (var galery in galeries)
+        {
+            galerySheet.Cells[row, 1].Value = galery.Id;
+            galerySheet.Cells[row, 2].Value = galery.Name;
+            galerySheet.Cells[row, 3].Value = galery.Image;
+            row++;
+        }
+
+        var mediaSheet = package.Workbook.Worksheets.Add("AnimeGaleryMedia");
+        mediaSheet.Cells[1, 1].Value = "AnimeGaleryId";
+        mediaSheet.Cells[1, 2].Value = "Url";
+        mediaSheet.Cells[1, 3].Value = "OrderIndex";
+
+        var mediaHeader = mediaSheet.Cells[1, 1, 1, 3];
+        mediaHeader.Style.Font.Bold = true;
+        mediaHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        mediaHeader.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+
+        row = 2;
+        foreach (var media in mediaRows)
+        {
+            mediaSheet.Cells[row, 1].Value = media.GaleryId;
+            mediaSheet.Cells[row, 2].Value = media.Url;
+            mediaSheet.Cells[row, 3].Value = media.OrderIndex;
+            row++;
+        }
+
+        if (galerySheet.Dimension is not null)
+            galerySheet.Cells[galerySheet.Dimension.Address].AutoFitColumns();
+        if (mediaSheet.Dimension is not null)
+            mediaSheet.Cells[mediaSheet.Dimension.Address].AutoFitColumns();
+
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    public static GaleryExcelData ReadAnimeGaleryExcel(Stream excelStream)
+    {
+        return ReadGaleryExcel(excelStream, "AnimeGaleries", "AnimeGaleryMedia", "AnimeGaleryId");
+    }
+
+    public static MemoryStream CreateGirlGaleryExcel(List<GirlGalery> galeries, List<GaleryMediaExcelRow> mediaRows)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+
+        var galerySheet = package.Workbook.Worksheets.Add("GirlGaleries");
+        galerySheet.Cells[1, 1].Value = "Id";
+        galerySheet.Cells[1, 2].Value = "Name";
+        galerySheet.Cells[1, 3].Value = "Image";
+
+        var galeryHeader = galerySheet.Cells[1, 1, 1, 3];
+        galeryHeader.Style.Font.Bold = true;
+        galeryHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        galeryHeader.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+
+        int row = 2;
+        foreach (var galery in galeries)
+        {
+            galerySheet.Cells[row, 1].Value = galery.Id;
+            galerySheet.Cells[row, 2].Value = galery.Name;
+            galerySheet.Cells[row, 3].Value = galery.Image;
+            row++;
+        }
+
+        var mediaSheet = package.Workbook.Worksheets.Add("GirlGaleryMedia");
+        mediaSheet.Cells[1, 1].Value = "GirlGaleryId";
+        mediaSheet.Cells[1, 2].Value = "Url";
+        mediaSheet.Cells[1, 3].Value = "OrderIndex";
+
+        var mediaHeader = mediaSheet.Cells[1, 1, 1, 3];
+        mediaHeader.Style.Font.Bold = true;
+        mediaHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        mediaHeader.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+
+        row = 2;
+        foreach (var media in mediaRows)
+        {
+            mediaSheet.Cells[row, 1].Value = media.GaleryId;
+            mediaSheet.Cells[row, 2].Value = media.Url;
+            mediaSheet.Cells[row, 3].Value = media.OrderIndex;
+            row++;
+        }
+
+        if (galerySheet.Dimension is not null)
+            galerySheet.Cells[galerySheet.Dimension.Address].AutoFitColumns();
+        if (mediaSheet.Dimension is not null)
+            mediaSheet.Cells[mediaSheet.Dimension.Address].AutoFitColumns();
+
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    public static GaleryExcelData ReadGirlGaleryExcel(Stream excelStream)
+    {
+        return ReadGaleryExcel(excelStream, "GirlGaleries", "GirlGaleryMedia", "GirlGaleryId");
+    }
+
+    private static GaleryExcelData ReadGaleryExcel(Stream excelStream, string galerySheetName, string mediaSheetName, string mediaGaleryIdHeader)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage(excelStream);
+        var galerySheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == galerySheetName)
+                         ?? package.Workbook.Worksheets.FirstOrDefault();
+        var mediaSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == mediaSheetName);
+
+        var result = new GaleryExcelData();
+
+        if (galerySheet?.Dimension is not null)
+        {
+            for (int row = 2; row <= galerySheet.Dimension.End.Row; row++)
+            {
+                var idText = galerySheet.Cells[row, 1].Text?.Trim() ?? "0";
+                var name = galerySheet.Cells[row, 2].Text?.Trim() ?? string.Empty;
+                var image = galerySheet.Cells[row, 3].Text?.Trim();
+
+                if (string.IsNullOrWhiteSpace(idText) && string.IsNullOrWhiteSpace(name) && string.IsNullOrWhiteSpace(image))
+                    continue;
+
+                int.TryParse(idText, out var id);
+
+                result.Galeries.Add(new GaleryExcelRow
+                {
+                    Id = id,
+                    Name = name,
+                    Image = image,
+                });
+            }
+        }
+
+        if (mediaSheet?.Dimension is not null)
+        {
+            var galeryIdColumn = 1;
+            for (int col = 1; col <= mediaSheet.Dimension.End.Column; col++)
+            {
+                if (string.Equals(mediaSheet.Cells[1, col].Text?.Trim(), mediaGaleryIdHeader, StringComparison.OrdinalIgnoreCase))
+                {
+                    galeryIdColumn = col;
+                    break;
+                }
+            }
+
+            for (int row = 2; row <= mediaSheet.Dimension.End.Row; row++)
+            {
+                var galeryIdText = mediaSheet.Cells[row, galeryIdColumn].Text?.Trim() ?? "0";
+                var url = mediaSheet.Cells[row, 2].Text?.Trim() ?? string.Empty;
+                var orderText = mediaSheet.Cells[row, 3].Text?.Trim() ?? "0";
+
+                if (string.IsNullOrWhiteSpace(galeryIdText) && string.IsNullOrWhiteSpace(url))
+                    continue;
+
+                int.TryParse(galeryIdText, out var galeryId);
+                int.TryParse(orderText, out var orderIndex);
+
+                result.Media.Add(new GaleryMediaExcelRow
+                {
+                    GaleryId = galeryId,
+                    Url = url,
+                    OrderIndex = orderIndex,
+                });
+            }
         }
 
         return result;

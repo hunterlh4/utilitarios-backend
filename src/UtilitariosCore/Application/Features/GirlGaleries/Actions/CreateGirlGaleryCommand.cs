@@ -20,7 +20,7 @@ public class CreateGirlGaleryCommand : IRequest<Result<CreateGirlGaleryDto>>
         }
     }
 
-    internal sealed class Handler(IGirlGaleryRepository repository) 
+    internal sealed class Handler(IGaleryRepository repository) 
         : IRequestHandler<CreateGirlGaleryCommand, Result<CreateGirlGaleryDto>>
     {
         public async Task<Result<CreateGirlGaleryDto>> Handle(CreateGirlGaleryCommand request, CancellationToken cancellationToken)

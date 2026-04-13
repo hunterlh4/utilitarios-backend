@@ -55,8 +55,7 @@ public static class DependencyInyection
         services.AddScoped<ILinkRepository, LinkRepository>();
         services.AddScoped<ISeriesRepository, SeriesRepository>();
         services.AddScoped<IMediaRepository, MediaRepository>();
-        services.AddScoped<IGirlGaleryRepository, GirlGaleryRepository>();
-        services.AddScoped<IAnimeGaleryRepository, AnimeGaleryRepository>();
+        services.AddScoped<IGaleryRepository, GaleryRepository>();
         services.AddScoped<IVideoAdultRepository, VideoAdultRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();

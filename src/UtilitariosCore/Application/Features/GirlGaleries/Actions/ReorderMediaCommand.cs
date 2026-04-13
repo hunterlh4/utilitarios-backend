@@ -9,7 +9,7 @@ namespace UtilitariosCore.Application.Features.GirlGaleries.Actions;
 public record ReorderMediaCommand(int GaleryId, List<MediaOrderItem> Items) : IRequest<Result>;
 
 internal sealed class ReorderMediaCommandHandler(
-    IGirlGaleryRepository galeryRepository,
+    IGaleryRepository galeryRepository,
     IMediaRepository mediaRepository) 
     : IRequestHandler<ReorderMediaCommand, Result>
 {

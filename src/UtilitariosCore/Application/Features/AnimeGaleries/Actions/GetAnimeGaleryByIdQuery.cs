@@ -9,7 +9,7 @@ namespace UtilitariosCore.Application.Features.AnimeGaleries.Actions;
 public record GetAnimeGaleryByIdQuery(int Id) : IRequest<Result<AnimeGaleryDetailDto>>;
 
 internal sealed class GetAnimeGaleryByIdQueryHandler(
-    IAnimeGaleryRepository repository,
+    IGaleryRepository repository,
     IMediaRepository mediaRepository,
     ILinkRepository linkRepository)
     : IRequestHandler<GetAnimeGaleryByIdQuery, Result<AnimeGaleryDetailDto>>
@@ -26,7 +26,6 @@ internal sealed class GetAnimeGaleryByIdQueryHandler(
         var media = await mediaRepository.GetMediaByRefId(item.Id, MediaType.AnimeGalery);
         var mediaList = media
             .OrderBy(m => m.OrderIndex)
-            .Skip(1) // Excluir la primera imagen
             .Select(m => new MediaDto
             {
                 Id = m.Id,
@@ -49,6 +48,7 @@ internal sealed class GetAnimeGaleryByIdQueryHandler(
         {
             Id = item.Id,
             Name = item.Name,
+            Image = item.Image,
             Media = mediaList,
             Links = linkList,
             CreatedAt = item.CreatedAt

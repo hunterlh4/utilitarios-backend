@@ -19,7 +19,7 @@ public record UpdateGirlGaleryLinksCommand(int Id, List<string> Links) : IReques
     }
 
     internal sealed class Handler(
-        IGirlGaleryRepository repository,
+        IGaleryRepository repository,
         ILinkRepository linkRepository)
         : IRequestHandler<UpdateGirlGaleryLinksCommand, Result>
     {

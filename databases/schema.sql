@@ -37,6 +37,7 @@ CREATE TABLE Series (
 CREATE TABLE GirlGalery (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(200) NOT NULL,
+    Image NVARCHAR(1000),
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
@@ -44,6 +45,7 @@ CREATE TABLE GirlGalery (
 CREATE TABLE AnimeGalery (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(100) NOT NULL, -- Shigatsu, Konosuba, Steins;Gate, etc.
+    Image NVARCHAR(1000),
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
