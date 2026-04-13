@@ -359,7 +359,6 @@ CREATE TABLE PaymentDetail (
     Description NVARCHAR(500),          -- Detalle opcional del movimiento
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME null,
-    FOREIGN KEY (PaymentId) REFERENCES Payment(Id) ON DELETE CASCADE
 );
 
 -- Salary table (configuración de sueldo)
@@ -428,7 +427,6 @@ CREATE TABLE TaskDetail (
     Title NVARCHAR(500) NOT NULL,
     Status INT NOT NULL DEFAULT 1, -- 1: pending, 2: complete
     Date DATETIME, -- deadline or completion date
-    FOREIGN KEY (TaskId) REFERENCES Task(Id) ON DELETE CASCADE
 );
 
 -- Event table (eventos de calendario)

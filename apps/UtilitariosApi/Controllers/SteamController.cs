@@ -100,6 +100,31 @@ public class SteamController(ISender sender) : ControllerBase
         return result.ToActionResult();
     }
 
+    [HttpGet("drop/export")]
+    public async Task<ActionResult<ExcelFileDto>> ExportDropsExcel()
+    {
+        var result = await sender.Send(new ExportSteamItemDropsExcelQuery());
+        return result.ToActionResult();
+    }
+
+    [HttpPost("drop/import")]
+    public async Task<ActionResult<ImportExcelResult>> ImportDropsExcel([FromForm] IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest("Archivo Excel requerido.");
+
+        await using var stream = file.OpenReadStream();
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+
+        var result = await sender.Send(new ImportSteamItemDropsExcelCommand
+        {
+            FileBytes = memory.ToArray()
+        });
+
+        return result.ToActionResult();
+    }
+
     [HttpPost("drop")]
     public async Task<ActionResult<int>> CreateDrop([FromBody] CreateItemDropCommand command)
     {
@@ -127,6 +152,31 @@ public class SteamController(ISender sender) : ControllerBase
     public async Task<ActionResult<IEnumerable<SteamItemPurchaseDto>>> GetAllPurchases()
     {
         var result = await sender.Send(new GetAllItemPurchasesQuery());
+        return result.ToActionResult();
+    }
+
+    [HttpGet("purchase/export")]
+    public async Task<ActionResult<ExcelFileDto>> ExportPurchasesExcel()
+    {
+        var result = await sender.Send(new ExportSteamItemPurchasesExcelQuery());
+        return result.ToActionResult();
+    }
+
+    [HttpPost("purchase/import")]
+    public async Task<ActionResult<ImportExcelResult>> ImportPurchasesExcel([FromForm] IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest("Archivo Excel requerido.");
+
+        await using var stream = file.OpenReadStream();
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+
+        var result = await sender.Send(new ImportSteamItemPurchasesExcelCommand
+        {
+            FileBytes = memory.ToArray()
+        });
+
         return result.ToActionResult();
     }
 

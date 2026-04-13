@@ -77,8 +77,19 @@ public static class ExcelHelper
                 price = -1;
             }
 
-            if (!int.TryParse(gameText, out var game))
+            int game;
+            if (int.TryParse(gameText, out var numericGame))
+            {
+                game = numericGame;
+            }
+            else if (Enum.TryParse<GameType>(gameText, true, out var enumGame))
+            {
+                game = (int)enumGame;
+            }
+            else
+            {
                 game = 0;
+            }
 
             result.Add(new SteamItem
             {
@@ -88,6 +99,243 @@ public static class ExcelHelper
                 Price = price,
                 Game = (GameType)game,
                 MarketUrl = marketUrl,
+            });
+        }
+
+        return result;
+    }
+
+    public static MemoryStream CreateSteamItemDropsExcel(List<SteamItemDrop> drops)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("SteamDrops");
+
+        worksheet.Cells[1, 1].Value = "Id";
+        worksheet.Cells[1, 2].Value = "SteamItemId";
+        worksheet.Cells[1, 3].Value = "Quantity";
+        worksheet.Cells[1, 4].Value = "Price";
+        worksheet.Cells[1, 5].Value = "SalePrice";
+        worksheet.Cells[1, 6].Value = "Total";
+        worksheet.Cells[1, 7].Value = "CreatedAt";
+
+        var headerRange = worksheet.Cells[1, 1, 1, 7];
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+        int row = 2;
+        foreach (var drop in drops)
+        {
+            worksheet.Cells[row, 1].Value = drop.Id;
+            worksheet.Cells[row, 2].Value = drop.SteamItemId;
+            worksheet.Cells[row, 3].Value = drop.Quantity;
+            worksheet.Cells[row, 4].Value = drop.Price;
+            worksheet.Cells[row, 5].Value = drop.SalePrice;
+            worksheet.Cells[row, 6].Value = drop.Total;
+            worksheet.Cells[row, 7].Value = drop.CreatedAt;
+            row++;
+        }
+
+        worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    public static List<SteamItemDrop> ReadSteamItemDropsExcel(Stream excelStream)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage(excelStream);
+        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+
+        var result = new List<SteamItemDrop>();
+        if (worksheet?.Dimension is null)
+            return result;
+
+        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+        {
+            var idText = worksheet.Cells[row, 1].Text?.Trim() ?? "0";
+            var steamItemIdText = worksheet.Cells[row, 2].Text?.Trim() ?? "0";
+            var quantityText = worksheet.Cells[row, 3].Text?.Trim() ?? "0";
+            var priceText = worksheet.Cells[row, 4].Text?.Trim() ?? "0";
+            var salePriceText = worksheet.Cells[row, 5].Text?.Trim() ?? "0";
+            var createdAtText = worksheet.Cells[row, 7].Text?.Trim();
+
+            if (string.IsNullOrWhiteSpace(idText) && string.IsNullOrWhiteSpace(steamItemIdText) &&
+                string.IsNullOrWhiteSpace(quantityText) && string.IsNullOrWhiteSpace(priceText) &&
+                string.IsNullOrWhiteSpace(salePriceText) && string.IsNullOrWhiteSpace(createdAtText))
+                continue;
+
+            int.TryParse(idText, out var id);
+            int.TryParse(steamItemIdText, out var steamItemId);
+            int.TryParse(quantityText, out var quantity);
+
+            if (!decimal.TryParse(priceText, NumberStyles.Any, CultureInfo.InvariantCulture, out var price) &&
+                !decimal.TryParse(priceText, NumberStyles.Any, CultureInfo.CurrentCulture, out price))
+            {
+                price = -1;
+            }
+
+            if (!decimal.TryParse(salePriceText, NumberStyles.Any, CultureInfo.InvariantCulture, out var salePrice) &&
+                !decimal.TryParse(salePriceText, NumberStyles.Any, CultureInfo.CurrentCulture, out salePrice))
+            {
+                salePrice = -1;
+            }
+
+            DateTime.TryParse(createdAtText, CultureInfo.CurrentCulture, DateTimeStyles.None, out var createdAt);
+            if (createdAt == default)
+            {
+                DateTime.TryParse(createdAtText, CultureInfo.InvariantCulture, DateTimeStyles.None, out createdAt);
+            }
+
+            result.Add(new SteamItemDrop
+            {
+                Id = id,
+                SteamItemId = steamItemId,
+                Quantity = quantity,
+                Price = price,
+                SalePrice = salePrice,
+                Total = quantity * salePrice,
+                CreatedAt = createdAt == default ? DateTime.Now : createdAt,
+            });
+        }
+
+        return result;
+    }
+
+    public static MemoryStream CreateSteamItemPurchasesExcel(List<SteamItemPurchase> purchases)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("SteamPurchases");
+
+        worksheet.Cells[1, 1].Value = "Id";
+        worksheet.Cells[1, 2].Value = "SteamItemId";
+        worksheet.Cells[1, 3].Value = "PurchasePrice";
+        worksheet.Cells[1, 4].Value = "SalePrice";
+        worksheet.Cells[1, 5].Value = "Profit";
+        worksheet.Cells[1, 6].Value = "Status";
+        worksheet.Cells[1, 7].Value = "PurchaseDate";
+        worksheet.Cells[1, 8].Value = "SaleDate";
+        worksheet.Cells[1, 9].Value = "CreatedAt";
+
+        var headerRange = worksheet.Cells[1, 1, 1, 9];
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+        int row = 2;
+        foreach (var purchase in purchases)
+        {
+            worksheet.Cells[row, 1].Value = purchase.Id;
+            worksheet.Cells[row, 2].Value = purchase.SteamItemId;
+            worksheet.Cells[row, 3].Value = purchase.PurchasePrice;
+            worksheet.Cells[row, 4].Value = purchase.SalePrice;
+            worksheet.Cells[row, 5].Value = purchase.Profit;
+            worksheet.Cells[row, 6].Value = purchase.Status.ToString();
+            worksheet.Cells[row, 7].Value = purchase.PurchaseDate;
+            worksheet.Cells[row, 8].Value = purchase.SaleDate;
+            worksheet.Cells[row, 9].Value = purchase.CreatedAt;
+            row++;
+        }
+
+        worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    public static List<SteamItemPurchase> ReadSteamItemPurchasesExcel(Stream excelStream)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage(excelStream);
+        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+
+        var result = new List<SteamItemPurchase>();
+        if (worksheet?.Dimension is null)
+            return result;
+
+        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+        {
+            var idText = worksheet.Cells[row, 1].Text?.Trim() ?? "0";
+            var steamItemIdText = worksheet.Cells[row, 2].Text?.Trim() ?? "0";
+            var purchasePriceText = worksheet.Cells[row, 3].Text?.Trim() ?? "0";
+            var salePriceText = worksheet.Cells[row, 4].Text?.Trim() ?? "0";
+            var statusText = worksheet.Cells[row, 6].Text?.Trim();
+            var purchaseDateText = worksheet.Cells[row, 7].Text?.Trim();
+            var saleDateText = worksheet.Cells[row, 8].Text?.Trim();
+            var createdAtText = worksheet.Cells[row, 9].Text?.Trim();
+
+            if (string.IsNullOrWhiteSpace(idText) && string.IsNullOrWhiteSpace(steamItemIdText) &&
+                string.IsNullOrWhiteSpace(purchasePriceText) && string.IsNullOrWhiteSpace(salePriceText) &&
+                string.IsNullOrWhiteSpace(statusText) && string.IsNullOrWhiteSpace(purchaseDateText) &&
+                string.IsNullOrWhiteSpace(saleDateText) && string.IsNullOrWhiteSpace(createdAtText))
+                continue;
+
+            int.TryParse(idText, out var id);
+            int.TryParse(steamItemIdText, out var steamItemId);
+
+            if (!decimal.TryParse(purchasePriceText, NumberStyles.Any, CultureInfo.InvariantCulture, out var purchasePrice) &&
+                !decimal.TryParse(purchasePriceText, NumberStyles.Any, CultureInfo.CurrentCulture, out purchasePrice))
+            {
+                purchasePrice = -1;
+            }
+
+            if (!decimal.TryParse(salePriceText, NumberStyles.Any, CultureInfo.InvariantCulture, out var salePrice) &&
+                !decimal.TryParse(salePriceText, NumberStyles.Any, CultureInfo.CurrentCulture, out salePrice))
+            {
+                salePrice = -1;
+            }
+
+            var status = PurchaseStatus.Comprado;
+            if (!string.IsNullOrWhiteSpace(statusText))
+            {
+                if (int.TryParse(statusText, out var numericStatus) && Enum.IsDefined(typeof(PurchaseStatus), numericStatus))
+                {
+                    status = (PurchaseStatus)numericStatus;
+                }
+                else if (Enum.TryParse<PurchaseStatus>(statusText, true, out var enumStatus))
+                {
+                    status = enumStatus;
+                }
+            }
+
+            DateTime.TryParse(purchaseDateText, CultureInfo.CurrentCulture, DateTimeStyles.None, out var purchaseDate);
+            if (purchaseDate == default)
+            {
+                DateTime.TryParse(purchaseDateText, CultureInfo.InvariantCulture, DateTimeStyles.None, out purchaseDate);
+            }
+
+            DateTime.TryParse(saleDateText, CultureInfo.CurrentCulture, DateTimeStyles.None, out var saleDate);
+            if (saleDate == default)
+            {
+                DateTime.TryParse(saleDateText, CultureInfo.InvariantCulture, DateTimeStyles.None, out saleDate);
+            }
+
+            DateTime.TryParse(createdAtText, CultureInfo.CurrentCulture, DateTimeStyles.None, out var createdAt);
+            if (createdAt == default)
+            {
+                DateTime.TryParse(createdAtText, CultureInfo.InvariantCulture, DateTimeStyles.None, out createdAt);
+            }
+
+            result.Add(new SteamItemPurchase
+            {
+                Id = id,
+                SteamItemId = steamItemId,
+                PurchasePrice = purchasePrice,
+                SalePrice = salePrice,
+                Profit = salePrice > 0 ? salePrice - purchasePrice : null,
+                Status = salePrice > 0 ? PurchaseStatus.Vendido : status,
+                PurchaseDate = purchaseDate == default ? DateTime.Now : purchaseDate,
+                SaleDate = salePrice > 0 ? (saleDate == default ? DateTime.Now : saleDate) : null,
+                CreatedAt = createdAt == default ? DateTime.Now : createdAt,
             });
         }
 
