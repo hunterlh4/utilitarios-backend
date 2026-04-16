@@ -25,9 +25,10 @@ internal sealed class ExportActressJavExcelQueryHandler(
         foreach (var actress in actresses)
         {
             var tags = await tagRepository.GetTagsByRefId(actress.Id, TagType.ActressJav);
-            var tagNames = tags
-                .Select(tag => tag.Name)
-                .Where(name => !string.IsNullOrWhiteSpace(name))
+            var tagIds = tags
+                .Select(tag => tag.Id)
+                .Where(id => id > 0)
+                .OrderBy(id => id)
                 .ToList();
 
             exportRows.Add(new ActressJavExcelRow
@@ -35,7 +36,7 @@ internal sealed class ExportActressJavExcelQueryHandler(
                 Id = actress.Id,
                 Name = actress.Name,
                 Image = actress.Image,
-                Tags = tagNames.Count > 0 ? string.Join(", ", tagNames) : string.Empty,
+                Tags = tagIds.Count > 0 ? string.Join(", ", tagIds) : string.Empty,
             });
 
             var links = await linkRepository.GetLinksByRefId(actress.Id, LinkType.ActressJav);

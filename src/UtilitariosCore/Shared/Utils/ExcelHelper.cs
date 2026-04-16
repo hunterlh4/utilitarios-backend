@@ -352,7 +352,7 @@ public static class ExcelHelper
         worksheet.Cells[1, 1].Value = "Id";
         worksheet.Cells[1, 2].Value = "Name";
         worksheet.Cells[1, 3].Value = "Image";
-        worksheet.Cells[1, 4].Value = "Tags";
+        worksheet.Cells[1, 4].Value = "TagIds";
 
         var headerRange = worksheet.Cells[1, 1, 1, 4];
         headerRange.Style.Font.Bold = true;
