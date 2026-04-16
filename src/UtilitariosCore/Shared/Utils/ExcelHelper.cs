@@ -464,6 +464,74 @@ public static class ExcelHelper
         return result;
     }
 
+    public static MemoryStream CreateTagExcel(List<TagExcelRow> tags)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("Tags");
+
+        worksheet.Cells[1, 1].Value = "Id";
+        worksheet.Cells[1, 2].Value = "Name";
+        worksheet.Cells[1, 3].Value = "Type";
+
+        var headerRange = worksheet.Cells[1, 1, 1, 3];
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+        int row = 2;
+        foreach (var tag in tags)
+        {
+            worksheet.Cells[row, 1].Value = tag.Id;
+            worksheet.Cells[row, 2].Value = tag.Name;
+            worksheet.Cells[row, 3].Value = tag.Type;
+            row++;
+        }
+
+        if (worksheet.Dimension is not null)
+            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    public static TagExcelData ReadTagExcel(Stream excelStream)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage(excelStream);
+        var worksheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Tags")
+                        ?? package.Workbook.Worksheets.FirstOrDefault();
+
+        var result = new TagExcelData();
+        if (worksheet?.Dimension is null)
+            return result;
+
+        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+        {
+            var idText = worksheet.Cells[row, 1].Text?.Trim() ?? "0";
+            var name = worksheet.Cells[row, 2].Text?.Trim() ?? string.Empty;
+            var typeText = worksheet.Dimension.End.Column >= 3 ? worksheet.Cells[row, 3].Text?.Trim() ?? "0" : "0";
+
+            if (string.IsNullOrWhiteSpace(idText) && string.IsNullOrWhiteSpace(name) && string.IsNullOrWhiteSpace(typeText))
+                continue;
+
+            int.TryParse(idText, out var id);
+            int.TryParse(typeText, out var type);
+
+            result.Tags.Add(new TagExcelRow
+            {
+                Id = id,
+                Name = name,
+                Type = type,
+            });
+        }
+
+        return result;
+    }
+
     public static MemoryStream CreateActressAdultExcel(List<ActressAdult> actresses)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;

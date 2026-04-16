@@ -64,3 +64,15 @@ public class ActressJavExcelData
     public List<ActressJavExcelRow> Actresses { get; set; } = new();
     public List<ActressJavLinkExcelRow> Links { get; set; } = new();
 }
+
+public class TagExcelRow
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int Type { get; set; }
+}
+
+public class TagExcelData
+{
+    public List<TagExcelRow> Tags { get; set; } = new();
+}
