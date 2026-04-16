@@ -108,7 +108,6 @@ public class GaleryController(ISender sender) : ControllerBase
 
     #region girls-galery
 
-    [HttpGet("girls")]
     [HttpGet("girl")]
     public async Task<ActionResult<IEnumerable<GirlGaleryDto>>> GetAllGirls()
     {
@@ -116,7 +115,6 @@ public class GaleryController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
-    [HttpGet("girls/{id:int}")]
     [HttpGet("girl/{id:int}")]
     public async Task<ActionResult<GirlGaleryDetailDto>> GetGirlsById([FromRoute] int id)
     {
@@ -124,7 +122,6 @@ public class GaleryController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
-    [HttpPost("girls")]
     [HttpPost("girl")]
     public async Task<ActionResult<CreateGirlGaleryDto>> CreateGirls([FromBody] CreateGirlGaleryCommand command)
     {
@@ -132,7 +129,6 @@ public class GaleryController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
-    [HttpPut("girls/{id:int}")]
     [HttpPut("girl/{id:int}")]
     public async Task<ActionResult> UpdateGirls([FromRoute] int id, [FromBody] UpdateGirlGaleryDto payload)
     {
@@ -143,7 +139,6 @@ public class GaleryController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
-    [HttpPut("girls/{id:int}/links")]
     [HttpPut("girl/{id:int}/links")]
     public async Task<ActionResult> UpdateGirlsLinks([FromRoute] int id, [FromBody] List<string> links)
     {
@@ -151,7 +146,6 @@ public class GaleryController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
-    [HttpDelete("girls/{id:int}")]
     [HttpDelete("girl/{id:int}")]
     public async Task<ActionResult> DeleteGirls([FromRoute] int id)
     {
@@ -159,7 +153,6 @@ public class GaleryController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
-    [HttpGet("girls/export")]
     [HttpGet("girl/export")]
     public async Task<ActionResult<ExcelFileDto>> ExportGirls()
     {
@@ -167,7 +160,6 @@ public class GaleryController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
-    [HttpPost("girls/import")]
     [HttpPost("girl/import")]
     public async Task<ActionResult<ImportExcelResult>> ImportGirls([FromForm] IFormFile file)
     {
@@ -186,7 +178,6 @@ public class GaleryController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
-    [HttpPost("girls/{id:int}/image")]
     [HttpPost("girl/{id:int}/image")]
     public async Task<ActionResult> UploadGirlsImage([FromRoute] int id, [FromForm] IFormFile image)
     {

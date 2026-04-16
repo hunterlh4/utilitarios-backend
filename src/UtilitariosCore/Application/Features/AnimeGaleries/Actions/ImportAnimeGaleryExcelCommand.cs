@@ -15,7 +15,8 @@ public record ImportAnimeGaleryExcelCommand : IRequest<Result<ImportExcelResult>
 
 internal sealed class ImportAnimeGaleryExcelCommandHandler(
     IGaleryRepository repository,
-    IMediaRepository mediaRepository)
+    IMediaRepository mediaRepository,
+    ILinkRepository linkRepository)
     : IRequestHandler<ImportAnimeGaleryExcelCommand, Result<ImportExcelResult>>
 {
     public async Task<Result<ImportExcelResult>> Handle(ImportAnimeGaleryExcelCommand request, CancellationToken cancellationToken)
@@ -113,6 +114,47 @@ internal sealed class ImportAnimeGaleryExcelCommandHandler(
                 Url = mediaRow.Url,
                 Thumbnail = null,
                 OrderIndex = nextOrder,
+                CreatedAt = DateTime.UtcNow,
+            });
+            created++;
+        }
+
+        foreach (var linkRow in data.Links)
+        {
+            if (linkRow.GaleryId <= 0 || string.IsNullOrWhiteSpace(linkRow.Url))
+            {
+                invalid++;
+                continue;
+            }
+
+            var galeryId = idMap.TryGetValue(linkRow.GaleryId, out var mappedId) ? mappedId : linkRow.GaleryId;
+            var galery = await repository.GetAnimeGaleryById(galeryId);
+            if (galery is null)
+            {
+                skipped++;
+                continue;
+            }
+
+            var existingLinks = await linkRepository.GetLinksByRefId(galeryId, LinkType.AnimeGalery);
+            var existingItem = existingLinks.FirstOrDefault(l => string.Equals(l.Url, linkRow.Url, StringComparison.OrdinalIgnoreCase));
+
+            if (existingItem is not null)
+            {
+                existingItem.Name = string.IsNullOrWhiteSpace(linkRow.Name) ? existingItem.Name : linkRow.Name;
+                existingItem.Url = linkRow.Url;
+                existingItem.OrderIndex = linkRow.OrderIndex > 0 ? linkRow.OrderIndex : existingItem.OrderIndex;
+                await linkRepository.UpdateLink(existingItem);
+                updated++;
+                continue;
+            }
+
+            await linkRepository.CreateLink(new Link
+            {
+                RefId = galeryId,
+                Type = LinkType.AnimeGalery,
+                Name = linkRow.Name,
+                Url = linkRow.Url,
+                OrderIndex = linkRow.OrderIndex > 0 ? linkRow.OrderIndex : existingLinks.Any() ? existingLinks.Max(l => l.OrderIndex ?? 0) + 1 : 1,
                 CreatedAt = DateTime.UtcNow,
             });
             created++;

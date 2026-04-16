@@ -461,7 +461,7 @@ public static class ExcelHelper
         return result;
     }
 
-    public static MemoryStream CreateAnimeGaleryExcel(List<AnimeGalery> galeries, List<GaleryMediaExcelRow> mediaRows)
+    public static MemoryStream CreateAnimeGaleryExcel(List<AnimeGalery> galeries, List<GaleryMediaExcelRow> mediaRows, List<GaleryLinkExcelRow> linkRows)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using var package = new ExcelPackage();
@@ -509,6 +509,30 @@ public static class ExcelHelper
         if (mediaSheet.Dimension is not null)
             mediaSheet.Cells[mediaSheet.Dimension.Address].AutoFitColumns();
 
+        var linkSheet = package.Workbook.Worksheets.Add("AnimeGaleryLinks");
+        linkSheet.Cells[1, 1].Value = "AnimeGaleryId";
+        linkSheet.Cells[1, 2].Value = "Name";
+        linkSheet.Cells[1, 3].Value = "Url";
+        linkSheet.Cells[1, 4].Value = "OrderIndex";
+
+        var linkHeader = linkSheet.Cells[1, 1, 1, 4];
+        linkHeader.Style.Font.Bold = true;
+        linkHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        linkHeader.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+
+        row = 2;
+        foreach (var link in linkRows)
+        {
+            linkSheet.Cells[row, 1].Value = link.GaleryId;
+            linkSheet.Cells[row, 2].Value = link.Name;
+            linkSheet.Cells[row, 3].Value = link.Url;
+            linkSheet.Cells[row, 4].Value = link.OrderIndex;
+            row++;
+        }
+
+        if (linkSheet.Dimension is not null)
+            linkSheet.Cells[linkSheet.Dimension.Address].AutoFitColumns();
+
         var stream = new MemoryStream();
         package.SaveAs(stream);
         stream.Position = 0;
@@ -517,10 +541,10 @@ public static class ExcelHelper
 
     public static GaleryExcelData ReadAnimeGaleryExcel(Stream excelStream)
     {
-        return ReadGaleryExcel(excelStream, "AnimeGaleries", "AnimeGaleryMedia", "AnimeGaleryId");
+        return ReadGaleryExcel(excelStream, "AnimeGaleries", "AnimeGaleryMedia", "AnimeGaleryLinks", "AnimeGaleryId");
     }
 
-    public static MemoryStream CreateGirlGaleryExcel(List<GirlGalery> galeries, List<GaleryMediaExcelRow> mediaRows)
+    public static MemoryStream CreateGirlGaleryExcel(List<GirlGalery> galeries, List<GaleryMediaExcelRow> mediaRows, List<GaleryLinkExcelRow> linkRows)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using var package = new ExcelPackage();
@@ -568,6 +592,30 @@ public static class ExcelHelper
         if (mediaSheet.Dimension is not null)
             mediaSheet.Cells[mediaSheet.Dimension.Address].AutoFitColumns();
 
+        var linkSheet = package.Workbook.Worksheets.Add("GirlGaleryLinks");
+        linkSheet.Cells[1, 1].Value = "GirlGaleryId";
+        linkSheet.Cells[1, 2].Value = "Name";
+        linkSheet.Cells[1, 3].Value = "Url";
+        linkSheet.Cells[1, 4].Value = "OrderIndex";
+
+        var linkHeader = linkSheet.Cells[1, 1, 1, 4];
+        linkHeader.Style.Font.Bold = true;
+        linkHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        linkHeader.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+
+        row = 2;
+        foreach (var link in linkRows)
+        {
+            linkSheet.Cells[row, 1].Value = link.GaleryId;
+            linkSheet.Cells[row, 2].Value = link.Name;
+            linkSheet.Cells[row, 3].Value = link.Url;
+            linkSheet.Cells[row, 4].Value = link.OrderIndex;
+            row++;
+        }
+
+        if (linkSheet.Dimension is not null)
+            linkSheet.Cells[linkSheet.Dimension.Address].AutoFitColumns();
+
         var stream = new MemoryStream();
         package.SaveAs(stream);
         stream.Position = 0;
@@ -576,16 +624,17 @@ public static class ExcelHelper
 
     public static GaleryExcelData ReadGirlGaleryExcel(Stream excelStream)
     {
-        return ReadGaleryExcel(excelStream, "GirlGaleries", "GirlGaleryMedia", "GirlGaleryId");
+        return ReadGaleryExcel(excelStream, "GirlGaleries", "GirlGaleryMedia", "GirlGaleryLinks", "GirlGaleryId");
     }
 
-    private static GaleryExcelData ReadGaleryExcel(Stream excelStream, string galerySheetName, string mediaSheetName, string mediaGaleryIdHeader)
+    private static GaleryExcelData ReadGaleryExcel(Stream excelStream, string galerySheetName, string mediaSheetName, string linkSheetName, string mediaGaleryIdHeader)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using var package = new ExcelPackage(excelStream);
         var galerySheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == galerySheetName)
                          ?? package.Workbook.Worksheets.FirstOrDefault();
         var mediaSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == mediaSheetName);
+        var linkSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == linkSheetName);
 
         var result = new GaleryExcelData();
 
@@ -638,6 +687,41 @@ public static class ExcelHelper
                 result.Media.Add(new GaleryMediaExcelRow
                 {
                     GaleryId = galeryId,
+                    Url = url,
+                    OrderIndex = orderIndex,
+                });
+            }
+        }
+
+        if (linkSheet?.Dimension is not null)
+        {
+            var galeryIdColumn = 1;
+            for (int col = 1; col <= linkSheet.Dimension.End.Column; col++)
+            {
+                if (string.Equals(linkSheet.Cells[1, col].Text?.Trim(), mediaGaleryIdHeader, StringComparison.OrdinalIgnoreCase))
+                {
+                    galeryIdColumn = col;
+                    break;
+                }
+            }
+
+            for (int row = 2; row <= linkSheet.Dimension.End.Row; row++)
+            {
+                var galeryIdText = linkSheet.Cells[row, galeryIdColumn].Text?.Trim() ?? "0";
+                var name = linkSheet.Cells[row, 2].Text?.Trim();
+                var url = linkSheet.Cells[row, 3].Text?.Trim() ?? string.Empty;
+                var orderText = linkSheet.Cells[row, 4].Text?.Trim() ?? "0";
+
+                if (string.IsNullOrWhiteSpace(galeryIdText) && string.IsNullOrWhiteSpace(url))
+                    continue;
+
+                int.TryParse(galeryIdText, out var galeryId);
+                int.TryParse(orderText, out var orderIndex);
+
+                result.Links.Add(new GaleryLinkExcelRow
+                {
+                    GaleryId = galeryId,
+                    Name = name,
                     Url = url,
                     OrderIndex = orderIndex,
                 });

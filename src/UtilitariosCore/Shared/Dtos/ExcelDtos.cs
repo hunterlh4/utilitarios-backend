@@ -28,8 +28,17 @@ public class GaleryMediaExcelRow
     public int OrderIndex { get; set; }
 }
 
+public class GaleryLinkExcelRow
+{
+    public int GaleryId { get; set; }
+    public string? Name { get; set; }
+    public string Url { get; set; } = string.Empty;
+    public int OrderIndex { get; set; }
+}
+
 public class GaleryExcelData
 {
     public List<GaleryExcelRow> Galeries { get; set; } = new();
     public List<GaleryMediaExcelRow> Media { get; set; } = new();
+    public List<GaleryLinkExcelRow> Links { get; set; } = new();
 }
