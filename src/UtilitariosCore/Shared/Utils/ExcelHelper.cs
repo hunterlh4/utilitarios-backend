@@ -343,16 +343,18 @@ public static class ExcelHelper
         return result;
     }
 
-    public static MemoryStream CreateActressJavExcel(List<ActressJav> actresses)
+    public static MemoryStream CreateActressJavExcel(List<ActressJavExcelRow> actresses, List<ActressJavLinkExcelRow> linkRows)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using var package = new ExcelPackage();
         var worksheet = package.Workbook.Worksheets.Add("ActressJav");
 
-        worksheet.Cells[1, 1].Value = "Name";
-        worksheet.Cells[1, 2].Value = "Image";
+        worksheet.Cells[1, 1].Value = "Id";
+        worksheet.Cells[1, 2].Value = "Name";
+        worksheet.Cells[1, 3].Value = "Image";
+        worksheet.Cells[1, 4].Value = "Tags";
 
-        var headerRange = worksheet.Cells[1, 1, 1, 2];
+        var headerRange = worksheet.Cells[1, 1, 1, 4];
         headerRange.Style.Font.Bold = true;
         headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
         headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
@@ -361,12 +363,37 @@ public static class ExcelHelper
         int row = 2;
         foreach (var actress in actresses)
         {
-            worksheet.Cells[row, 1].Value = actress.Name;
-            worksheet.Cells[row, 2].Value = actress.Image;
+            worksheet.Cells[row, 1].Value = actress.Id;
+            worksheet.Cells[row, 2].Value = actress.Name;
+            worksheet.Cells[row, 3].Value = actress.Image;
+            worksheet.Cells[row, 4].Value = actress.Tags;
+            row++;
+        }
+
+        var linkSheet = package.Workbook.Worksheets.Add("ActressJavLinks");
+        linkSheet.Cells[1, 1].Value = "ActressJavId";
+        linkSheet.Cells[1, 2].Value = "ActressJavName";
+        linkSheet.Cells[1, 3].Value = "Url";
+        linkSheet.Cells[1, 4].Value = "OrderIndex";
+
+        var linkHeader = linkSheet.Cells[1, 1, 1, 4];
+        linkHeader.Style.Font.Bold = true;
+        linkHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        linkHeader.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+
+        row = 2;
+        foreach (var link in linkRows)
+        {
+            linkSheet.Cells[row, 1].Value = link.ActressJavId;
+            linkSheet.Cells[row, 2].Value = link.ActressJavName;
+            linkSheet.Cells[row, 3].Value = link.Url;
+            linkSheet.Cells[row, 4].Value = link.OrderIndex;
             row++;
         }
 
         worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+        if (linkSheet.Dimension is not null)
+            linkSheet.Cells[linkSheet.Dimension.Address].AutoFitColumns();
 
         var stream = new MemoryStream();
         package.SaveAs(stream);
@@ -374,29 +401,64 @@ public static class ExcelHelper
         return stream;
     }
 
-    public static List<ActressJav> ReadActressJavExcel(Stream excelStream)
+    public static ActressJavExcelData ReadActressJavExcel(Stream excelStream)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using var package = new ExcelPackage(excelStream);
-        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+        var worksheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "ActressJav")
+                        ?? package.Workbook.Worksheets.FirstOrDefault();
+        var linkSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "ActressJavLinks");
 
-        var result = new List<ActressJav>();
+        var result = new ActressJavExcelData();
         if (worksheet?.Dimension is null)
             return result;
 
         for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
         {
-            var name = worksheet.Cells[row, 1].Text?.Trim() ?? string.Empty;
-            var image = worksheet.Cells[row, 2].Text?.Trim();
+            var idText = worksheet.Cells[row, 1].Text?.Trim() ?? "0";
+            var name = worksheet.Cells[row, 2].Text?.Trim() ?? string.Empty;
+            var image = worksheet.Cells[row, 3].Text?.Trim();
+            var tags = worksheet.Dimension.End.Column >= 4
+                ? worksheet.Cells[row, 4].Text?.Trim()
+                : null;
 
-            if (string.IsNullOrWhiteSpace(name) && string.IsNullOrWhiteSpace(image))
+            if (string.IsNullOrWhiteSpace(idText) && string.IsNullOrWhiteSpace(name) && string.IsNullOrWhiteSpace(image))
                 continue;
 
-            result.Add(new ActressJav
+            int.TryParse(idText, out var id);
+
+            result.Actresses.Add(new ActressJavExcelRow
             {
+                Id = id,
                 Name = name,
                 Image = image,
+                Tags = tags,
             });
+        }
+
+        if (linkSheet?.Dimension is not null)
+        {
+            for (int row = 2; row <= linkSheet.Dimension.End.Row; row++)
+            {
+                var actressIdText = linkSheet.Cells[row, 1].Text?.Trim() ?? "0";
+                var actressName = linkSheet.Cells[row, 2].Text?.Trim();
+                var url = linkSheet.Cells[row, 3].Text?.Trim() ?? string.Empty;
+                var orderText = linkSheet.Cells[row, 4].Text?.Trim() ?? "0";
+
+                if (string.IsNullOrWhiteSpace(actressIdText) && string.IsNullOrWhiteSpace(actressName) && string.IsNullOrWhiteSpace(url))
+                    continue;
+
+                int.TryParse(actressIdText, out var actressId);
+                int.TryParse(orderText, out var orderIndex);
+
+                result.Links.Add(new ActressJavLinkExcelRow
+                {
+                    ActressJavId = actressId,
+                    ActressJavName = actressName,
+                    Url = url,
+                    OrderIndex = orderIndex,
+                });
+            }
         }
 
         return result;

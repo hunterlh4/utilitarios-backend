@@ -29,7 +29,8 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
 
         string sql = @"
         UPDATE ActressJav
-        SET Name = @Name
+        SET Name = @Name,
+            Image = @Image
         WHERE Id = @Id
         ";
 
