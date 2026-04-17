@@ -1025,4 +1025,218 @@ public static class ExcelHelper
 
         return result;
     }
+
+    public static MemoryStream CreateSeriesExcel(List<SeriesExcelRow> rows)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("Series");
+
+        worksheet.Cells[1, 1].Value = "Id";
+        worksheet.Cells[1, 2].Value = "ImdbId";
+        worksheet.Cells[1, 3].Value = "Title";
+        worksheet.Cells[1, 4].Value = "Image";
+        worksheet.Cells[1, 5].Value = "Year";
+        worksheet.Cells[1, 6].Value = "Rating";
+        worksheet.Cells[1, 7].Value = "Type";
+        worksheet.Cells[1, 8].Value = "Status";
+
+        var headerRange = worksheet.Cells[1, 1, 1, 8];
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+        int row = 2;
+        foreach (var item in rows)
+        {
+            worksheet.Cells[row, 1].Value = item.Id;
+            worksheet.Cells[row, 2].Value = item.ImdbId;
+            worksheet.Cells[row, 3].Value = item.Title;
+            worksheet.Cells[row, 4].Value = item.Image;
+            worksheet.Cells[row, 5].Value = item.Year;
+            worksheet.Cells[row, 6].Value = item.Rating;
+            worksheet.Cells[row, 7].Value = item.Type;
+            worksheet.Cells[row, 8].Value = item.Status;
+            row++;
+        }
+
+        if (worksheet.Dimension is not null)
+            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    public static List<SeriesExcelRow> ReadSeriesExcel(Stream excelStream)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage(excelStream);
+        var worksheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Series")
+                        ?? package.Workbook.Worksheets.FirstOrDefault();
+
+        var result = new List<SeriesExcelRow>();
+        if (worksheet?.Dimension is null)
+            return result;
+
+        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+        {
+            var idText = worksheet.Cells[row, 1].Text?.Trim() ?? "0";
+            var imdbId = worksheet.Cells[row, 2].Text?.Trim() ?? string.Empty;
+            var title = worksheet.Cells[row, 3].Text?.Trim() ?? string.Empty;
+            var image = worksheet.Cells[row, 4].Text?.Trim() ?? string.Empty;
+            var yearText = worksheet.Cells[row, 5].Text?.Trim();
+            var ratingText = worksheet.Cells[row, 6].Text?.Trim();
+            var type = worksheet.Cells[row, 7].Text?.Trim();
+            var statusText = worksheet.Cells[row, 8].Text?.Trim() ?? "0";
+
+            if (string.IsNullOrWhiteSpace(imdbId) && string.IsNullOrWhiteSpace(title))
+                continue;
+
+            int.TryParse(idText, out var id);
+            int.TryParse(yearText, out var year);
+            decimal.TryParse(ratingText, NumberStyles.Any, CultureInfo.InvariantCulture, out var rating);
+            int.TryParse(statusText, out var status);
+
+            result.Add(new SeriesExcelRow
+            {
+                Id = id,
+                ImdbId = imdbId,
+                Title = title,
+                Image = image,
+                Year = yearText is null ? null : year,
+                Rating = string.IsNullOrWhiteSpace(ratingText) ? null : rating,
+                Type = type,
+                Status = status,
+            });
+        }
+
+        return result;
+    }
+
+    public static MemoryStream CreateYouTubeExcel(List<YouTubeExcelRow> rows)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("YouTube");
+
+        worksheet.Cells[1, 1].Value = "Id";
+        worksheet.Cells[1, 2].Value = "Url";
+        worksheet.Cells[1, 3].Value = "Title";
+        worksheet.Cells[1, 4].Value = "AuthorName";
+        worksheet.Cells[1, 5].Value = "AuthorUrl";
+        worksheet.Cells[1, 6].Value = "Type";
+        worksheet.Cells[1, 7].Value = "Height";
+        worksheet.Cells[1, 8].Value = "Width";
+        worksheet.Cells[1, 9].Value = "Version";
+        worksheet.Cells[1, 10].Value = "ProviderName";
+        worksheet.Cells[1, 11].Value = "ProviderUrl";
+        worksheet.Cells[1, 12].Value = "ThumbnailHeight";
+        worksheet.Cells[1, 13].Value = "ThumbnailWidth";
+        worksheet.Cells[1, 14].Value = "ThumbnailUrl";
+        worksheet.Cells[1, 15].Value = "Html";
+        worksheet.Cells[1, 16].Value = "Category";
+
+        var headerRange = worksheet.Cells[1, 1, 1, 16];
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+        int row = 2;
+        foreach (var item in rows)
+        {
+            worksheet.Cells[row, 1].Value = item.Id;
+            worksheet.Cells[row, 2].Value = item.Url;
+            worksheet.Cells[row, 3].Value = item.Title;
+            worksheet.Cells[row, 4].Value = item.AuthorName;
+            worksheet.Cells[row, 5].Value = item.AuthorUrl;
+            worksheet.Cells[row, 6].Value = item.Type;
+            worksheet.Cells[row, 7].Value = item.Height;
+            worksheet.Cells[row, 8].Value = item.Width;
+            worksheet.Cells[row, 9].Value = item.Version;
+            worksheet.Cells[row, 10].Value = item.ProviderName;
+            worksheet.Cells[row, 11].Value = item.ProviderUrl;
+            worksheet.Cells[row, 12].Value = item.ThumbnailHeight;
+            worksheet.Cells[row, 13].Value = item.ThumbnailWidth;
+            worksheet.Cells[row, 14].Value = item.ThumbnailUrl;
+            worksheet.Cells[row, 15].Value = item.Html;
+            worksheet.Cells[row, 16].Value = item.Category;
+            row++;
+        }
+
+        if (worksheet.Dimension is not null)
+            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    public static List<YouTubeExcelRow> ReadYouTubeExcel(Stream excelStream)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage(excelStream);
+        var worksheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "YouTube")
+                        ?? package.Workbook.Worksheets.FirstOrDefault();
+
+        var result = new List<YouTubeExcelRow>();
+        if (worksheet?.Dimension is null)
+            return result;
+
+        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+        {
+            var idText = worksheet.Cells[row, 1].Text?.Trim() ?? "0";
+            var url = worksheet.Cells[row, 2].Text?.Trim() ?? string.Empty;
+            var title = worksheet.Cells[row, 3].Text?.Trim() ?? string.Empty;
+            var authorName = worksheet.Cells[row, 4].Text?.Trim();
+            var authorUrl = worksheet.Cells[row, 5].Text?.Trim();
+            var type = worksheet.Cells[row, 6].Text?.Trim();
+            var heightText = worksheet.Cells[row, 7].Text?.Trim();
+            var widthText = worksheet.Cells[row, 8].Text?.Trim();
+            var version = worksheet.Cells[row, 9].Text?.Trim();
+            var providerName = worksheet.Cells[row, 10].Text?.Trim();
+            var providerUrl = worksheet.Cells[row, 11].Text?.Trim();
+            var thumbnailHeightText = worksheet.Cells[row, 12].Text?.Trim();
+            var thumbnailWidthText = worksheet.Cells[row, 13].Text?.Trim();
+            var thumbnailUrl = worksheet.Cells[row, 14].Text?.Trim();
+            var html = worksheet.Cells[row, 15].Text?.Trim();
+            var categoryText = worksheet.Cells[row, 16].Text?.Trim() ?? "0";
+
+            if (string.IsNullOrWhiteSpace(url) && string.IsNullOrWhiteSpace(title))
+                continue;
+
+            int.TryParse(idText, out var id);
+            int.TryParse(heightText, out var height);
+            int.TryParse(widthText, out var width);
+            int.TryParse(thumbnailHeightText, out var thumbnailHeight);
+            int.TryParse(thumbnailWidthText, out var thumbnailWidth);
+            int.TryParse(categoryText, out var category);
+
+            result.Add(new YouTubeExcelRow
+            {
+                Id = id,
+                Url = url,
+                Title = title,
+                AuthorName = authorName,
+                AuthorUrl = authorUrl,
+                Type = type,
+                Height = string.IsNullOrWhiteSpace(heightText) ? null : height,
+                Width = string.IsNullOrWhiteSpace(widthText) ? null : width,
+                Version = version,
+                ProviderName = providerName,
+                ProviderUrl = providerUrl,
+                ThumbnailHeight = string.IsNullOrWhiteSpace(thumbnailHeightText) ? null : thumbnailHeight,
+                ThumbnailWidth = string.IsNullOrWhiteSpace(thumbnailWidthText) ? null : thumbnailWidth,
+                ThumbnailUrl = thumbnailUrl,
+                Html = html,
+                Category = category,
+            });
+        }
+
+        return result;
+    }
 }

@@ -97,3 +97,35 @@ public class HentaiExcelRow
     public int Status { get; set; }
     public string? TagIds { get; set; }
 }
+
+public class SeriesExcelRow
+{
+    public int Id { get; set; }
+    public string ImdbId { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Image { get; set; } = string.Empty;
+    public int? Year { get; set; }
+    public decimal? Rating { get; set; }
+    public string? Type { get; set; }
+    public int Status { get; set; }
+}
+
+public class YouTubeExcelRow
+{
+    public int Id { get; set; }
+    public string Url { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string? AuthorName { get; set; }
+    public string? AuthorUrl { get; set; }
+    public string? Type { get; set; }
+    public int? Height { get; set; }
+    public int? Width { get; set; }
+    public string? Version { get; set; }
+    public string? ProviderName { get; set; }
+    public string? ProviderUrl { get; set; }
+    public int? ThumbnailHeight { get; set; }
+    public int? ThumbnailWidth { get; set; }
+    public string? ThumbnailUrl { get; set; }
+    public string? Html { get; set; }
+    public int Category { get; set; }
+}
