@@ -35,7 +35,7 @@ internal sealed class ExportTagsExcelQueryHandler(ITagRepository tagRepository)
 
         return new ExcelFileDto
         {
-            FileName = $"tags-{DateTime.Now:yyyyMMddHHmmss}.xlsx",
+            FileName = $"tags-{DateTime.Now:yyyy-MM-dd}.xlsx",
             Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}"
         };
     }
