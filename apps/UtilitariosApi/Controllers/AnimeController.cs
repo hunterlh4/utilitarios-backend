@@ -18,6 +18,13 @@ public class AnimeController(ISender sender) : ControllerBase
         return response.ToActionResult();
     }
 
+    [HttpPatch("{id:int}/status")]
+    public async Task<ActionResult> UpdateStatus([FromRoute] int id, [FromBody] UpdateAnimeStatusCommand request)
+    {
+        var response = await sender.Send(request with { Id = id });
+        return response.ToActionResult();
+    }
+
     [HttpGet("{id:int}")]
     public async Task<ActionResult<AnimeDto>> GetById([FromRoute] int id)
     {
@@ -56,19 +63,6 @@ public class AnimeController(ISender sender) : ControllerBase
         var response = await sender.Send(command);
         return response.ToActionResult();
     }
-    //se usa un api no se puede actualizar
-    //[HttpPut("{id:int}")]
-    //public async Task<ActionResult> Update([FromRoute] int id, [FromBody] UpdateAnimeDto payload)
-    //{
-    //    var response = await sender.Send(new UpdateAnimeCommand(id)
-    //    {
-    //        Title = payload.Title,
-    //        Image = payload.Image,
-    //        Episodes = payload.Episodes,
-    //        Status = payload.Status
-    //    });
-    //    return response.ToActionResult();
-    //}
 
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> Delete([FromRoute] int id)
