@@ -76,3 +76,24 @@ public class TagExcelData
 {
     public List<TagExcelRow> Tags { get; set; } = new();
 }
+
+public class AnimeExcelRow
+{
+    public int Id { get; set; }
+    public string ApiId { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Image { get; set; } = string.Empty;
+    public int Episodes { get; set; }
+    public int Status { get; set; }
+}
+
+public class HentaiExcelRow
+{
+    public int Id { get; set; }
+    public string ApiId { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Image { get; set; } = string.Empty;
+    public int Episodes { get; set; }
+    public int Status { get; set; }
+    public string? TagIds { get; set; }
+}

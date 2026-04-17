@@ -860,4 +860,169 @@ public static class ExcelHelper
 
         return result;
     }
+    public static MemoryStream CreateAnimeExcel(List<AnimeExcelRow> rows)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("Anime");
+
+        worksheet.Cells[1, 1].Value = "Id";
+        worksheet.Cells[1, 2].Value = "ApiId";
+        worksheet.Cells[1, 3].Value = "Title";
+        worksheet.Cells[1, 4].Value = "Image";
+        worksheet.Cells[1, 5].Value = "Episodes";
+        worksheet.Cells[1, 6].Value = "Status";
+
+        var headerRange = worksheet.Cells[1, 1, 1, 6];
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+        int row = 2;
+        foreach (var item in rows)
+        {
+            worksheet.Cells[row, 1].Value = item.Id;
+            worksheet.Cells[row, 2].Value = item.ApiId;
+            worksheet.Cells[row, 3].Value = item.Title;
+            worksheet.Cells[row, 4].Value = item.Image;
+            worksheet.Cells[row, 5].Value = item.Episodes;
+            worksheet.Cells[row, 6].Value = item.Status;
+            row++;
+        }
+
+        if (worksheet.Dimension is not null)
+            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    public static List<AnimeExcelRow> ReadAnimeExcel(Stream excelStream)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage(excelStream);
+        var worksheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Anime")
+                        ?? package.Workbook.Worksheets.FirstOrDefault();
+
+        var result = new List<AnimeExcelRow>();
+        if (worksheet?.Dimension is null)
+            return result;
+
+        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+        {
+            var idText = worksheet.Cells[row, 1].Text?.Trim() ?? "0";
+            var apiId = worksheet.Cells[row, 2].Text?.Trim() ?? string.Empty;
+            var title = worksheet.Cells[row, 3].Text?.Trim() ?? string.Empty;
+            var image = worksheet.Cells[row, 4].Text?.Trim() ?? string.Empty;
+            var episodesText = worksheet.Cells[row, 5].Text?.Trim() ?? "0";
+            var statusText = worksheet.Cells[row, 6].Text?.Trim() ?? "0";
+
+            if (string.IsNullOrWhiteSpace(apiId) && string.IsNullOrWhiteSpace(title))
+                continue;
+
+            int.TryParse(idText, out var id);
+            int.TryParse(episodesText, out var episodes);
+            int.TryParse(statusText, out var status);
+
+            result.Add(new AnimeExcelRow
+            {
+                Id = id,
+                ApiId = apiId,
+                Title = title,
+                Image = image,
+                Episodes = episodes,
+                Status = status,
+            });
+        }
+
+        return result;
+    }
+
+    public static MemoryStream CreateHentaiExcel(List<HentaiExcelRow> rows)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("Hentai");
+
+        worksheet.Cells[1, 1].Value = "Id";
+        worksheet.Cells[1, 2].Value = "ApiId";
+        worksheet.Cells[1, 3].Value = "Title";
+        worksheet.Cells[1, 4].Value = "Image";
+        worksheet.Cells[1, 5].Value = "Episodes";
+        worksheet.Cells[1, 6].Value = "Status";
+        worksheet.Cells[1, 7].Value = "TagIds";
+
+        var headerRange = worksheet.Cells[1, 1, 1, 7];
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+        int row = 2;
+        foreach (var item in rows)
+        {
+            worksheet.Cells[row, 1].Value = item.Id;
+            worksheet.Cells[row, 2].Value = item.ApiId;
+            worksheet.Cells[row, 3].Value = item.Title;
+            worksheet.Cells[row, 4].Value = item.Image;
+            worksheet.Cells[row, 5].Value = item.Episodes;
+            worksheet.Cells[row, 6].Value = item.Status;
+            worksheet.Cells[row, 7].Value = item.TagIds;
+            row++;
+        }
+
+        if (worksheet.Dimension is not null)
+            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    public static List<HentaiExcelRow> ReadHentaiExcel(Stream excelStream)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage(excelStream);
+        var worksheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Hentai")
+                        ?? package.Workbook.Worksheets.FirstOrDefault();
+
+        var result = new List<HentaiExcelRow>();
+        if (worksheet?.Dimension is null)
+            return result;
+
+        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+        {
+            var idText = worksheet.Cells[row, 1].Text?.Trim() ?? "0";
+            var apiId = worksheet.Cells[row, 2].Text?.Trim() ?? string.Empty;
+            var title = worksheet.Cells[row, 3].Text?.Trim() ?? string.Empty;
+            var image = worksheet.Cells[row, 4].Text?.Trim() ?? string.Empty;
+            var episodesText = worksheet.Cells[row, 5].Text?.Trim() ?? "0";
+            var statusText = worksheet.Cells[row, 6].Text?.Trim() ?? "0";
+            var tagIds = worksheet.Cells[row, 7].Text?.Trim();
+
+            if (string.IsNullOrWhiteSpace(apiId) && string.IsNullOrWhiteSpace(title))
+                continue;
+
+            int.TryParse(idText, out var id);
+            int.TryParse(episodesText, out var episodes);
+            int.TryParse(statusText, out var status);
+
+            result.Add(new HentaiExcelRow
+            {
+                Id = id,
+                ApiId = apiId,
+                Title = title,
+                Image = image,
+                Episodes = episodes,
+                Status = status,
+                TagIds = tagIds,
+            });
+        }
+
+        return result;
+    }
 }
