@@ -343,7 +343,11 @@ public static class ExcelHelper
         return result;
     }
 
-    public static MemoryStream CreateActressJavExcel(List<ActressJavExcelRow> actresses, List<ActressJavLinkExcelRow> linkRows)
+    public static MemoryStream CreateActressJavExcel(
+        List<ActressJavExcelRow> actresses,
+        List<ActressJavLinkExcelRow> linkRows,
+        List<JavExcelRow> javRows,
+        List<JavLinkExcelRow> javLinkRows)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using var package = new ExcelPackage();
@@ -366,7 +370,7 @@ public static class ExcelHelper
             worksheet.Cells[row, 1].Value = actress.Id;
             worksheet.Cells[row, 2].Value = actress.Name;
             worksheet.Cells[row, 3].Value = actress.Image;
-            worksheet.Cells[row, 4].Value = actress.Tags;
+            worksheet.Cells[row, 4].Value = actress.TagIds;
             row++;
         }
 
@@ -391,9 +395,60 @@ public static class ExcelHelper
             row++;
         }
 
+        var javSheet = package.Workbook.Worksheets.Add("Javs");
+        javSheet.Cells[1, 1].Value = "Id";
+        javSheet.Cells[1, 2].Value = "Code";
+        javSheet.Cells[1, 3].Value = "Image";
+        javSheet.Cells[1, 4].Value = "Status";
+        javSheet.Cells[1, 5].Value = "TagIds";
+        javSheet.Cells[1, 6].Value = "ActressIds";
+
+        var javHeader = javSheet.Cells[1, 1, 1, 6];
+        javHeader.Style.Font.Bold = true;
+        javHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        javHeader.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        javHeader.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+        row = 2;
+        foreach (var jav in javRows)
+        {
+            javSheet.Cells[row, 1].Value = jav.Id;
+            javSheet.Cells[row, 2].Value = jav.Code;
+            javSheet.Cells[row, 3].Value = jav.Image;
+            javSheet.Cells[row, 4].Value = jav.Status;
+            javSheet.Cells[row, 5].Value = jav.TagIds;
+            javSheet.Cells[row, 6].Value = jav.ActressIds;
+            row++;
+        }
+
+        var javLinksSheet = package.Workbook.Worksheets.Add("JavLinks");
+        javLinksSheet.Cells[1, 1].Value = "JavId";
+        javLinksSheet.Cells[1, 2].Value = "JavCode";
+        javLinksSheet.Cells[1, 3].Value = "Url";
+        javLinksSheet.Cells[1, 4].Value = "OrderIndex";
+
+        var javLinksHeader = javLinksSheet.Cells[1, 1, 1, 4];
+        javLinksHeader.Style.Font.Bold = true;
+        javLinksHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        javLinksHeader.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+
+        row = 2;
+        foreach (var javLink in javLinkRows)
+        {
+            javLinksSheet.Cells[row, 1].Value = javLink.JavId;
+            javLinksSheet.Cells[row, 2].Value = javLink.JavCode;
+            javLinksSheet.Cells[row, 3].Value = javLink.Url;
+            javLinksSheet.Cells[row, 4].Value = javLink.OrderIndex;
+            row++;
+        }
+
         worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
         if (linkSheet.Dimension is not null)
             linkSheet.Cells[linkSheet.Dimension.Address].AutoFitColumns();
+        if (javSheet.Dimension is not null)
+            javSheet.Cells[javSheet.Dimension.Address].AutoFitColumns();
+        if (javLinksSheet.Dimension is not null)
+            javLinksSheet.Cells[javLinksSheet.Dimension.Address].AutoFitColumns();
 
         var stream = new MemoryStream();
         package.SaveAs(stream);
@@ -408,6 +463,8 @@ public static class ExcelHelper
         var worksheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "ActressJav")
                         ?? package.Workbook.Worksheets.FirstOrDefault();
         var linkSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "ActressJavLinks");
+        var javSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Javs");
+        var javLinksSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "JavLinks");
 
         var result = new ActressJavExcelData();
         if (worksheet?.Dimension is null)
@@ -432,7 +489,7 @@ public static class ExcelHelper
                 Id = id,
                 Name = name,
                 Image = image,
-                Tags = tags,
+                TagIds = tags,
             });
         }
 
@@ -455,6 +512,60 @@ public static class ExcelHelper
                 {
                     ActressJavId = actressId,
                     ActressJavName = actressName,
+                    Url = url,
+                    OrderIndex = orderIndex,
+                });
+            }
+        }
+
+        if (javSheet?.Dimension is not null)
+        {
+            for (int row = 2; row <= javSheet.Dimension.End.Row; row++)
+            {
+                var idText = javSheet.Cells[row, 1].Text?.Trim() ?? "0";
+                var code = javSheet.Cells[row, 2].Text?.Trim() ?? string.Empty;
+                var image = javSheet.Cells[row, 3].Text?.Trim() ?? string.Empty;
+                var statusText = javSheet.Cells[row, 4].Text?.Trim() ?? "0";
+                var tagIds = javSheet.Dimension.End.Column >= 5 ? javSheet.Cells[row, 5].Text?.Trim() : null;
+                var actressIds = javSheet.Dimension.End.Column >= 6 ? javSheet.Cells[row, 6].Text?.Trim() : null;
+
+                if (string.IsNullOrWhiteSpace(code) && string.IsNullOrWhiteSpace(image))
+                    continue;
+
+                int.TryParse(idText, out var id);
+                int.TryParse(statusText, out var status);
+
+                result.Javs.Add(new JavExcelRow
+                {
+                    Id = id,
+                    Code = code,
+                    Image = image,
+                    Status = status,
+                    TagIds = tagIds,
+                    ActressIds = actressIds,
+                });
+            }
+        }
+
+        if (javLinksSheet?.Dimension is not null)
+        {
+            for (int row = 2; row <= javLinksSheet.Dimension.End.Row; row++)
+            {
+                var javIdText = javLinksSheet.Cells[row, 1].Text?.Trim() ?? "0";
+                var javCode = javLinksSheet.Cells[row, 2].Text?.Trim();
+                var url = javLinksSheet.Cells[row, 3].Text?.Trim() ?? string.Empty;
+                var orderText = javLinksSheet.Cells[row, 4].Text?.Trim() ?? "0";
+
+                if (string.IsNullOrWhiteSpace(javIdText) && string.IsNullOrWhiteSpace(javCode) && string.IsNullOrWhiteSpace(url))
+                    continue;
+
+                int.TryParse(javIdText, out var javId);
+                int.TryParse(orderText, out var orderIndex);
+
+                result.JavLinks.Add(new JavLinkExcelRow
+                {
+                    JavId = javId,
+                    JavCode = javCode,
                     Url = url,
                     OrderIndex = orderIndex,
                 });
@@ -532,16 +643,22 @@ public static class ExcelHelper
         return result;
     }
 
-    public static MemoryStream CreateActressAdultExcel(List<ActressAdult> actresses)
+    public static MemoryStream CreateActressAdultExcel(
+        List<ActressAdultExcelRow> actresses,
+        List<ActressAdultLinkExcelRow> actressLinks,
+        List<VideoAdultExcelRow> videos,
+        List<VideoAdultLinkExcelRow> videoLinks)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using var package = new ExcelPackage();
-        var worksheet = package.Workbook.Worksheets.Add("ActressAdult");
+        var actressSheet = package.Workbook.Worksheets.Add("ActressAdult");
 
-        worksheet.Cells[1, 1].Value = "Name";
-        worksheet.Cells[1, 2].Value = "Image";
+        actressSheet.Cells[1, 1].Value = "Id";
+        actressSheet.Cells[1, 2].Value = "Name";
+        actressSheet.Cells[1, 3].Value = "Image";
+        actressSheet.Cells[1, 4].Value = "TagIds";
 
-        var headerRange = worksheet.Cells[1, 1, 1, 2];
+        var headerRange = actressSheet.Cells[1, 1, 1, 4];
         headerRange.Style.Font.Bold = true;
         headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
         headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
@@ -550,12 +667,97 @@ public static class ExcelHelper
         int row = 2;
         foreach (var actress in actresses)
         {
-            worksheet.Cells[row, 1].Value = actress.Name;
-            worksheet.Cells[row, 2].Value = actress.Image;
+            actressSheet.Cells[row, 1].Value = actress.Id;
+            actressSheet.Cells[row, 2].Value = actress.Name;
+            actressSheet.Cells[row, 3].Value = actress.Image;
+            actressSheet.Cells[row, 4].Value = actress.TagIds;
             row++;
         }
 
-        worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+        var actressLinksSheet = package.Workbook.Worksheets.Add("ActressAdultLinks");
+        actressLinksSheet.Cells[1, 1].Value = "ActressAdultId";
+        actressLinksSheet.Cells[1, 2].Value = "ActressAdultName";
+        actressLinksSheet.Cells[1, 3].Value = "Url";
+        actressLinksSheet.Cells[1, 4].Value = "OrderIndex";
+
+        var actressLinksHeader = actressLinksSheet.Cells[1, 1, 1, 4];
+        actressLinksHeader.Style.Font.Bold = true;
+        actressLinksHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        actressLinksHeader.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+
+        row = 2;
+        foreach (var link in actressLinks)
+        {
+            actressLinksSheet.Cells[row, 1].Value = link.ActressAdultId;
+            actressLinksSheet.Cells[row, 2].Value = link.ActressAdultName;
+            actressLinksSheet.Cells[row, 3].Value = link.Url;
+            actressLinksSheet.Cells[row, 4].Value = link.OrderIndex;
+            row++;
+        }
+
+        var videosSheet = package.Workbook.Worksheets.Add("Videos");
+        videosSheet.Cells[1, 1].Value = "Id";
+        videosSheet.Cells[1, 2].Value = "Source";
+        videosSheet.Cells[1, 3].Value = "ExternalId";
+        videosSheet.Cells[1, 4].Value = "VideoUrl";
+        videosSheet.Cells[1, 5].Value = "Title";
+        videosSheet.Cells[1, 6].Value = "ThumbnailUrl";
+        videosSheet.Cells[1, 7].Value = "Status";
+        videosSheet.Cells[1, 8].Value = "TagIds";
+        videosSheet.Cells[1, 9].Value = "ActressIds";
+        videosSheet.Cells[1, 10].Value = "ActressNames";
+
+        var videosHeader = videosSheet.Cells[1, 1, 1, 10];
+        videosHeader.Style.Font.Bold = true;
+        videosHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        videosHeader.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        videosHeader.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+        row = 2;
+        foreach (var video in videos)
+        {
+            videosSheet.Cells[row, 1].Value = video.Id;
+            videosSheet.Cells[row, 2].Value = video.Source;
+            videosSheet.Cells[row, 3].Value = video.ExternalId;
+            videosSheet.Cells[row, 4].Value = video.VideoUrl;
+            videosSheet.Cells[row, 5].Value = video.Title;
+            videosSheet.Cells[row, 6].Value = video.ThumbnailUrl;
+            videosSheet.Cells[row, 7].Value = video.Status;
+            videosSheet.Cells[row, 8].Value = video.TagIds;
+            videosSheet.Cells[row, 9].Value = video.ActressIds;
+            videosSheet.Cells[row, 10].Value = video.ActressNames;
+            row++;
+        }
+
+        var videoLinksSheet = package.Workbook.Worksheets.Add("VideoLinks");
+        videoLinksSheet.Cells[1, 1].Value = "VideoAdultId";
+        videoLinksSheet.Cells[1, 2].Value = "VideoExternalId";
+        videoLinksSheet.Cells[1, 3].Value = "Url";
+        videoLinksSheet.Cells[1, 4].Value = "OrderIndex";
+
+        var videoLinksHeader = videoLinksSheet.Cells[1, 1, 1, 4];
+        videoLinksHeader.Style.Font.Bold = true;
+        videoLinksHeader.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        videoLinksHeader.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+
+        row = 2;
+        foreach (var videoLink in videoLinks)
+        {
+            videoLinksSheet.Cells[row, 1].Value = videoLink.VideoAdultId;
+            videoLinksSheet.Cells[row, 2].Value = videoLink.VideoExternalId;
+            videoLinksSheet.Cells[row, 3].Value = videoLink.Url;
+            videoLinksSheet.Cells[row, 4].Value = videoLink.OrderIndex;
+            row++;
+        }
+
+        if (actressSheet.Dimension is not null)
+            actressSheet.Cells[actressSheet.Dimension.Address].AutoFitColumns();
+        if (actressLinksSheet.Dimension is not null)
+            actressLinksSheet.Cells[actressLinksSheet.Dimension.Address].AutoFitColumns();
+        if (videosSheet.Dimension is not null)
+            videosSheet.Cells[videosSheet.Dimension.Address].AutoFitColumns();
+        if (videoLinksSheet.Dimension is not null)
+            videoLinksSheet.Cells[videoLinksSheet.Dimension.Address].AutoFitColumns();
 
         var stream = new MemoryStream();
         package.SaveAs(stream);
@@ -563,29 +765,134 @@ public static class ExcelHelper
         return stream;
     }
 
-    public static List<ActressAdult> ReadActressAdultExcel(Stream excelStream)
+    public static ActressAdultExcelData ReadActressAdultExcel(Stream excelStream)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using var package = new ExcelPackage(excelStream);
-        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+        var actressSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "ActressAdult")
+                        ?? package.Workbook.Worksheets.FirstOrDefault();
+        var actressLinksSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "ActressAdultLinks");
+        var videosSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Videos");
+        var videoLinksSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "VideoLinks");
 
-        var result = new List<ActressAdult>();
-        if (worksheet?.Dimension is null)
+        var result = new ActressAdultExcelData();
+        if (actressSheet?.Dimension is null)
             return result;
 
-        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+        for (int row = 2; row <= actressSheet.Dimension.End.Row; row++)
         {
-            var name = worksheet.Cells[row, 1].Text?.Trim() ?? string.Empty;
-            var image = worksheet.Cells[row, 2].Text?.Trim();
+            var idText = actressSheet.Cells[row, 1].Text?.Trim() ?? "0";
+            var name = actressSheet.Dimension.End.Column >= 2
+                ? actressSheet.Cells[row, 2].Text?.Trim() ?? string.Empty
+                : actressSheet.Cells[row, 1].Text?.Trim() ?? string.Empty;
+            var image = actressSheet.Dimension.End.Column >= 3
+                ? actressSheet.Cells[row, 3].Text?.Trim()
+                : actressSheet.Dimension.End.Column >= 2
+                    ? actressSheet.Cells[row, 2].Text?.Trim()
+                    : null;
+            var tagIds = actressSheet.Dimension.End.Column >= 4
+                ? actressSheet.Cells[row, 4].Text?.Trim()
+                : null;
 
             if (string.IsNullOrWhiteSpace(name) && string.IsNullOrWhiteSpace(image))
                 continue;
 
-            result.Add(new ActressAdult
+            int.TryParse(idText, out var id);
+
+            result.Actresses.Add(new ActressAdultExcelRow
             {
+                Id = id,
                 Name = name,
                 Image = image,
+                TagIds = tagIds,
             });
+        }
+
+        if (actressLinksSheet?.Dimension is not null)
+        {
+            for (int row = 2; row <= actressLinksSheet.Dimension.End.Row; row++)
+            {
+                var actressIdText = actressLinksSheet.Cells[row, 1].Text?.Trim() ?? "0";
+                var actressName = actressLinksSheet.Cells[row, 2].Text?.Trim();
+                var url = actressLinksSheet.Cells[row, 3].Text?.Trim() ?? string.Empty;
+                var orderText = actressLinksSheet.Cells[row, 4].Text?.Trim() ?? "0";
+
+                if (string.IsNullOrWhiteSpace(actressIdText) && string.IsNullOrWhiteSpace(actressName) && string.IsNullOrWhiteSpace(url))
+                    continue;
+
+                int.TryParse(actressIdText, out var actressId);
+                int.TryParse(orderText, out var orderIndex);
+
+                result.ActressLinks.Add(new ActressAdultLinkExcelRow
+                {
+                    ActressAdultId = actressId,
+                    ActressAdultName = actressName,
+                    Url = url,
+                    OrderIndex = orderIndex,
+                });
+            }
+        }
+
+        if (videosSheet?.Dimension is not null)
+        {
+            for (int row = 2; row <= videosSheet.Dimension.End.Row; row++)
+            {
+                var idText = videosSheet.Cells[row, 1].Text?.Trim() ?? "0";
+                var source = videosSheet.Cells[row, 2].Text?.Trim() ?? string.Empty;
+                var externalId = videosSheet.Cells[row, 3].Text?.Trim() ?? string.Empty;
+                var videoUrl = videosSheet.Cells[row, 4].Text?.Trim() ?? string.Empty;
+                var title = videosSheet.Cells[row, 5].Text?.Trim();
+                var thumbnailUrl = videosSheet.Cells[row, 6].Text?.Trim();
+                var statusText = videosSheet.Cells[row, 7].Text?.Trim() ?? "0";
+                var tagIds = videosSheet.Dimension.End.Column >= 8 ? videosSheet.Cells[row, 8].Text?.Trim() : null;
+                var actressIds = videosSheet.Dimension.End.Column >= 9 ? videosSheet.Cells[row, 9].Text?.Trim() : null;
+                var actressNames = videosSheet.Dimension.End.Column >= 10 ? videosSheet.Cells[row, 10].Text?.Trim() : null;
+
+                if (string.IsNullOrWhiteSpace(source) && string.IsNullOrWhiteSpace(externalId) && string.IsNullOrWhiteSpace(videoUrl))
+                    continue;
+
+                int.TryParse(idText, out var id);
+                int.TryParse(statusText, out var status);
+
+                result.Videos.Add(new VideoAdultExcelRow
+                {
+                    Id = id,
+                    Source = source,
+                    ExternalId = externalId,
+                    VideoUrl = videoUrl,
+                    Title = title,
+                    ThumbnailUrl = thumbnailUrl,
+                    Status = status,
+                    TagIds = tagIds,
+                    ActressIds = actressIds,
+                    ActressNames = actressNames,
+                });
+            }
+        }
+
+        if (videoLinksSheet?.Dimension is not null)
+        {
+            for (int row = 2; row <= videoLinksSheet.Dimension.End.Row; row++)
+            {
+                var videoIdText = videoLinksSheet.Cells[row, 1].Text?.Trim() ?? "0";
+                var videoExternalId = videoLinksSheet.Cells[row, 2].Text?.Trim();
+                var url = videoLinksSheet.Cells[row, 3].Text?.Trim() ?? string.Empty;
+                var orderText = videoLinksSheet.Cells[row, 4].Text?.Trim() ?? "0";
+
+                if (string.IsNullOrWhiteSpace(videoIdText) && string.IsNullOrWhiteSpace(videoExternalId) && string.IsNullOrWhiteSpace(url))
+                    continue;
+
+                int.TryParse(videoIdText, out var videoId);
+                int.TryParse(orderText, out var orderIndex);
+
+                result.VideoLinks.Add(new VideoAdultLinkExcelRow
+                {
+                    VideoAdultId = videoId,
+                    VideoExternalId = videoExternalId,
+                    Url = url,
+                    OrderIndex = orderIndex,
+                });
+            }
         }
 
         return result;

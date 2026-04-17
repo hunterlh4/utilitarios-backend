@@ -48,7 +48,7 @@ public class ActressJavExcelRow
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Image { get; set; }
-    public string? Tags { get; set; }
+    public string? TagIds { get; set; }
 }
 
 public class ActressJavLinkExcelRow
@@ -63,6 +63,26 @@ public class ActressJavExcelData
 {
     public List<ActressJavExcelRow> Actresses { get; set; } = new();
     public List<ActressJavLinkExcelRow> Links { get; set; } = new();
+    public List<JavExcelRow> Javs { get; set; } = new();
+    public List<JavLinkExcelRow> JavLinks { get; set; } = new();
+}
+
+public class JavExcelRow
+{
+    public int Id { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public string Image { get; set; } = string.Empty;
+    public int Status { get; set; }
+    public string? TagIds { get; set; }
+    public string? ActressIds { get; set; }
+}
+
+public class JavLinkExcelRow
+{
+    public int JavId { get; set; }
+    public string? JavCode { get; set; }
+    public string Url { get; set; } = string.Empty;
+    public int OrderIndex { get; set; }
 }
 
 public class TagExcelRow
@@ -128,4 +148,50 @@ public class YouTubeExcelRow
     public string? ThumbnailUrl { get; set; }
     public string? Html { get; set; }
     public int Category { get; set; }
+}
+
+public class ActressAdultExcelRow
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Image { get; set; }
+    public string? TagIds { get; set; }
+}
+
+public class ActressAdultLinkExcelRow
+{
+    public int ActressAdultId { get; set; }
+    public string? ActressAdultName { get; set; }
+    public string Url { get; set; } = string.Empty;
+    public int OrderIndex { get; set; }
+}
+
+public class VideoAdultExcelRow
+{
+    public int Id { get; set; }
+    public string Source { get; set; } = string.Empty;
+    public string ExternalId { get; set; } = string.Empty;
+    public string VideoUrl { get; set; } = string.Empty;
+    public string? Title { get; set; }
+    public string? ThumbnailUrl { get; set; }
+    public int Status { get; set; }
+    public string? TagIds { get; set; }
+    public string? ActressIds { get; set; }
+    public string? ActressNames { get; set; }
+}
+
+public class VideoAdultLinkExcelRow
+{
+    public int VideoAdultId { get; set; }
+    public string? VideoExternalId { get; set; }
+    public string Url { get; set; } = string.Empty;
+    public int OrderIndex { get; set; }
+}
+
+public class ActressAdultExcelData
+{
+    public List<ActressAdultExcelRow> Actresses { get; set; } = new();
+    public List<ActressAdultLinkExcelRow> ActressLinks { get; set; } = new();
+    public List<VideoAdultExcelRow> Videos { get; set; } = new();
+    public List<VideoAdultLinkExcelRow> VideoLinks { get; set; } = new();
 }

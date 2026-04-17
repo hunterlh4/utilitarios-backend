@@ -13,7 +13,11 @@ public record ImportActressJavExcelCommand : IRequest<Result<ImportExcelResult>>
     public byte[] FileBytes { get; init; } = [];
 }
 
-internal sealed class ImportActressJavExcelCommandHandler(IActressJavRepository repository, ILinkRepository linkRepository, ITagRepository tagRepository)
+internal sealed class ImportActressJavExcelCommandHandler(
+    IActressJavRepository repository,
+    IJavRepository javRepository,
+    ILinkRepository linkRepository,
+    ITagRepository tagRepository)
     : IRequestHandler<ImportActressJavExcelCommand, Result<ImportExcelResult>>
 {
     public async Task<Result<ImportExcelResult>> Handle(ImportActressJavExcelCommand request, CancellationToken cancellationToken)
@@ -29,14 +33,15 @@ internal sealed class ImportActressJavExcelCommandHandler(IActressJavRepository 
         int skipped = 0;
         int invalid = 0;
 
-        var actressesById = new Dictionary<int, ActressJav>();
+        var actressesByExcelId = new Dictionary<int, ActressJav>();
         var actressesByName = new Dictionary<string, ActressJav>(StringComparer.OrdinalIgnoreCase);
-        var validTagIds = (await tagRepository.GetAllTagsByType(TagType.ActressJav)).Select(tag => tag.Id).ToHashSet();
+        var validActressTagIds = (await tagRepository.GetAllTagsByType(TagType.ActressJav)).Select(tag => tag.Id).ToHashSet();
+        var validJavTagIds = (await tagRepository.GetAllTagsByType(TagType.Jav)).Select(tag => tag.Id).ToHashSet();
 
         var existingActresses = await repository.GetAllActressJav();
         foreach (var actress in existingActresses)
         {
-            actressesById[actress.Id] = actress;
+            actressesByExcelId[actress.Id] = actress;
             actressesByName[StringNormalizer.ToTitleCase(actress.Name)] = actress;
         }
 
@@ -53,7 +58,7 @@ internal sealed class ImportActressJavExcelCommandHandler(IActressJavRepository 
             var wasCreated = false;
             var actressUpdated = false;
 
-            if (row.Id > 0 && actressesById.TryGetValue(row.Id, out var existingById))
+            if (row.Id > 0 && actressesByExcelId.TryGetValue(row.Id, out var existingById))
             {
                 existing = existingById;
             }
@@ -79,7 +84,7 @@ internal sealed class ImportActressJavExcelCommandHandler(IActressJavRepository 
                     CreatedAt = DateTime.UtcNow,
                 };
 
-                actressesById[actressId] = existing;
+                actressesByExcelId[actressId] = existing;
                 actressesByName[normalizedName] = existing;
                 wasCreated = true;
             }
@@ -93,18 +98,21 @@ internal sealed class ImportActressJavExcelCommandHandler(IActressJavRepository 
                     existing.Name = normalizedName;
                     existing.Image = nextImage;
                     await repository.UpdateActressJav(existing);
-                    actressesById[existing.Id] = existing;
+                    actressesByExcelId[existing.Id] = existing;
                     actressesByName[normalizedName] = existing;
                     actressUpdated = true;
                 }
             }
 
-            var desiredTagIds = ParseTagIds(row.Tags, validTagIds, out var hasTagInput, out var hadInvalidTagTokens);
+            if (existing is not null && row.Id > 0)
+                actressesByExcelId[row.Id] = existing;
+
+            var desiredTagIds = ParseTagIds(row.TagIds, validActressTagIds, out var hasTagInput, out var hadInvalidTagTokens);
             if (hadInvalidTagTokens)
                 invalid++;
 
             var hasTagChanges = false;
-            if (hasTagInput && desiredTagIds.Count > 0 && existing is not null)
+            if (hasTagInput && existing is not null)
             {
                 var currentTagIds = (await tagRepository.GetTagsByRefId(existing.Id, TagType.ActressJav))
                     .Select(tag => tag.Id)
@@ -125,28 +133,156 @@ internal sealed class ImportActressJavExcelCommandHandler(IActressJavRepository 
                 skipped++;
         }
 
-        var linksByActressId = new Dictionary<int, List<ActressJavLinkExcelRow>>();
-        foreach (var linkRow in excelData.Links)
+        var actressLinksByActressId = new Dictionary<int, List<string>>();
+        foreach (var linkRow in excelData.Links.Where(x => !string.IsNullOrWhiteSpace(x.Url)))
         {
-            var resolvedActress = ResolveActress(linkRow, actressesById, actressesByName);
+            var resolvedActress = ResolveActress(linkRow, actressesByExcelId, actressesByName);
             if (resolvedActress is null)
             {
                 invalid++;
                 continue;
             }
 
-            if (!linksByActressId.TryGetValue(resolvedActress.Id, out var linkRows))
+            if (!actressLinksByActressId.TryGetValue(resolvedActress.Id, out var urls))
             {
-                linkRows = new List<ActressJavLinkExcelRow>();
-                linksByActressId[resolvedActress.Id] = linkRows;
+                urls = new List<string>();
+                actressLinksByActressId[resolvedActress.Id] = urls;
             }
 
-            linkRows.Add(linkRow);
+            urls.Add(linkRow.Url.Trim());
         }
 
-        foreach (var pair in linksByActressId)
+        foreach (var pair in actressLinksByActressId)
         {
-            await SyncLinksAsync(pair.Key, pair.Value, cancellationToken);
+            await SyncActressLinks(pair.Key, pair.Value);
+        }
+
+        var javsByExcelId = new Dictionary<int, Jav>();
+        var javsByCode = new Dictionary<string, Jav>(StringComparer.OrdinalIgnoreCase);
+        var existingJavs = await javRepository.GetAllJavs();
+        foreach (var jav in existingJavs)
+        {
+            javsByExcelId[jav.Id] = jav;
+            javsByCode[jav.Code] = jav;
+        }
+
+        foreach (var row in excelData.Javs)
+        {
+            if (string.IsNullOrWhiteSpace(row.Code))
+            {
+                invalid++;
+                continue;
+            }
+
+            var normalizedCode = row.Code.Trim().ToUpperInvariant();
+            Jav? existingJav = null;
+            var wasCreated = false;
+
+            if (row.Id > 0 && javsByExcelId.TryGetValue(row.Id, out var existingJavById))
+            {
+                existingJav = existingJavById;
+            }
+            else if (javsByCode.TryGetValue(normalizedCode, out var existingJavByCode))
+            {
+                existingJav = existingJavByCode;
+            }
+
+            var nextImage = string.IsNullOrWhiteSpace(row.Image) ? string.Empty : row.Image.Trim();
+            if (existingJav is null && string.IsNullOrWhiteSpace(nextImage))
+            {
+                invalid++;
+                continue;
+            }
+
+            var status = Enum.IsDefined(typeof(ContentStatus), row.Status)
+                ? (ContentStatus)row.Status
+                : ContentStatus.Pending;
+
+            if (existingJav is null)
+            {
+                var javId = await javRepository.CreateJav(new Jav
+                {
+                    Code = normalizedCode,
+                    Image = nextImage,
+                    Status = status,
+                    CreatedAt = DateTime.UtcNow,
+                });
+
+                existingJav = await javRepository.GetJavById(javId);
+                if (existingJav is null)
+                {
+                    invalid++;
+                    continue;
+                }
+
+                wasCreated = true;
+            }
+
+            var hasJavChanges = existingJav.Code != normalizedCode
+                || (!string.IsNullOrWhiteSpace(nextImage) && existingJav.Image != nextImage)
+                || existingJav.Status != status;
+
+            if (hasJavChanges)
+            {
+                existingJav.Code = normalizedCode;
+                existingJav.Image = string.IsNullOrWhiteSpace(nextImage) ? existingJav.Image : nextImage;
+                existingJav.Status = status;
+                await javRepository.UpdateJav(existingJav);
+            }
+
+            javsByExcelId[existingJav.Id] = existingJav;
+            javsByCode[existingJav.Code] = existingJav;
+            if (row.Id > 0)
+                javsByExcelId[row.Id] = existingJav;
+
+            var desiredJavTagIds = ParseTagIds(row.TagIds, validJavTagIds, out var hasJavTagInput, out var hadInvalidJavTagTokens);
+            if (hadInvalidJavTagTokens)
+                invalid++;
+
+            var hasJavTagChanges = false;
+            if (hasJavTagInput)
+            {
+                var currentJavTagIds = (await tagRepository.GetTagsByRefId(existingJav.Id, TagType.Jav))
+                    .Select(tag => tag.Id)
+                    .ToHashSet();
+
+                if (!currentJavTagIds.SetEquals(desiredJavTagIds))
+                {
+                    await tagRepository.ReplaceTagsForRefId(existingJav.Id, TagType.Jav, desiredJavTagIds);
+                    hasJavTagChanges = true;
+                }
+            }
+
+            var actressIds = ResolveActressIdsForJav(row, actressesByExcelId);
+            var hasActressRelationChanges = false;
+            if (actressIds.Count > 0)
+            {
+                var currentActressIds = (await javRepository.GetActressIdsByJavId(existingJav.Id)).ToList();
+
+                foreach (var removeId in currentActressIds.Where(id => !actressIds.Contains(id)))
+                {
+                    await javRepository.RemoveActressFromJav(existingJav.Id, removeId);
+                    hasActressRelationChanges = true;
+                }
+
+                foreach (var addId in actressIds.Where(id => !currentActressIds.Contains(id)))
+                {
+                    await javRepository.AddActressToJav(existingJav.Id, addId);
+                    hasActressRelationChanges = true;
+                }
+            }
+
+            var javUrls = ResolveJavUrls(row, excelData.JavLinks);
+            var hasJavLinkChanges = false;
+            if (javUrls.Count > 0)
+                hasJavLinkChanges = await SyncJavLinks(existingJav.Id, javUrls);
+
+            if (wasCreated)
+                created++;
+            else if (hasJavChanges || hasJavTagChanges || hasActressRelationChanges || hasJavLinkChanges)
+                updated++;
+            else
+                skipped++;
         }
 
         return new ImportExcelResult
@@ -158,9 +294,9 @@ internal sealed class ImportActressJavExcelCommandHandler(IActressJavRepository 
         };
     }
 
-    private ActressJav? ResolveActress(ActressJavLinkExcelRow linkRow, IDictionary<int, ActressJav> actressesById, IDictionary<string, ActressJav> actressesByName)
+    private ActressJav? ResolveActress(ActressJavLinkExcelRow linkRow, IDictionary<int, ActressJav> actressesByExcelId, IDictionary<string, ActressJav> actressesByName)
     {
-        if (linkRow.ActressJavId > 0 && actressesById.TryGetValue(linkRow.ActressJavId, out var existingById))
+        if (linkRow.ActressJavId > 0 && actressesByExcelId.TryGetValue(linkRow.ActressJavId, out var existingById))
             return existingById;
 
         var actressName = StringNormalizer.ToTitleCase(linkRow.ActressJavName ?? string.Empty);
@@ -170,35 +306,158 @@ internal sealed class ImportActressJavExcelCommandHandler(IActressJavRepository 
         return null;
     }
 
-    private async Task<bool> SyncLinksAsync(int actressId, List<ActressJavLinkExcelRow> links, CancellationToken cancellationToken)
+    private async Task<bool> SyncActressLinks(int actressId, List<string> urls)
     {
-        if (links is null)
-            return false;
-
-        await linkRepository.DeleteLinksByRefId(actressId, LinkType.ActressJav);
-
-        var orderedLinks = links
-            .Where(link => !string.IsNullOrWhiteSpace(link.Url))
-            .OrderBy(link => link.OrderIndex > 0 ? link.OrderIndex : int.MaxValue)
+        var existingLinks = (await linkRepository.GetLinksByRefId(actressId, LinkType.ActressJav)).ToList();
+        var existingByUrl = existingLinks
+            .Where(x => !string.IsNullOrWhiteSpace(x.Url))
+            .ToDictionary(x => x.Url.Trim(), x => x, StringComparer.OrdinalIgnoreCase);
+        var incoming = urls
+            .Where(url => !string.IsNullOrWhiteSpace(url))
+            .Select(url => url.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
+        var changed = false;
 
-        for (int i = 0; i < orderedLinks.Count; i++)
+        foreach (var existing in existingLinks)
         {
-            var url = orderedLinks[i].Url.Trim();
-            if (string.IsNullOrWhiteSpace(url))
-                continue;
-
-            await linkRepository.CreateLink(new Link
+            if (!incoming.Contains(existing.Url.Trim(), StringComparer.OrdinalIgnoreCase))
             {
-                Type = LinkType.ActressJav,
-                RefId = actressId,
-                Url = url,
-                OrderIndex = i + 1,
-                CreatedAt = DateTime.UtcNow
-            });
+                await linkRepository.DeleteLink(existing.Id);
+                changed = true;
+            }
         }
 
-        return true;
+        for (int i = 0; i < incoming.Count; i++)
+        {
+            var url = incoming[i];
+            var orderIndex = i + 1;
+
+            if (existingByUrl.TryGetValue(url, out var current))
+            {
+                if (current.OrderIndex != orderIndex)
+                {
+                    current.OrderIndex = orderIndex;
+                    await linkRepository.UpdateLink(current);
+                    changed = true;
+                }
+            }
+            else
+            {
+                await linkRepository.CreateLink(new Link
+                {
+                    Type = LinkType.ActressJav,
+                    RefId = actressId,
+                    Url = url,
+                    OrderIndex = orderIndex,
+                    CreatedAt = DateTime.UtcNow
+                });
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    private async Task<bool> SyncJavLinks(int javId, List<string> urls)
+    {
+        var existingLinks = (await linkRepository.GetLinksByRefId(javId, LinkType.Jav)).ToList();
+        var existingByUrl = existingLinks
+            .Where(x => !string.IsNullOrWhiteSpace(x.Url))
+            .ToDictionary(x => x.Url.Trim(), x => x, StringComparer.OrdinalIgnoreCase);
+        var incoming = urls
+            .Where(url => !string.IsNullOrWhiteSpace(url))
+            .Select(url => url.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var changed = false;
+
+        foreach (var existing in existingLinks)
+        {
+            if (!incoming.Contains(existing.Url.Trim(), StringComparer.OrdinalIgnoreCase))
+            {
+                await linkRepository.DeleteLink(existing.Id);
+                changed = true;
+            }
+        }
+
+        for (int i = 0; i < incoming.Count; i++)
+        {
+            var url = incoming[i];
+            var orderIndex = i + 1;
+
+            if (existingByUrl.TryGetValue(url, out var current))
+            {
+                if (current.OrderIndex != orderIndex)
+                {
+                    current.OrderIndex = orderIndex;
+                    await linkRepository.UpdateLink(current);
+                    changed = true;
+                }
+            }
+            else
+            {
+                await linkRepository.CreateLink(new Link
+                {
+                    Type = LinkType.Jav,
+                    RefId = javId,
+                    Url = url,
+                    OrderIndex = orderIndex,
+                    CreatedAt = DateTime.UtcNow
+                });
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    private static List<int> ResolveActressIdsForJav(
+        JavExcelRow row,
+        Dictionary<int, ActressJav> actressesByExcelId)
+    {
+        var actressIds = ParseIds(row.ActressIds);
+
+        if (actressIds.Count > 0)
+        {
+            actressIds = actressIds
+                .Select(id => actressesByExcelId.TryGetValue(id, out var actress) ? actress.Id : 0)
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList();
+        }
+
+        return actressIds;
+    }
+
+    private static List<string> ResolveJavUrls(JavExcelRow row, List<JavLinkExcelRow> javLinks)
+    {
+        var normalizedCode = string.IsNullOrWhiteSpace(row.Code) ? string.Empty : row.Code.Trim().ToUpperInvariant();
+
+        return javLinks
+            .Where(x => !string.IsNullOrWhiteSpace(x.Url)
+                && ((row.Id > 0 && x.JavId == row.Id)
+                    || (!string.IsNullOrWhiteSpace(normalizedCode)
+                        && string.Equals(x.JavCode?.Trim(), normalizedCode, StringComparison.OrdinalIgnoreCase))))
+            .OrderBy(x => x.OrderIndex <= 0 ? int.MaxValue : x.OrderIndex)
+            .Select(x => x.Url.Trim())
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static List<int> ParseIds(string? csv)
+    {
+        if (string.IsNullOrWhiteSpace(csv))
+            return [];
+
+        return csv.Split(',')
+            .Select(x => x.Trim())
+            .Where(x => int.TryParse(x, out _))
+            .Select(int.Parse)
+            .Where(x => x > 0)
+            .Distinct()
+            .ToList();
     }
 
     private static List<int> ParseTagIds(string? rawTags, HashSet<int> validTagIds, out bool hasInput, out bool hadInvalidTokens)
