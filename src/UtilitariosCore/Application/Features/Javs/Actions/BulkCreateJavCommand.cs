@@ -68,7 +68,7 @@ public class BulkCreateJavCommand : IRequest<Result<CreateJavDto>>
                 {
                     Code = request.Code.ToUpper(),
                     Image = request.Image ?? string.Empty,
-                    Status = ContentStatus.Upcoming,
+                    Status = ContentStatus.Pending,
                     CreatedAt = DateTime.UtcNow
                 };
 

@@ -1,4 +1,5 @@
 using UtilitariosCore.Domain.Enums;
+using UtilitariosCore.Domain.Models;
 
 namespace UtilitariosCore.Application.Features.Javs.Dtos;
 
@@ -10,6 +11,6 @@ public class JavDto
     public List<string> Tags { get; set; } = new();
     public string Image { get; set; } = string.Empty;
     public ContentStatus Status { get; set; }
-    public List<LinkDto> Links { get; set; } = new();
+    public List<Link> Links { get; set; } = new();
     public DateTime CreatedAt { get; set; }
 }

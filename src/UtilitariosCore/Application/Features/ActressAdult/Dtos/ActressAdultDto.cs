@@ -1,3 +1,5 @@
+using UtilitariosCore.Domain.Models;
+
 namespace UtilitariosCore.Application.Features.ActressAdults.Dtos;
 
 public class ActressAdultBasicDto
@@ -15,5 +17,6 @@ public class ActressAdultDto
     public string? Image { get; set; }
     public DateTime CreatedAt { get; set; }
     public List<string> Tags { get; set; } = [];
+    public List<Link> Links { get; set; } = [];
 }
 

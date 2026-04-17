@@ -42,7 +42,7 @@ public class CreateSeriesCommand : IRequest<Result<CreateSeriesDto>>
                 Year = request.Year,
                 Rating = request.Rating,
                 Type = request.Type,
-                Status = ContentStatus.Upcoming,
+                Status = ContentStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };
 

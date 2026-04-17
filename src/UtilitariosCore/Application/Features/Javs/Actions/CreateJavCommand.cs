@@ -5,7 +5,6 @@ using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Domain.Models;
 using UtilitariosCore.Shared.Responses;
-using UtilitariosCore.Shared.Utils;
 
 namespace UtilitariosCore.Application.Features.Javs.Actions;
 
@@ -63,7 +62,6 @@ public class CreateJavCommand : IRequest<Result<CreateJavDto>>
                         {
                             Type = LinkType.Jav,
                             RefId = javId,
-                            Name = null,
                             Url = url,
                             CreatedAt = DateTime.UtcNow
                         });

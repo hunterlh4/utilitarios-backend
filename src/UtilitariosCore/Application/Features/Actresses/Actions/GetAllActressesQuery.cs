@@ -1,3 +1,4 @@
+using Azure;
 using MediatR;
 using UtilitariosCore.Application.Features.Actresses.Dtos;
 using UtilitariosCore.Domain.Enums;
@@ -13,22 +14,16 @@ internal sealed class GetAllActressesQueryHandler(IActressJavRepository actressR
 {
     public async Task<Result<IEnumerable<ActressJavDto>>> Handle(GetAllActressesQuery request, CancellationToken cancellationToken)
     {
-        var actresses = await actressRepository.GetAllActressJavWithFirstImage();
+        var actresses = (await actressRepository.GetAllActressJavWithFirstImage()).ToList();
         
         foreach (var actress in actresses)
         {
             var links = await linkRepository.GetLinksByRefId(actress.Id, LinkType.ActressJav);
             actress.Links = links
                 .OrderBy(l => l.OrderIndex ?? int.MaxValue)
-                .Select(l => new LinkDto
-                {
-                    Id = l.Id,
-                    Url = l.Url,
-                    OrderIndex = l.OrderIndex
-                })
                 .ToList();
         }
-        
-        return actresses.ToList();
+
+        return actresses;
     }
 }

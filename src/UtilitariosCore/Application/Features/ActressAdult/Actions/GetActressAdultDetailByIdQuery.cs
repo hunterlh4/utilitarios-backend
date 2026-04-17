@@ -2,6 +2,7 @@ using MediatR;
 using UtilitariosCore.Application.Features.ActressAdults.Dtos;
 using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
+using UtilitariosCore.Domain.Models;
 using UtilitariosCore.Shared.Responses;
 
 namespace UtilitariosCore.Application.Features.ActressAdults.Actions;
@@ -65,13 +66,7 @@ internal sealed class GetActressAdultDetailByIdQueryHandler(
             Image = actress.Image,
             CreatedAt = actress.CreatedAt,
             Tags = actressTags.Select(t => t.Name).ToList(),
-            Links = links.Select(l => new LinkDto
-            {
-                Id = l.Id,
-                Url = l.Url,
-                Name = l.Name,
-                OrderIndex = l.OrderIndex
-            }).ToList(),
+            Links = links.OrderBy(l => l.OrderIndex ?? int.MaxValue).ToList(),
             Videos = videoList
         };
 

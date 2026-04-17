@@ -38,11 +38,7 @@ public record GetJavByIdQuery(int Id) : IRequest<Result<JavDto>>
                 Tags = javTags.Select(t => t.Name).ToList(),
                 Image = item.Jav.Image,
                 Status = item.Jav.Status,
-                Links = item.JavLinks.Select(l => new LinkDto
-                {
-                    Id = l.Id,
-                    Url = l.Url
-                }).ToList(),
+                Links = item.JavLinks.OrderBy(l => l.OrderIndex ?? int.MaxValue).ToList(),
                 CreatedAt = item.Jav.CreatedAt
             };
         }

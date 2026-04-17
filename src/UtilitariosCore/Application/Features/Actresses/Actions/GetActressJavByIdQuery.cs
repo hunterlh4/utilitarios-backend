@@ -59,15 +59,10 @@ internal sealed class GetActressJavByIdQueryHandler(
         {
             Id = actress.Id,
             Name = actress.Name,
-            Image = actress.Image,
+            Image = actress.Image ?? "",
             CreatedAt = actress.CreatedAt,
             Tags = actress.Tags,
-            Links = links.Select(l => new ActressLinkDto
-            {
-                Id = l.Id,
-                Url = l.Url,
-                OrderIndex = l.OrderIndex
-            }).ToList(),
+            Links = links.OrderBy(l => l.OrderIndex ?? int.MaxValue).ToList(),
             Javs = javSummaries
         };
     }
