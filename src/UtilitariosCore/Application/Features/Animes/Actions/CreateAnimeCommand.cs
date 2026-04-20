@@ -14,7 +14,7 @@ public class CreateAnimeCommand : IRequest<Result<CreateAnimeDto>>
     public string ApiId { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string Image { get; set; } = string.Empty;
-    public int Episodes { get; set; }
+    public int Episodes { get; set; } = 0;
     public ContentStatus Status { get; set; }
 
     public sealed class Validator : AbstractValidator<CreateAnimeCommand>
@@ -24,7 +24,7 @@ public class CreateAnimeCommand : IRequest<Result<CreateAnimeDto>>
             RuleFor(x => x.ApiId).NotEmpty().WithMessage("El ApiId es requerido.");
             RuleFor(x => x.Title).NotEmpty().WithMessage("El título es requerido.");
             RuleFor(x => x.Image).NotEmpty().WithMessage("La imagen es requerida.");
-            RuleFor(x => x.Episodes).GreaterThan(0).WithMessage("Los episodios deben ser mayor a 0.");
+            // RuleFor(x => x.Episodes).GreaterThan(0).WithMessage("Los episodios deben ser mayor a 0.");
             RuleFor(x => x.Status).IsInEnum().WithMessage("El estado no es válido.");
         }
     }

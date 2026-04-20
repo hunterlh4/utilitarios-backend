@@ -421,6 +421,7 @@ CREATE TABLE Task (
     Status INT NOT NULL, -- 1: in progress, 2: completed
     CreatedAt DATETIME NOT NULL,
     UpdatedAt DATETIME null
+);
 
 -- TaskDetail table (tareas individuales de una lista)
 CREATE TABLE TaskDetail (
