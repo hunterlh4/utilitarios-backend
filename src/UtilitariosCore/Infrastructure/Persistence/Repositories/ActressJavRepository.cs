@@ -1,4 +1,5 @@
 using Dapper;
+using System.Data;
 using UtilitariosCore.Application.Features.Actresses.Dtos;
 using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
@@ -81,9 +82,29 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
     public async Task<bool> DeleteActressJav(int id)
     {
         var db = context.CreateDefaultConnection();
-        string sql = "DELETE FROM ActressJav WHERE Id = @Id";
-        var result = await db.ExecuteAsync(sql, new { Id = id });
-        return result > 0;
+        db.Open();
+        using var transaction = db.BeginTransaction();
+
+        try
+        {
+            const string deleteRelationsSql = "DELETE FROM JavActress WHERE ActressId = @Id";
+            const string deleteActressSql = "DELETE FROM ActressJav WHERE Id = @Id";
+
+            await db.ExecuteAsync(deleteRelationsSql, new { Id = id }, transaction);
+            var result = await db.ExecuteAsync(deleteActressSql, new { Id = id }, transaction);
+
+            transaction.Commit();
+            return result > 0;
+        }
+        catch
+        {
+            if (transaction.Connection is not null)
+            {
+                transaction.Rollback();
+            }
+
+            throw;
+        }
     }
 
     public async Task<IEnumerable<ActressJav>> GetAllActressJav()

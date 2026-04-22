@@ -1,4 +1,5 @@
 using Dapper;
+using System.Data;
 using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Domain.Models;
@@ -52,9 +53,29 @@ public class JavRepository(MssqlContext context) : IJavRepository
     public async Task<bool> DeleteJav(int id)
     {
         var db = context.CreateDefaultConnection();
-        string sql = "DELETE FROM Jav WHERE Id = @Id";
-        var result = await db.ExecuteAsync(sql, new { Id = id });
-        return result > 0;
+        db.Open();
+        using var transaction = db.BeginTransaction();
+
+        try
+        {
+            const string deleteRelationsSql = "DELETE FROM JavActress WHERE JavId = @Id";
+            const string deleteJavSql = "DELETE FROM Jav WHERE Id = @Id";
+
+            await db.ExecuteAsync(deleteRelationsSql, new { Id = id }, transaction);
+            var result = await db.ExecuteAsync(deleteJavSql, new { Id = id }, transaction);
+
+            transaction.Commit();
+            return result > 0;
+        }
+        catch
+        {
+            if (transaction.Connection is not null)
+            {
+                transaction.Rollback();
+            }
+
+            throw;
+        }
     }
 
     public async Task<Jav?> GetJavById(int id)
