@@ -20,6 +20,7 @@ public interface IJavRepository
     Task<bool> RemoveActressFromJav(int javId, int actressId);
     Task<JavWithDetails?> GetJavWithDetailsById(int id);
     Task<IEnumerable<JavWithDetails>> GetAllJavsWithDetails();
+    Task<bool> UpdateJavImage(int id, string imageUrl);
 }
 
 public class ActressWithLinks

@@ -36,6 +36,13 @@ public class JavRepository(MssqlContext context) : IJavRepository
         return result > 0;
     }
 
+    public async Task<bool> UpdateJavImage(int id, string imageUrl)
+    {
+        var db = context.CreateDefaultConnection();
+        var result = await db.ExecuteAsync("UPDATE Jav SET Image = @Image WHERE Id = @Id", new { Id = id, Image = imageUrl });
+        return result > 0;
+    }
+
     public async Task<bool> UpdateJavStatus(int id, ContentStatus status)
     {
         var db = context.CreateDefaultConnection();

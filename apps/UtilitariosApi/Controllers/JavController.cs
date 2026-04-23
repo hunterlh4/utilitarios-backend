@@ -45,10 +45,22 @@ public class JavController(ISender sender) : ControllerBase
        return response.ToActionResult();
     }
 
-    [HttpPost("bulk-import")]
-    public async Task<ActionResult<BulkImportJavResult>> BulkImport([FromBody] BulkImportJavCommand command)
+    [HttpPost("{id:int}/image")]
+    public async Task<ActionResult> UploadImage([FromRoute] int id, [FromForm] IFormFile image)
     {
-        var response = await sender.Send(command);
+        if (image is null || image.Length == 0)
+            return BadRequest("La imagen es requerida.");
+
+        await using var stream = image.OpenReadStream();
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+
+        var response = await sender.Send(new UploadJavImageCommand
+        {
+            JavId = id,
+            ImageData = memory.ToArray(),
+            FileName = image.FileName
+        });
         return response.ToActionResult();
     }
 

@@ -20,6 +20,7 @@ public class BulkCreateJavCommand : IRequest<Result<CreateJavDto>>
     public List<BulkActressInput> Actresses { get; set; } = new();
     public string? Image { get; set; }
     public List<string> Links { get; set; } = new();
+    public DateTime? CreatedAt { get; set; }
 
     public sealed class Validator : AbstractValidator<BulkCreateJavCommand>
     {
@@ -69,7 +70,7 @@ public class BulkCreateJavCommand : IRequest<Result<CreateJavDto>>
                     Code = request.Code.ToUpper(),
                     Image = request.Image ?? string.Empty,
                     Status = ContentStatus.Pending,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = request.CreatedAt ?? DateTime.UtcNow
                 };
 
                 var javId = await javRepository.CreateJav(newJav);
