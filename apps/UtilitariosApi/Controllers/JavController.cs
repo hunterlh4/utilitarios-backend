@@ -45,6 +45,20 @@ public class JavController(ISender sender) : ControllerBase
        return response.ToActionResult();
     }
 
+    [HttpPost("import")]
+    public async Task<ActionResult<ImportJavExcelResult>> ImportExcel([FromForm] IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest("Archivo Excel requerido.");
+
+        await using var stream = file.OpenReadStream();
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+
+        var response = await sender.Send(new ImportJavExcelCommand { FileBytes = memory.ToArray() });
+        return response.ToActionResult();
+    }
+
     [HttpPost("{id:int}/image")]
     public async Task<ActionResult> UploadImage([FromRoute] int id, [FromForm] IFormFile image)
     {

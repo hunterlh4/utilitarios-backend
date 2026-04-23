@@ -94,7 +94,7 @@ CREATE TABLE ActressJav (
 CREATE TABLE Jav (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Code NVARCHAR(50) NOT NULL UNIQUE, -- NIMA-055
-    Image NVARCHAR(1000) NOT NULL,
+    Image NVARCHAR(1000) NULL,
     Status INT NOT NULL, -- 1: upcoming, 2: completed, 3: pending
     CreatedAt DATETIME DEFAULT GETDATE()
 );
