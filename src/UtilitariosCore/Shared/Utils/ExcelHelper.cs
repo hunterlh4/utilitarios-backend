@@ -1546,4 +1546,79 @@ public static class ExcelHelper
 
         return result;
     }
+
+    public static MemoryStream CreateComicExcel(List<ComicExcelRow> rows)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("Comic");
+
+        worksheet.Cells[1, 1].Value = "Id";
+        worksheet.Cells[1, 2].Value = "Name";
+        worksheet.Cells[1, 3].Value = "Image";
+        worksheet.Cells[1, 4].Value = "Url";
+        worksheet.Cells[1, 5].Value = "Category";
+
+        var headerRange = worksheet.Cells[1, 1, 1, 5];
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+        int row = 2;
+        foreach (var item in rows)
+        {
+            worksheet.Cells[row, 1].Value = item.Id;
+            worksheet.Cells[row, 2].Value = item.Name;
+            worksheet.Cells[row, 3].Value = item.Image;
+            worksheet.Cells[row, 4].Value = item.Url;
+            worksheet.Cells[row, 5].Value = item.Category;
+            row++;
+        }
+
+        if (worksheet.Dimension is not null)
+            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    public static List<ComicExcelRow> ReadComicExcel(Stream excelStream)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage(excelStream);
+        var worksheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Comic")
+                        ?? package.Workbook.Worksheets.FirstOrDefault();
+
+        var result = new List<ComicExcelRow>();
+        if (worksheet?.Dimension is null)
+            return result;
+
+        for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+        {
+            var idText = worksheet.Cells[row, 1].Text?.Trim() ?? "0";
+            var name = worksheet.Cells[row, 2].Text?.Trim() ?? string.Empty;
+            var image = worksheet.Cells[row, 3].Text?.Trim() ?? string.Empty;
+            var url = worksheet.Cells[row, 4].Text?.Trim() ?? string.Empty;
+            var category = worksheet.Cells[row, 5].Text?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(name))
+                continue;
+
+            int.TryParse(idText, out var id);
+
+            result.Add(new ComicExcelRow
+            {
+                Id = id,
+                Name = name,
+                Image = image,
+                Url = url,
+                Category = category,
+            });
+        }
+
+        return result;
+    }
 }

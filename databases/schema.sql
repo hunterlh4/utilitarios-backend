@@ -445,11 +445,11 @@ CREATE TABLE Event (
 );
 
 CREATE TABLE Comic (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
-    Name NVARCHAR(100) NOT NULL, -- Shigatsu, Konosuba, Steins;Gate, etc.
-    Image NVARCHAR(1000),
-    Url NVARCHAR(1000), 
-    Category NVARCHAR(100),
+    Id INT PRIMARY KEY,
+    Name NVARCHAR(100) NULL, -- Shigatsu, Konosuba, Steins;Gate, etc.
+    Image NVARCHAR(1000) null,
+    Url NVARCHAR(1000) null, 
+    Category NVARCHAR(100) null,
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 

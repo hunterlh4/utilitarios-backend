@@ -64,6 +64,7 @@ public static class DependencyInyection
         services.AddScoped<IProyectRepository, ProyectRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<ISteamRepository, SteamRepository>();
+        services.AddScoped<IComicRepository, ComicRepository>();
 
         // Google Calendar
         services.Configure<Infrastructure.Settings.GoogleCalendarSettings>(configuration.GetSection("Providers:GoogleCalendar"));
