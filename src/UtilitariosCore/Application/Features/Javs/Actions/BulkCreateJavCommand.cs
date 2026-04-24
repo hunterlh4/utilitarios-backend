@@ -5,6 +5,7 @@ using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Domain.Models;
 using UtilitariosCore.Shared.Responses;
+using UtilitariosCore.Shared.Utils;
 
 namespace UtilitariosCore.Application.Features.Javs.Actions;
 
@@ -78,7 +79,14 @@ public class BulkCreateJavCommand : IRequest<Result<CreateJavDto>>
                 // Procesar cada actriz
                 foreach (var actressInput in request.Actresses)
                 {
-                    var actress = await actressJavRepository.GetActressJavByName(actressInput.Name);
+                    var normalizedName = StringNormalizer.ToTitleCaseWithNumbers(actressInput.Name);
+                    var canonical = StringNormalizer.GetCanonicalFormForComparison(actressInput.Name);
+
+                    // Buscar por nombre canónico entre todas las actrices existentes
+                    var allActresses = await actressJavRepository.GetAllActressJav();
+                    var actress = allActresses.FirstOrDefault(a =>
+                        StringNormalizer.GetCanonicalFormForComparison(a.Name)
+                            .Equals(canonical, StringComparison.OrdinalIgnoreCase));
 
                     int actressId;
 
@@ -86,7 +94,7 @@ public class BulkCreateJavCommand : IRequest<Result<CreateJavDto>>
                     {
                         var newActress = new ActressJav
                         {
-                            Name = actressInput.Name,
+                            Name = normalizedName,
                             CreatedAt = DateTime.UtcNow
                         };
                         actressId = await actressJavRepository.CreateActressJav(newActress);

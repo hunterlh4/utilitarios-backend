@@ -8,7 +8,7 @@ using UtilitariosCore.Shared.Utils;
 
 namespace UtilitariosCore.Application.Features.Javs.Actions;
 
-public record ImportJavExcelCommand : IRequest<Result<ImportJavExcelResult>>
+public record ImportJavExcelTemporalCommand : IRequest<Result<ImportJavExcelResult>>
 {
     public byte[] FileBytes { get; init; } = [];
 }
@@ -21,12 +21,12 @@ public class ImportJavExcelResult
     public int Invalid { get; set; }
 }
 
-internal sealed class ImportJavExcelCommandHandler(
+internal sealed class ImportJavExcelTemporalCommandHandler(
     IJavRepository javRepository,
     IActressJavRepository actressRepository)
-    : IRequestHandler<ImportJavExcelCommand, Result<ImportJavExcelResult>>
+    : IRequestHandler<ImportJavExcelTemporalCommand, Result<ImportJavExcelResult>>
 {
-    public async Task<Result<ImportJavExcelResult>> Handle(ImportJavExcelCommand request, CancellationToken cancellationToken)
+    public async Task<Result<ImportJavExcelResult>> Handle(ImportJavExcelTemporalCommand request, CancellationToken cancellationToken)
     {
         if (request.FileBytes.Length == 0)
             return Errors.BadRequest("Archivo Excel vacío.");

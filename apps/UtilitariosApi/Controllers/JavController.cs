@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using UtilitariosApi.Shared.Extensions;
 using UtilitariosCore.Application.Features.Javs.Actions;
 using UtilitariosCore.Application.Features.Javs.Dtos;
+using UtilitariosCore.Shared.Dtos;
 
 namespace UtilitariosApi.Controllers;
 
@@ -31,6 +32,13 @@ public class JavController(ISender sender) : ControllerBase
         return response.Value;
     }
 
+    [HttpGet("export")]
+    public async Task<ActionResult<ExcelFileDto>> ExportExcel()
+    {
+        var response = await sender.Send(new ExportJavExcelQuery());
+        return response.ToActionResult();
+    }
+
     [HttpPost]
     public async Task<ActionResult<CreateJavDto>> Create([FromBody] CreateJavCommand command)
     {
@@ -56,6 +64,20 @@ public class JavController(ISender sender) : ControllerBase
         await stream.CopyToAsync(memory);
 
         var response = await sender.Send(new ImportJavExcelCommand { FileBytes = memory.ToArray() });
+        return response.ToActionResult();
+    }
+
+    [HttpPost("import-temporal")]
+    public async Task<ActionResult<ImportJavExcelResult>> ImportExcelTemporal([FromForm] IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest("Archivo Excel requerido.");
+
+        await using var stream = file.OpenReadStream();
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+
+        var response = await sender.Send(new ImportJavExcelTemporalCommand { FileBytes = memory.ToArray() });
         return response.ToActionResult();
     }
 
