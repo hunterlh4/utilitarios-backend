@@ -444,6 +444,15 @@ CREATE TABLE Event (
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
+CREATE TABLE Comic (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(100) NOT NULL, -- Shigatsu, Konosuba, Steins;Gate, etc.
+    Image NVARCHAR(1000),
+    Url NVARCHAR(1000), 
+    Category NVARCHAR(100),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
 -- Indexes para mejorar rendimiento de consultas
 
 -- Filtrar por status (proximamente/completado)
