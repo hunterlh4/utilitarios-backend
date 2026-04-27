@@ -63,7 +63,7 @@ public class JavController(ISender sender) : ControllerBase
         using var memory = new MemoryStream();
         await stream.CopyToAsync(memory);
 
-        var response = await sender.Send(new ImportJavExcelCommand { FileBytes = memory.ToArray() });
+        var response = await sender.Send(new ImportJavExcelStandardCommand { FileBytes = memory.ToArray() });
         return response.ToActionResult();
     }
 
@@ -127,4 +127,6 @@ public class JavController(ISender sender) : ControllerBase
         var response = await sender.Send(new DeleteJavCommand(id));
         return response.ToActionResult();
     }
+
+    
 }

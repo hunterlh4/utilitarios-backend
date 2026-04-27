@@ -4,47 +4,47 @@ using UtilitariosCore.Domain.Models;
 
 namespace UtilitariosCore.Infrastructure.Persistence.Repositories;
 
-public class ProyectRepository(MssqlContext context) : IProyectRepository
+public class ProjectRepository(MssqlContext context) : IProjectRepository
 {
-    public async Task<IEnumerable<Proyect>> GetAll()
+    public async Task<IEnumerable<Project>> GetAll()
     {
         var db = context.CreateDefaultConnection();
-        return await db.QueryAsync<Proyect>(
-            "SELECT Id, Name, Description, Url, CreatedAt FROM Proyect ORDER BY CreatedAt DESC");
+        return await db.QueryAsync<Project>(
+            "SELECT Id, Name, Description, Url, CreatedAt FROM Project ORDER BY CreatedAt DESC");
     }
 
-    public async Task<Proyect?> GetById(int id)
+    public async Task<Project?> GetById(int id)
     {
         var db = context.CreateDefaultConnection();
-        return await db.QueryFirstOrDefaultAsync<Proyect>(
-            "SELECT Id, Name, Description, Url, CreatedAt FROM Proyect WHERE Id = @Id",
+        return await db.QueryFirstOrDefaultAsync<Project>(
+            "SELECT Id, Name, Description, Url, CreatedAt FROM Project WHERE Id = @Id",
             new { Id = id });
     }
 
-    public async Task<int> Create(Proyect proyect)
+    public async Task<int> Create(Project project)
     {
         var db = context.CreateDefaultConnection();
         return await db.QuerySingleAsync<int>(@"
-            INSERT INTO Proyect (Name, Description, Url, CreatedAt)
+            INSERT INTO Project (Name, Description, Url, CreatedAt)
             VALUES (@Name, @Description, @Url, @CreatedAt);
             SELECT SCOPE_IDENTITY();",
-            proyect);
+            project);
     }
 
-    public async Task<bool> Update(Proyect proyect)
+    public async Task<bool> Update(Project project)
     {
         var db = context.CreateDefaultConnection();
         int rows = await db.ExecuteAsync(@"
-            UPDATE Proyect SET Name = @Name, Description = @Description, Url = @Url
+            UPDATE Project SET Name = @Name, Description = @Description, Url = @Url
             WHERE Id = @Id",
-            proyect);
+            project);
         return rows > 0;
     }
 
     public async Task<bool> Delete(int id)
     {
         var db = context.CreateDefaultConnection();
-        int rows = await db.ExecuteAsync("DELETE FROM Proyect WHERE Id = @Id", new { Id = id });
+        int rows = await db.ExecuteAsync("DELETE FROM Project WHERE Id = @Id", new { Id = id });
         return rows > 0;
     }
 
@@ -52,6 +52,6 @@ public class ProyectRepository(MssqlContext context) : IProyectRepository
     {
         var db = context.CreateDefaultConnection();
         return await db.QuerySingleAsync<int>(
-            "SELECT COUNT(1) FROM Proyect WHERE Id = @Id", new { Id = id }) > 0;
+            "SELECT COUNT(1) FROM Project WHERE Id = @Id", new { Id = id }) > 0;
     }
 }

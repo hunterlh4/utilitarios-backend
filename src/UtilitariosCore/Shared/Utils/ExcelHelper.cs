@@ -1585,6 +1585,222 @@ public static class ExcelHelper
         return stream;
     }
 
+    public static MemoryStream CreateAccountExcel(AccountExcelData data)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+
+        // Email sheet
+        var emailSheet = package.Workbook.Worksheets.Add("Email");
+        emailSheet.Cells[1, 1].Value = "Id"; emailSheet.Cells[1, 2].Value = "Provider";
+        emailSheet.Cells[1, 3].Value = "Email"; emailSheet.Cells[1, 4].Value = "Password";
+        emailSheet.Cells[1, 5].Value = "Phone"; emailSheet.Cells[1, 6].Value = "RecoveryEmailId";
+        StyleHeader(emailSheet.Cells[1, 1, 1, 6]);
+        int row = 2;
+        foreach (var e in data.Emails)
+        {
+            emailSheet.Cells[row, 1].Value = e.Id; emailSheet.Cells[row, 2].Value = e.Provider;
+            emailSheet.Cells[row, 3].Value = e.Email; emailSheet.Cells[row, 4].Value = e.Password;
+            emailSheet.Cells[row, 5].Value = e.Phone; emailSheet.Cells[row, 6].Value = e.RecoveryEmailId;
+            row++;
+        }
+        if (emailSheet.Dimension is not null) emailSheet.Cells[emailSheet.Dimension.Address].AutoFitColumns();
+
+        // Steam sheet
+        var steamSheet = package.Workbook.Worksheets.Add("Steam");
+        steamSheet.Cells[1, 1].Value = "Id"; steamSheet.Cells[1, 2].Value = "EmailId";
+        steamSheet.Cells[1, 3].Value = "Username"; steamSheet.Cells[1, 4].Value = "Password";
+        steamSheet.Cells[1, 5].Value = "Phone"; steamSheet.Cells[1, 6].Value = "ProfileUrl";
+        steamSheet.Cells[1, 7].Value = "HasDota2"; steamSheet.Cells[1, 8].Value = "HasCS2";
+        steamSheet.Cells[1, 9].Value = "IsUnlimited"; steamSheet.Cells[1, 10].Value = "IsVacBanned";
+        steamSheet.Cells[1, 11].Value = "HasSteamMobile";
+        StyleHeader(steamSheet.Cells[1, 1, 1, 11]);
+        row = 2;
+        foreach (var s in data.Steams)
+        {
+            steamSheet.Cells[row, 1].Value = s.Id; steamSheet.Cells[row, 2].Value = s.EmailId;
+            steamSheet.Cells[row, 3].Value = s.Username; steamSheet.Cells[row, 4].Value = s.Password;
+            steamSheet.Cells[row, 5].Value = s.Phone; steamSheet.Cells[row, 6].Value = s.ProfileUrl;
+            steamSheet.Cells[row, 7].Value = s.HasDota2; steamSheet.Cells[row, 8].Value = s.HasCS2;
+            steamSheet.Cells[row, 9].Value = s.IsUnlimited; steamSheet.Cells[row, 10].Value = s.IsVacBanned;
+            steamSheet.Cells[row, 11].Value = s.HasSteamMobile;
+            row++;
+        }
+        if (steamSheet.Dimension is not null) steamSheet.Cells[steamSheet.Dimension.Address].AutoFitColumns();
+
+        // GitHub sheet
+        var githubSheet = package.Workbook.Worksheets.Add("GitHub");
+        githubSheet.Cells[1, 1].Value = "Id"; githubSheet.Cells[1, 2].Value = "EmailId";
+        githubSheet.Cells[1, 3].Value = "Username"; githubSheet.Cells[1, 4].Value = "Password";
+        githubSheet.Cells[1, 5].Value = "ProfileUrl";
+        StyleHeader(githubSheet.Cells[1, 1, 1, 5]);
+        row = 2;
+        foreach (var g in data.GitHubs)
+        {
+            githubSheet.Cells[row, 1].Value = g.Id; githubSheet.Cells[row, 2].Value = g.EmailId;
+            githubSheet.Cells[row, 3].Value = g.Username; githubSheet.Cells[row, 4].Value = g.Password;
+            githubSheet.Cells[row, 5].Value = g.ProfileUrl;
+            row++;
+        }
+        if (githubSheet.Dimension is not null) githubSheet.Cells[githubSheet.Dimension.Address].AutoFitColumns();
+
+        // General sheet
+        var generalSheet = package.Workbook.Worksheets.Add("General");
+        generalSheet.Cells[1, 1].Value = "Id"; generalSheet.Cells[1, 2].Value = "Platform";
+        generalSheet.Cells[1, 3].Value = "Username"; generalSheet.Cells[1, 4].Value = "Password";
+        generalSheet.Cells[1, 5].Value = "EmailId"; generalSheet.Cells[1, 6].Value = "ProfileUrl";
+        StyleHeader(generalSheet.Cells[1, 1, 1, 6]);
+        row = 2;
+        foreach (var g in data.Generals)
+        {
+            generalSheet.Cells[row, 1].Value = g.Id; generalSheet.Cells[row, 2].Value = g.Platform;
+            generalSheet.Cells[row, 3].Value = g.Username; generalSheet.Cells[row, 4].Value = g.Password;
+            generalSheet.Cells[row, 5].Value = g.EmailId; generalSheet.Cells[row, 6].Value = g.ProfileUrl;
+            row++;
+        }
+        if (generalSheet.Dimension is not null) generalSheet.Cells[generalSheet.Dimension.Address].AutoFitColumns();
+
+        // Kiro sheet
+        var kiroSheet = package.Workbook.Worksheets.Add("Kiro");
+        kiroSheet.Cells[1, 1].Value = "Id"; kiroSheet.Cells[1, 2].Value = "LinkedType";
+        kiroSheet.Cells[1, 3].Value = "RefId"; kiroSheet.Cells[1, 4].Value = "IsNew";
+        kiroSheet.Cells[1, 5].Value = "LastUsed";
+        StyleHeader(kiroSheet.Cells[1, 1, 1, 5]);
+        row = 2;
+        foreach (var k in data.Kiros)
+        {
+            kiroSheet.Cells[row, 1].Value = k.Id; kiroSheet.Cells[row, 2].Value = k.LinkedType;
+            kiroSheet.Cells[row, 3].Value = k.RefId; kiroSheet.Cells[row, 4].Value = k.IsNew;
+            kiroSheet.Cells[row, 5].Value = k.LastUsed;
+            row++;
+        }
+        if (kiroSheet.Dimension is not null) kiroSheet.Cells[kiroSheet.Dimension.Address].AutoFitColumns();
+
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
+        return stream;
+    }
+
+    private static void StyleHeader(ExcelRange range)
+    {
+        range.Style.Font.Bold = true;
+        range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+    }
+
+    public static AccountExcelData ReadAccountExcel(Stream excelStream)
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage(excelStream);
+        var result = new AccountExcelData();
+
+        var emailSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Email");
+        if (emailSheet?.Dimension is not null)
+        {
+            for (int r = 2; r <= emailSheet.Dimension.End.Row; r++)
+            {
+                var email = emailSheet.Cells[r, 3].Text?.Trim();
+                if (string.IsNullOrWhiteSpace(email)) continue;
+                int.TryParse(emailSheet.Cells[r, 1].Text, out var id);
+                int.TryParse(emailSheet.Cells[r, 6].Text, out var recoveryId);
+                result.Emails.Add(new AccountEmailExcelRow
+                {
+                    Id = id, Provider = emailSheet.Cells[r, 2].Text?.Trim() ?? "otro",
+                    Email = email, Password = emailSheet.Cells[r, 4].Text?.Trim() ?? string.Empty,
+                    Phone = NullIfEmpty(emailSheet.Cells[r, 5].Text?.Trim()),
+                    RecoveryEmailId = recoveryId > 0 ? recoveryId : null,
+                });
+            }
+        }
+
+        var steamSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Steam");
+        if (steamSheet?.Dimension is not null)
+        {
+            for (int r = 2; r <= steamSheet.Dimension.End.Row; r++)
+            {
+                var username = steamSheet.Cells[r, 3].Text?.Trim();
+                if (string.IsNullOrWhiteSpace(username)) continue;
+                int.TryParse(steamSheet.Cells[r, 1].Text, out var id);
+                int.TryParse(steamSheet.Cells[r, 2].Text, out var emailId);
+                result.Steams.Add(new AccountSteamExcelRow
+                {
+                    Id = id, EmailId = emailId > 0 ? emailId : null,
+                    Username = username, Password = steamSheet.Cells[r, 4].Text?.Trim() ?? string.Empty,
+                    Phone = NullIfEmpty(steamSheet.Cells[r, 5].Text?.Trim()),
+                    ProfileUrl = NullIfEmpty(steamSheet.Cells[r, 6].Text?.Trim()),
+                    HasDota2 = ParseBool(steamSheet.Cells[r, 7].Text),
+                    HasCS2 = ParseBool(steamSheet.Cells[r, 8].Text),
+                    IsUnlimited = ParseBool(steamSheet.Cells[r, 9].Text),
+                    IsVacBanned = ParseBool(steamSheet.Cells[r, 10].Text),
+                    HasSteamMobile = ParseBool(steamSheet.Cells[r, 11].Text),
+                });
+            }
+        }
+
+        var githubSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "GitHub");
+        if (githubSheet?.Dimension is not null)
+        {
+            for (int r = 2; r <= githubSheet.Dimension.End.Row; r++)
+            {
+                var username = githubSheet.Cells[r, 3].Text?.Trim();
+                if (string.IsNullOrWhiteSpace(username)) continue;
+                int.TryParse(githubSheet.Cells[r, 1].Text, out var id);
+                int.TryParse(githubSheet.Cells[r, 2].Text, out var emailId);
+                result.GitHubs.Add(new AccountGitHubExcelRow
+                {
+                    Id = id, EmailId = emailId > 0 ? emailId : null,
+                    Username = username, Password = githubSheet.Cells[r, 4].Text?.Trim() ?? string.Empty,
+                    ProfileUrl = NullIfEmpty(githubSheet.Cells[r, 5].Text?.Trim()),
+                });
+            }
+        }
+
+        var generalSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "General");
+        if (generalSheet?.Dimension is not null)
+        {
+            for (int r = 2; r <= generalSheet.Dimension.End.Row; r++)
+            {
+                var username = generalSheet.Cells[r, 3].Text?.Trim();
+                if (string.IsNullOrWhiteSpace(username)) continue;
+                int.TryParse(generalSheet.Cells[r, 1].Text, out var id);
+                int.TryParse(generalSheet.Cells[r, 2].Text, out var platform);
+                int.TryParse(generalSheet.Cells[r, 5].Text, out var emailId);
+                result.Generals.Add(new AccountGeneralExcelRow
+                {
+                    Id = id, Platform = platform,
+                    Username = username, Password = generalSheet.Cells[r, 4].Text?.Trim() ?? string.Empty,
+                    EmailId = emailId > 0 ? emailId : null,
+                    ProfileUrl = NullIfEmpty(generalSheet.Cells[r, 6].Text?.Trim()),
+                });
+            }
+        }
+
+        var kiroSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Kiro");
+        if (kiroSheet?.Dimension is not null)
+        {
+            for (int r = 2; r <= kiroSheet.Dimension.End.Row; r++)
+            {
+                int.TryParse(kiroSheet.Cells[r, 1].Text, out var id);
+                int.TryParse(kiroSheet.Cells[r, 2].Text, out var linkedType);
+                int.TryParse(kiroSheet.Cells[r, 3].Text, out var refId);
+                if (refId <= 0) continue;
+                DateTime.TryParse(kiroSheet.Cells[r, 5].Text, out var lastUsed);
+                result.Kiros.Add(new AccountKiroExcelRow
+                {
+                    Id = id, LinkedType = linkedType, RefId = refId,
+                    IsNew = ParseBool(kiroSheet.Cells[r, 4].Text),
+                    LastUsed = lastUsed == default ? null : lastUsed,
+                });
+            }
+        }
+
+        return result;
+    }
+
+    private static string? NullIfEmpty(string? s) => string.IsNullOrWhiteSpace(s) ? null : s;
+
     public static List<ComicExcelRow> ReadComicExcel(Stream excelStream)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -1621,4 +1837,7 @@ public static class ExcelHelper
 
         return result;
     }
+    private static bool ParseBool(string? text) =>
+        text?.Trim().ToLower() is "true" or "1" or "yes" or "si" or "sí";
 }
+

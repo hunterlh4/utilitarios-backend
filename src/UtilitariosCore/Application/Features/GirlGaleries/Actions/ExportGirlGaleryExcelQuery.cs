@@ -51,7 +51,7 @@ internal sealed class ExportGirlGaleryExcelQueryHandler(
 
         return new ExcelFileDto
         {
-            FileName = $"girl-galery-{DateTime.Now:dd-MM-yyyy}.xlsx",
+            FileName = $"girl-galery.xlsx",
             Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}"
         };
     }

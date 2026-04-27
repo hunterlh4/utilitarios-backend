@@ -94,7 +94,7 @@ internal sealed class ExportActressAdultExcelQueryHandler(
 
         return new ExcelFileDto
         {
-            FileName = $"actress-adult-{DateTime.Now:dd-MM-yyyy}.xlsx",
+            FileName = $"actress-adult.xlsx",
             Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}"
         };
     }

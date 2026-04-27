@@ -34,7 +34,7 @@ internal sealed class ExportSteamItemPurchasesExcelQueryHandler(ISteamRepository
 
         return new ExcelFileDto
         {
-            FileName = $"steam-purchase-{DateTime.Now:dd-MM-yyyy}.xlsx",
+            FileName = $"steam-purchase.xlsx",
             Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}"
         };
     }

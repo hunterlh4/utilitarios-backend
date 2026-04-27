@@ -91,22 +91,22 @@ Este documento describe los valores de datos (enums, status, tipos) para cada en
 
 ---
 
-## 🗂️ PROYECTO (Proyect)
+## 🗂️ PROYECTO (Project)
 
 ### Media.Type
 | Valor | Enum | Descripción |
 |-------|------|-------------|
-| `3` | `Project` | N imágenes por proyecto |
+| `3` | `Project` | N imágenes por projecto |
 
 ### Link.Type
 | Valor | Enum | Descripción |
 |-------|------|-------------|
-| `1` | `Project` | URL extra / link de proyecto |
+| `1` | `Project` | URL extra / link de projecto |
 
 ### Tag.Type / TagRelation.Type
 | Valor | Enum | Descripción |
 |-------|------|-------------|
-| `2` | `Project` | Tags asociados a un proyecto |
+| `2` | `Project` | Tags asociados a un projecto |
 
 ---
 
@@ -267,14 +267,14 @@ Este documento describe los valores de datos (enums, status, tipos) para cada en
 |-------|------|---------|---------|
 | `1` | `GirlGalery` | GirlGalery | N imágenes |
 | `2` | `AnimeGalery` | AnimeGalery | N imágenes |
-| `3` | `Project` | Proyect | N imágenes |
+| `3` | `Project` | Project | N imágenes |
 | `4` | `ActressJav` | ActressJav | 1 imagen |
 | `5` | `ActressAdult` | ActressAdult | 1 imagen |
 
 ### Link.Type → LinkType (tabla `Link`)
 | Valor | Enum | Entidad | Descripción |
 |-------|------|---------|-------------|
-| `1` | `Project` | Proyect | URL extra del proyecto |
+| `1` | `Project` | Project | URL extra del projecto |
 | `2` | `Jav` | Jav | Links de streaming |
 | `3` | `HelperJav` | — | Links helper JAV (RefId = NULL) |
 | `4` | `GirlGalery` | GirlGalery | Links de galería |
@@ -287,7 +287,7 @@ Este documento describe los valores de datos (enums, status, tipos) para cada en
 | Valor | Enum | Entidad |
 |-------|------|---------|
 | `1` | `ActressJav` | ActressJav |
-| `2` | `Project` | Proyect |
+| `2` | `Project` | Project |
 | `3` | `Post` | Post |
 | `4` | `Other` | Otros |
 | `5` | `ActressAdult` | ActressAdult |

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using UtilitariosApi.Shared.Extensions;
 using UtilitariosCore.Application.Features.Accounts.Actions;
 using UtilitariosCore.Application.Features.Accounts.Dtos;
+using UtilitariosCore.Shared.Dtos;
 
 namespace UtilitariosApi.Controllers;
 
@@ -168,6 +169,29 @@ public class AccountController(ISender sender) : ControllerBase
     public async Task<ActionResult<int>> ResetKiro()
     {
         var response = await sender.Send(new ResetKiroAccountCommand());
+        return response.ToActionResult();
+    }
+    #endregion
+
+    #region Export/Import
+    [HttpGet("export")]
+    public async Task<ActionResult<ExcelFileDto>> ExportExcel()
+    {
+        var response = await sender.Send(new ExportAccountExcelQuery());
+        return response.ToActionResult();
+    }
+
+    [HttpPost("import")]
+    public async Task<ActionResult<ImportExcelResult>> ImportExcel([FromForm] IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest("Archivo Excel requerido.");
+
+        await using var stream = file.OpenReadStream();
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+
+        var response = await sender.Send(new ImportAccountExcelCommand { FileBytes = memory.ToArray() });
         return response.ToActionResult();
     }
     #endregion

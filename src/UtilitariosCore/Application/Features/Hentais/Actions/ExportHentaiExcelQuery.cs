@@ -42,7 +42,7 @@ internal sealed class ExportHentaiExcelQueryHandler(IHentaiRepository repository
 
         return new ExcelFileDto
         {
-            FileName = $"hentai-{DateTime.Now:dd-MM-yyyy}.xlsx",
+            FileName = $"hentai.xlsx",
             Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}"
         };
     }

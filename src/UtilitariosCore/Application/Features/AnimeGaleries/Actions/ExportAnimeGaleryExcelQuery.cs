@@ -51,7 +51,7 @@ internal sealed class ExportAnimeGaleryExcelQueryHandler(
 
         return new ExcelFileDto
         {
-            FileName = $"anime-galery-{DateTime.Now:dd-MM-yyyy}.xlsx",
+            FileName = $"anime-galery.xlsx",
             Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}"
         };
     }

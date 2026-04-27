@@ -1,6 +1,6 @@
-namespace UtilitariosCore.Application.Features.Proyects.Dtos;
+namespace UtilitariosCore.Application.Features.Projects.Dtos;
 
-public class ProyectMediaDto
+public class ProjectMediaDto
 {
     public int Id { get; set; }
     public string Url { get; set; } = string.Empty;
@@ -8,7 +8,7 @@ public class ProyectMediaDto
     public int OrderIndex { get; set; }
 }
 
-public class ProyectLinkDto
+public class ProjectLinkDto
 {
     public int Id { get; set; }
     public string? Name { get; set; }
@@ -17,7 +17,7 @@ public class ProyectLinkDto
 }
 
 // Lista: portada (primera imagen) + tags de tecnologías
-public class ProyectDto
+public class ProjectDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
@@ -29,14 +29,14 @@ public class ProyectDto
 }
 
 // Detalle: todas las imágenes + links + tags
-public class ProyectDetailDto
+public class ProjectDetailDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? Url { get; set; }
-    public List<ProyectMediaDto> Media { get; set; } = [];
-    public List<ProyectLinkDto> Links { get; set; } = [];
+    public List<ProjectMediaDto> Media { get; set; } = [];
+    public List<ProjectLinkDto> Links { get; set; } = [];
     public List<string> Tags { get; set; } = [];
     public DateTime CreatedAt { get; set; }
 }

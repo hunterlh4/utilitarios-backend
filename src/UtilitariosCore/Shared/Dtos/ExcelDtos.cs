@@ -204,3 +204,65 @@ public class ComicExcelRow
     public string Url { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
 }
+
+public class AccountEmailExcelRow
+{
+    public int Id { get; set; }
+    public string Provider { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string? Phone { get; set; }
+    public int? RecoveryEmailId { get; set; }
+}
+
+public class AccountSteamExcelRow
+{
+    public int Id { get; set; }
+    public int? EmailId { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string? Phone { get; set; }
+    public string? ProfileUrl { get; set; }
+    public bool HasDota2 { get; set; }
+    public bool HasCS2 { get; set; }
+    public bool IsUnlimited { get; set; }
+    public bool IsVacBanned { get; set; }
+    public bool HasSteamMobile { get; set; }
+}
+
+public class AccountGitHubExcelRow
+{
+    public int Id { get; set; }
+    public int? EmailId { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string? ProfileUrl { get; set; }
+}
+
+public class AccountGeneralExcelRow
+{
+    public int Id { get; set; }
+    public int Platform { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public int? EmailId { get; set; }
+    public string? ProfileUrl { get; set; }
+}
+
+public class AccountKiroExcelRow
+{
+    public int Id { get; set; }
+    public int LinkedType { get; set; }
+    public int RefId { get; set; }
+    public bool IsNew { get; set; }
+    public DateTime? LastUsed { get; set; }
+}
+
+public class AccountExcelData
+{
+    public List<AccountEmailExcelRow> Emails { get; set; } = [];
+    public List<AccountSteamExcelRow> Steams { get; set; } = [];
+    public List<AccountGitHubExcelRow> GitHubs { get; set; } = [];
+    public List<AccountGeneralExcelRow> Generals { get; set; } = [];
+    public List<AccountKiroExcelRow> Kiros { get; set; } = [];
+}

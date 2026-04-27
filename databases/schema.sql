@@ -128,8 +128,8 @@ CREATE TABLE Link (
 );
 
 
--- Proyecto table (galería de proyectos)
-CREATE TABLE Proyect (
+-- Projecto table (galería de projectos)
+CREATE TABLE Project (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(500) NOT NULL,
     Description NVARCHAR(MAX),

@@ -100,7 +100,7 @@ internal sealed class ExportActressJavExcelQueryHandler(
 
         return new ExcelFileDto
         {
-            FileName = $"actress-jav-{DateTime.Now:dd-MM-yyyy}.xlsx",
+            FileName = $"actress-jav.xlsx",
             Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}"
         };
     }

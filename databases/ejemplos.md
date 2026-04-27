@@ -353,7 +353,7 @@ Kanojo x Kanojo (id=2) → Romance
 
 ---
 
-## Proyect (Galería de proyectos)
+## Project (Galería de projectos)
 | id | name | description | url | createdAt |
 |----|------|-------------|-----|-----------|
 | 1 | Sistema de Ventas | user: admin@gmail.com\npassword: 123\n\nNET 9 \| ANGULAR 18 \| SQL | https://ventas.perfisoft.com | 2025-01-08 14:20:35 |

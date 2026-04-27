@@ -164,13 +164,13 @@
 
 # Por implementar
 
-## Proyectos — `api/proyect`
+## Projectos — `api/project`
 
-- [ ] `GET /` — Lista todos los proyectos
+- [ ] `GET /` — Lista todos los projectos
 - [ ] `GET /{id}` — Detalle con links y tags
-- [ ] `POST /` — Crear proyecto
-- [ ] `PUT /{id}` — Actualizar proyecto
-- [ ] `DELETE /{id}` — Eliminar proyecto
+- [ ] `POST /` — Crear projecto
+- [ ] `PUT /{id}` — Actualizar projecto
+- [ ] `DELETE /{id}` — Eliminar projecto
 
 ---
 

@@ -496,16 +496,16 @@ http://localhost:3000/api
 
 ## 🛠️ UTILITARIOS
 
-### Proyectos
-**Base:** `/proyect`
+### Projectos
+**Base:** `/project`
 
 | Método | Endpoint | Descripción | Body |
 |--------|----------|-------------|------|
-| GET | `/proyect` | Obtener todos los proyectos | - |
-| GET | `/proyect/:id` | Obtener proyecto por ID | - |
-| POST | `/proyect` | Crear nuevo proyecto | `{ name, description?, url? }` |
-| PUT | `/proyect/:id` | Actualizar proyecto | `{ name?, description?, url? }` |
-| DELETE | `/proyect/:id` | Eliminar proyecto | - |
+| GET | `/project` | Obtener todos los projectos | - |
+| GET | `/project/:id` | Obtener projecto por ID | - |
+| POST | `/project` | Crear nuevo projecto | `{ name, description?, url? }` |
+| PUT | `/project/:id` | Actualizar projecto | `{ name?, description?, url? }` |
+| DELETE | `/project/:id` | Eliminar projecto | - |
 
 **Modelo:**
 ```typescript

@@ -61,7 +61,7 @@ public static class DependencyInyection
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<IYouTubeRepository, YouTubeRepository>();
         services.AddScoped<IAccountRepository, AccountRepository>();
-        services.AddScoped<IProyectRepository, ProyectRepository>();
+        services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<ISteamRepository, SteamRepository>();
         services.AddScoped<IComicRepository, ComicRepository>();

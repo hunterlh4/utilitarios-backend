@@ -1,8 +1,8 @@
 # Guia de importacion completa (orden recomendado)
 
-Este documento explica como restaurar datos cuando exportaste varios modulos del proyecto.
+Este documento explica como restaurar datos cuando exportaste varios modulos del projecto.
 
-## 1) Punto clave: "todo el proyecto" no se restaura 100% por Excel
+## 1) Punto clave: "todo el projecto" no se restaura 100% por Excel
 
 Hoy solo tienen export/import por endpoint estos modulos:
 
@@ -21,7 +21,7 @@ Hoy solo tienen export/import por endpoint estos modulos:
 
 Tablas sin import/export Excel dedicado (segun controladores actuales):
 
-- Proyect
+- Project
 - DotaHero, DotaTreasure, DotaCache, DotaMedia
 - AccountEmail, AccountSteam, AccountGitHub
 - Otras tablas fuera de los endpoints anteriores

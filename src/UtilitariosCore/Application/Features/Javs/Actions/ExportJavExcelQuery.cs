@@ -114,7 +114,7 @@ internal sealed class ExportJavExcelQueryHandler(
 
         return new ExcelFileDto
         {
-            FileName = $"jav-export-{DateTime.Now:dd-MM-yyyy}.xlsx",
+            FileName = $"jav-export.xlsx",
             Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{Convert.ToBase64String(stream.ToArray())}"
         };
     }

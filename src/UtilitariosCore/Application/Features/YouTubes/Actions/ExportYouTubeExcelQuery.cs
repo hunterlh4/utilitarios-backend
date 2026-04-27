@@ -40,7 +40,7 @@ internal sealed class ExportYouTubeExcelQueryHandler(IYouTubeRepository reposito
 
         return new ExcelFileDto
         {
-            FileName = $"youtube-{DateTime.Now:dd-MM-yyyy}.xlsx",
+            FileName = $"youtube.xlsx",
             Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}"
         };
     }

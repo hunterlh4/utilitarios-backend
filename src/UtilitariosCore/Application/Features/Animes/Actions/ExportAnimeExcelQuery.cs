@@ -30,7 +30,7 @@ internal sealed class ExportAnimeExcelQueryHandler(IAnimeRepository repository)
 
         return new ExcelFileDto
         {
-            FileName = $"anime-{DateTime.Now:dd-MM-yyyy}.xlsx",
+            FileName = $"anime.xlsx",
             Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}"
         };
     }

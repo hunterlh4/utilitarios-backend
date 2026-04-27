@@ -32,7 +32,7 @@ internal sealed class ExportSeriesExcelQueryHandler(ISeriesRepository repository
 
         return new ExcelFileDto
         {
-            FileName = $"series-{DateTime.Now:dd-MM-yyyy}.xlsx",
+            FileName = $"series.xlsx",
             Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}"
         };
     }

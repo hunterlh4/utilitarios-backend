@@ -32,7 +32,7 @@ internal sealed class ExportSteamItemDropsExcelQueryHandler(ISteamRepository rep
 
         return new ExcelFileDto
         {
-            FileName = $"steam-drop-{DateTime.Now:dd-MM-yyyy}.xlsx",
+            FileName = $"steam-drop.xlsx",
             Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}"
         };
     }
