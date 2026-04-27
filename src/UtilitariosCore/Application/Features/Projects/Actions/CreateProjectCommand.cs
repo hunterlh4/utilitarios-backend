@@ -14,6 +14,7 @@ public class CreateProjectCommand : IRequest<Result<int>>
     public string? Url { get; set; }
     public List<int>? TagIds { get; set; }
     public List<string>? Links { get; set; }
+    public List<string>? ImageUrls { get; set; }
 
     public sealed class Validator : AbstractValidator<CreateProjectCommand>
     {
@@ -28,7 +29,8 @@ public class CreateProjectCommand : IRequest<Result<int>>
     internal sealed class Handler(
         IProjectRepository projectRepository,
         ITagRepository tagRepository,
-        ILinkRepository linkRepository)
+        ILinkRepository linkRepository,
+        IMediaRepository mediaRepository)
         : IRequestHandler<CreateProjectCommand, Result<int>>
     {
         public async Task<Result<int>> Handle(CreateProjectCommand request, CancellationToken cancellationToken)
@@ -56,6 +58,22 @@ public class CreateProjectCommand : IRequest<Result<int>>
                             Type = LinkType.Project,
                             RefId = id,
                             Url = request.Links[i],
+                            OrderIndex = i + 1,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                }
+            }
+
+            if (request.ImageUrls is { Count: > 0 })
+            {
+                for (int i = 0; i < request.ImageUrls.Count; i++)
+                {
+                    if (!string.IsNullOrWhiteSpace(request.ImageUrls[i]))
+                        await mediaRepository.CreateMedia(new Domain.Models.Media
+                        {
+                            Type = MediaType.Project,
+                            RefId = id,
+                            Url = request.ImageUrls[i],
                             OrderIndex = i + 1,
                             CreatedAt = DateTime.UtcNow
                         });
