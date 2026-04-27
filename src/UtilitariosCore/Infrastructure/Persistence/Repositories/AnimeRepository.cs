@@ -68,7 +68,7 @@ public class AnimeRepository(MssqlContext context) : IAnimeRepository
     {
         var db = context.CreateDefaultConnection();
 
-        string sql = "SELECT Id, ApiId, Title, Image, Episodes, Status, CreatedAt FROM Anime ORDER BY CreatedAt DESC";
+        string sql = "SELECT Id, ApiId, Title, Image, Episodes, Status, CreatedAt FROM Anime ORDER BY Title asc";
 
         var result = await db.QueryAsync<Anime>(sql);
         return result;

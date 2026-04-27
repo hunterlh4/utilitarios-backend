@@ -104,7 +104,7 @@ public class HentaiRepository(MssqlContext context) : IHentaiRepository
             FROM Hentai h
             LEFT JOIN TagRelation tr ON tr.RefId = h.Id AND tr.Type = 6
             LEFT JOIN Tag t ON t.Id = tr.TagId
-            ORDER BY h.CreatedAt DESC";
+            ORDER BY h.Title ASC";
 
         var dict = new Dictionary<int, HentaiWithTags>();
 

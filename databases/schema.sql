@@ -49,10 +49,6 @@ CREATE TABLE AnimeGalery (
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
-
-
-
-
 -- ActressAdult table (actrices porno)
 CREATE TABLE ActressAdult (
     Id INT IDENTITY(1,1) PRIMARY KEY,

@@ -93,7 +93,7 @@ public class SteamRepository(MssqlContext context) : ISteamRepository
                    s.MarketUrl AS ItemMarketUrl, s.Game AS ItemGame, d.Quantity, d.Price, d.SalePrice, d.Total, d.CreatedAt
             FROM SteamItemDrop d
             INNER JOIN SteamItem s ON s.Id = d.SteamItemId
-            ORDER BY d.CreatedAt DESC";
+            ORDER BY d.Quantity DESC";
         return await db.QueryAsync<SteamItemDrop>(sql);
     }
 
