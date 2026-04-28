@@ -223,11 +223,13 @@ public class AccountSteamExcelRow
     public string Password { get; set; } = string.Empty;
     public string? Phone { get; set; }
     public string? ProfileUrl { get; set; }
+    public string? ImageUrl { get; set; }
     public bool HasDota2 { get; set; }
     public bool HasCS2 { get; set; }
     public bool IsUnlimited { get; set; }
     public bool IsVacBanned { get; set; }
     public bool HasSteamMobile { get; set; }
+    public DateTime? LastPurchaseDate { get; set; }
 }
 
 public class AccountGitHubExcelRow

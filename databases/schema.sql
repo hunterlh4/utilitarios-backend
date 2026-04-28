@@ -293,6 +293,7 @@ CREATE TABLE AccountSteam (
     Password NVARCHAR(200) NOT NULL,
     Phone NVARCHAR(20),
     ProfileUrl NVARCHAR(1000),
+    ImageUrl NVARCHAR(1000),
     HasDota2 BIT NOT NULL DEFAULT 0,
     HasCS2 BIT NOT NULL DEFAULT 0,
     IsUnlimited BIT NOT NULL DEFAULT 0,

@@ -69,7 +69,7 @@ public class AccountRepository(MssqlContext context) : IAccountRepository
         var db = context.CreateDefaultConnection();
         string sql = @"
             SELECT s.Id, s.EmailId, e.Email AS EmailAddress, s.Username, s.Password,
-                   s.Phone, s.ProfileUrl, s.HasDota2, s.HasCS2, s.IsUnlimited, s.IsVacBanned, s.HasSteamMobile, s.LastPurchaseDate, s.CreatedAt
+                   s.Phone, s.ProfileUrl, s.ImageUrl, s.HasDota2, s.HasCS2, s.IsUnlimited, s.IsVacBanned, s.HasSteamMobile, s.LastPurchaseDate, s.CreatedAt
             FROM AccountSteam s
             LEFT JOIN AccountEmail e ON e.Id = s.EmailId
             ORDER BY s.CreatedAt DESC";
@@ -79,8 +79,8 @@ public class AccountRepository(MssqlContext context) : IAccountRepository
     {
         var db = context.CreateDefaultConnection();
         string sql = @"
-            INSERT INTO AccountSteam (EmailId, Username, Password, Phone, ProfileUrl, HasDota2, HasCS2, IsUnlimited, IsVacBanned, HasSteamMobile, LastPurchaseDate, CreatedAt)
-            VALUES (@EmailId, @Username, @Password, @Phone, @ProfileUrl, @HasDota2, @HasCS2, @IsUnlimited, @IsVacBanned, @HasSteamMobile, @LastPurchaseDate, @CreatedAt);
+            INSERT INTO AccountSteam (EmailId, Username, Password, Phone, ProfileUrl, ImageUrl, HasDota2, HasCS2, IsUnlimited, IsVacBanned, HasSteamMobile, LastPurchaseDate, CreatedAt)
+            VALUES (@EmailId, @Username, @Password, @Phone, @ProfileUrl, @ImageUrl, @HasDota2, @HasCS2, @IsUnlimited, @IsVacBanned, @HasSteamMobile, @LastPurchaseDate, @CreatedAt);
             SELECT CAST(SCOPE_IDENTITY() as int)
             ";
         return await db.QuerySingleAsync<int>(sql, accountSteam);
@@ -90,7 +90,7 @@ public class AccountRepository(MssqlContext context) : IAccountRepository
         var db = context.CreateDefaultConnection();
         string sql = @"
              UPDATE AccountSteam SET EmailId=@EmailId, Username=@Username, Password=@Password, Phone=@Phone,
-             ProfileUrl=@ProfileUrl, HasDota2=@HasDota2, HasCS2=@HasCS2, IsUnlimited=@IsUnlimited, IsVacBanned=@IsVacBanned, HasSteamMobile=@HasSteamMobile, LastPurchaseDate=@LastPurchaseDate
+             ProfileUrl=@ProfileUrl, ImageUrl=@ImageUrl, HasDota2=@HasDota2, HasCS2=@HasCS2, IsUnlimited=@IsUnlimited, IsVacBanned=@IsVacBanned, HasSteamMobile=@HasSteamMobile, LastPurchaseDate=@LastPurchaseDate
              WHERE Id=@Id"; 
         return await db.ExecuteAsync(sql, accountSteam) > 0;
     }

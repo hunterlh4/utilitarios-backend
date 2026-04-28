@@ -13,6 +13,7 @@ public record UpdateSteamAccountCommand : IRequest<Result>
     public string Password { get; set; } = string.Empty;
     public string? Phone { get; set; }
     public string? ProfileUrl { get; set; }
+    public string? ImageUrl { get; set; }
     public bool HasDota2 { get; set; }
     public bool HasCS2 { get; set; }
     public bool IsUnlimited { get; set; }
@@ -26,10 +27,18 @@ public record UpdateSteamAccountCommand : IRequest<Result>
         {
             await repo.UpdateSteam(new AccountSteam
             {
-                Id = r.Id, EmailId = r.EmailId, Username = r.Username, Password = r.Password,
-                Phone = r.Phone, ProfileUrl = r.ProfileUrl,
-                HasDota2 = r.HasDota2, HasCS2 = r.HasCS2, IsUnlimited = r.IsUnlimited,
-                IsVacBanned = r.IsVacBanned, HasSteamMobile = r.HasSteamMobile,
+                Id = r.Id, 
+                EmailId = r.EmailId, 
+                Username = r.Username, 
+                Password = r.Password,
+                Phone = r.Phone, 
+                ProfileUrl = r.ProfileUrl,
+                ImageUrl = r.ImageUrl,
+                HasDota2 = r.HasDota2, 
+                HasCS2 = r.HasCS2, 
+                IsUnlimited = r.IsUnlimited,
+                IsVacBanned = r.IsVacBanned, 
+                HasSteamMobile = r.HasSteamMobile,
                 LastPurchaseDate = r.LastPurchaseDate
             });
             return Results.NoContent();

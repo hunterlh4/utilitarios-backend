@@ -30,8 +30,9 @@ internal sealed class ExportAccountExcelQueryHandler(IAccountRepository reposito
             {
                 Id = s.Id, EmailId = s.EmailId, Username = s.Username,
                 Password = s.Password, Phone = s.Phone, ProfileUrl = s.ProfileUrl,
-                HasDota2 = s.HasDota2, HasCS2 = s.HasCS2, IsUnlimited = s.IsUnlimited,
-                IsVacBanned = s.IsVacBanned, HasSteamMobile = s.HasSteamMobile,
+                ImageUrl = s.ImageUrl, HasDota2 = s.HasDota2, HasCS2 = s.HasCS2,
+                IsUnlimited = s.IsUnlimited, IsVacBanned = s.IsVacBanned,
+                HasSteamMobile = s.HasSteamMobile, LastPurchaseDate = s.LastPurchaseDate,
             }).ToList(),
             GitHubs = gitHubs.Select(g => new AccountGitHubExcelRow
             {

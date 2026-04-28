@@ -54,12 +54,12 @@ internal sealed class ImportAccountExcelCommandHandler(IAccountRepository reposi
             if (string.IsNullOrWhiteSpace(row.Username)) { invalid++; continue; }
             if (row.Id > 0 && existingSteams.TryGetValue(row.Id, out var existing))
             {
-                await repository.UpdateSteam(new AccountSteam { Id = row.Id, EmailId = row.EmailId, Username = row.Username, Password = row.Password, Phone = row.Phone, ProfileUrl = row.ProfileUrl, HasDota2 = row.HasDota2, HasCS2 = row.HasCS2, IsUnlimited = row.IsUnlimited, IsVacBanned = row.IsVacBanned, HasSteamMobile = row.HasSteamMobile });
+                await repository.UpdateSteam(new AccountSteam { Id = row.Id, EmailId = row.EmailId, Username = row.Username, Password = row.Password, Phone = row.Phone, ProfileUrl = row.ProfileUrl, ImageUrl = row.ImageUrl, HasDota2 = row.HasDota2, HasCS2 = row.HasCS2, IsUnlimited = row.IsUnlimited, IsVacBanned = row.IsVacBanned, HasSteamMobile = row.HasSteamMobile, LastPurchaseDate = row.LastPurchaseDate });
                 updated++;
             }
             else
             {
-                await repository.CreateSteam(new AccountSteam { EmailId = row.EmailId, Username = row.Username, Password = row.Password, Phone = row.Phone, ProfileUrl = row.ProfileUrl, HasDota2 = row.HasDota2, HasCS2 = row.HasCS2, IsUnlimited = row.IsUnlimited, IsVacBanned = row.IsVacBanned, HasSteamMobile = row.HasSteamMobile, CreatedAt = DateTime.UtcNow });
+                await repository.CreateSteam(new AccountSteam { EmailId = row.EmailId, Username = row.Username, Password = row.Password, Phone = row.Phone, ProfileUrl = row.ProfileUrl, ImageUrl = row.ImageUrl, HasDota2 = row.HasDota2, HasCS2 = row.HasCS2, IsUnlimited = row.IsUnlimited, IsVacBanned = row.IsVacBanned, HasSteamMobile = row.HasSteamMobile, LastPurchaseDate = row.LastPurchaseDate, CreatedAt = DateTime.UtcNow });
                 created++;
             }
         }

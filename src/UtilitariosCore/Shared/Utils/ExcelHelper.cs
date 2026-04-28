@@ -1611,19 +1611,21 @@ public static class ExcelHelper
         steamSheet.Cells[1, 1].Value = "Id"; steamSheet.Cells[1, 2].Value = "EmailId";
         steamSheet.Cells[1, 3].Value = "Username"; steamSheet.Cells[1, 4].Value = "Password";
         steamSheet.Cells[1, 5].Value = "Phone"; steamSheet.Cells[1, 6].Value = "ProfileUrl";
-        steamSheet.Cells[1, 7].Value = "HasDota2"; steamSheet.Cells[1, 8].Value = "HasCS2";
-        steamSheet.Cells[1, 9].Value = "IsUnlimited"; steamSheet.Cells[1, 10].Value = "IsVacBanned";
-        steamSheet.Cells[1, 11].Value = "HasSteamMobile";
-        StyleHeader(steamSheet.Cells[1, 1, 1, 11]);
+        steamSheet.Cells[1, 7].Value = "ImageUrl"; steamSheet.Cells[1, 8].Value = "HasDota2";
+        steamSheet.Cells[1, 9].Value = "HasCS2"; steamSheet.Cells[1, 10].Value = "IsUnlimited";
+        steamSheet.Cells[1, 11].Value = "IsVacBanned"; steamSheet.Cells[1, 12].Value = "HasSteamMobile";
+        steamSheet.Cells[1, 13].Value = "LastPurchaseDate";
+        StyleHeader(steamSheet.Cells[1, 1, 1, 13]);
         row = 2;
         foreach (var s in data.Steams)
         {
             steamSheet.Cells[row, 1].Value = s.Id; steamSheet.Cells[row, 2].Value = s.EmailId;
             steamSheet.Cells[row, 3].Value = s.Username; steamSheet.Cells[row, 4].Value = s.Password;
             steamSheet.Cells[row, 5].Value = s.Phone; steamSheet.Cells[row, 6].Value = s.ProfileUrl;
-            steamSheet.Cells[row, 7].Value = s.HasDota2; steamSheet.Cells[row, 8].Value = s.HasCS2;
-            steamSheet.Cells[row, 9].Value = s.IsUnlimited; steamSheet.Cells[row, 10].Value = s.IsVacBanned;
-            steamSheet.Cells[row, 11].Value = s.HasSteamMobile;
+            steamSheet.Cells[row, 7].Value = s.ImageUrl; steamSheet.Cells[row, 8].Value = s.HasDota2;
+            steamSheet.Cells[row, 9].Value = s.HasCS2; steamSheet.Cells[row, 10].Value = s.IsUnlimited;
+            steamSheet.Cells[row, 11].Value = s.IsVacBanned; steamSheet.Cells[row, 12].Value = s.HasSteamMobile;
+            steamSheet.Cells[row, 13].Value = s.LastPurchaseDate;
             row++;
         }
         if (steamSheet.Dimension is not null) steamSheet.Cells[steamSheet.Dimension.Address].AutoFitColumns();
@@ -1730,11 +1732,13 @@ public static class ExcelHelper
                     Username = username, Password = steamSheet.Cells[r, 4].Text?.Trim() ?? string.Empty,
                     Phone = NullIfEmpty(steamSheet.Cells[r, 5].Text?.Trim()),
                     ProfileUrl = NullIfEmpty(steamSheet.Cells[r, 6].Text?.Trim()),
-                    HasDota2 = ParseBool(steamSheet.Cells[r, 7].Text),
-                    HasCS2 = ParseBool(steamSheet.Cells[r, 8].Text),
-                    IsUnlimited = ParseBool(steamSheet.Cells[r, 9].Text),
-                    IsVacBanned = ParseBool(steamSheet.Cells[r, 10].Text),
-                    HasSteamMobile = ParseBool(steamSheet.Cells[r, 11].Text),
+                    ImageUrl = NullIfEmpty(steamSheet.Cells[r, 7].Text?.Trim()),
+                    HasDota2 = ParseBool(steamSheet.Cells[r, 8].Text),
+                    HasCS2 = ParseBool(steamSheet.Cells[r, 9].Text),
+                    IsUnlimited = ParseBool(steamSheet.Cells[r, 10].Text),
+                    IsVacBanned = ParseBool(steamSheet.Cells[r, 11].Text),
+                    HasSteamMobile = ParseBool(steamSheet.Cells[r, 12].Text),
+                    LastPurchaseDate = ParseDateTimeCell(steamSheet.Cells[r, 13].Text),
                 });
             }
         }
@@ -1800,6 +1804,20 @@ public static class ExcelHelper
     }
 
     private static string? NullIfEmpty(string? s) => string.IsNullOrWhiteSpace(s) ? null : s;
+
+    private static DateTime? ParseDateTimeCell(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return null;
+
+        if (DateTime.TryParse(text, CultureInfo.CurrentCulture, DateTimeStyles.None, out var dateTime))
+            return dateTime;
+
+        if (DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
+            return dateTime;
+
+        return null;
+    }
 
     public static List<ComicExcelRow> ReadComicExcel(Stream excelStream)
     {

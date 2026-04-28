@@ -13,6 +13,7 @@ public record CreateSteamAccountCommand : IRequest<Result<int>>
     public string Password { get; set; } = string.Empty;
     public string? Phone { get; set; }
     public string? ProfileUrl { get; set; }
+    public string? ImageUrl { get; set; }
     public bool HasDota2 { get; set; }
     public bool HasCS2 { get; set; }
     public bool IsUnlimited { get; set; }
@@ -35,10 +36,17 @@ public record CreateSteamAccountCommand : IRequest<Result<int>>
         {
             var id = await repo.CreateSteam(new AccountSteam
             {
-                EmailId = r.EmailId, Username = r.Username, Password = r.Password,
-                Phone = r.Phone, ProfileUrl = r.ProfileUrl,
-                HasDota2 = r.HasDota2, HasCS2 = r.HasCS2, IsUnlimited = r.IsUnlimited,
-                IsVacBanned = r.IsVacBanned, HasSteamMobile = r.HasSteamMobile,
+                EmailId = r.EmailId, 
+                Username = r.Username, 
+                Password = r.Password,
+                Phone = r.Phone, 
+                ProfileUrl = r.ProfileUrl,
+                ImageUrl = r.ImageUrl,
+                HasDota2 = r.HasDota2, 
+                HasCS2 = r.HasCS2, 
+                IsUnlimited = r.IsUnlimited,
+                IsVacBanned = r.IsVacBanned, 
+                HasSteamMobile = r.HasSteamMobile,
                 LastPurchaseDate = r.LastPurchaseDate,
                 CreatedAt = DateTime.Now
             });
