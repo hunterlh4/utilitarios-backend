@@ -34,6 +34,14 @@ public class HentaiRepository(MssqlContext context) : IHentaiRepository
         return result > 0;
     }
 
+    public async Task<bool> UpdateHentaiTitle(int id, string title)
+    {
+        var db = context.CreateDefaultConnection();
+        const string sql = "UPDATE Hentai SET Title = @Title WHERE Id = @Id";
+        var result = await db.ExecuteAsync(sql, new { Id = id, Title = title });
+        return result > 0;
+    }
+
     public async Task<bool> DeleteHentai(int id)
     {
         var db = context.CreateDefaultConnection();

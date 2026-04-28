@@ -6,6 +6,7 @@ public interface IHentaiRepository
 {
     Task<int> CreateHentai(Hentai item);
     Task<bool> UpdateHentai(Hentai item);
+    Task<bool> UpdateHentaiTitle(int id, string title);
     Task<bool> DeleteHentai(int id);
     Task<Hentai?> GetHentaiById(int id);
     Task<Hentai?> GetHentaiByApiId(string apiId);

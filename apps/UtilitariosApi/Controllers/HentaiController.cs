@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using UtilitariosApi.Shared.Extensions;
 using UtilitariosCore.Application.Features.Hentais.Actions;
 using UtilitariosCore.Application.Features.Hentais.Dtos;
+using UtilitariosCore.Application.Features.Hentais.Requests;
 using UtilitariosCore.Shared.Dtos;
 
 namespace UtilitariosApi.Controllers;
@@ -85,9 +86,9 @@ public class HentaiController(ISender sender) : ControllerBase
     }
 
     [HttpPut("{id:int}/tags")]
-    public async Task<ActionResult> UpdateTags([FromRoute] int id, [FromBody] List<int> tagIds)
+    public async Task<ActionResult> UpdateTags([FromRoute] int id, [FromBody] UpdateHentaiTagsRequest request)
     {
-        var response = await sender.Send(new UpdateHentaiTagsCommand(id, tagIds));
+        var response = await sender.Send(new UpdateHentaiTagsCommand(id, request.TagIds, request.Name));
         return response.ToActionResult();
     }
 

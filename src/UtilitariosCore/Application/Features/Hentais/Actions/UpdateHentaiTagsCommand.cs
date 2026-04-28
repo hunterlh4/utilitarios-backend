@@ -6,7 +6,7 @@ using UtilitariosCore.Shared.Responses;
 
 namespace UtilitariosCore.Application.Features.Hentais.Actions;
 
-public record UpdateHentaiTagsCommand(int Id, List<int> TagIds) : IRequest<Result>
+public record UpdateHentaiTagsCommand(int Id, List<int> TagIds, string Name = "") : IRequest<Result>
 {
     public sealed class Validator : AbstractValidator<UpdateHentaiTagsCommand>
     {
@@ -25,6 +25,11 @@ public record UpdateHentaiTagsCommand(int Id, List<int> TagIds) : IRequest<Resul
         {
             var hentai = await hentaiRepository.GetHentaiById(request.Id);
             if (hentai is null) return Errors.NotFound("Hentai no encontrado.");
+
+            if (!string.IsNullOrWhiteSpace(request.Name))
+            {
+                await hentaiRepository.UpdateHentaiTitle(request.Id, request.Name);
+            }
 
             await tagRepository.ReplaceTagsForRefId(request.Id, TagType.Hentai, request.TagIds);
 
