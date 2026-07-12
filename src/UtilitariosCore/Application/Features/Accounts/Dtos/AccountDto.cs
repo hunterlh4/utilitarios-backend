@@ -30,6 +30,7 @@ public class AccountSteamDto
     public bool IsVacBanned { get; set; }
     public bool HasSteamMobile { get; set; }
     public DateTime? LastPurchaseDate { get; set; }
+    public DateTime? LastPlay { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 

@@ -69,7 +69,7 @@ public class AccountRepository(MssqlContext context) : IAccountRepository
         var db = context.CreateDefaultConnection();
         string sql = @"
             SELECT s.Id, s.EmailId, e.Email AS EmailAddress, s.Username, s.Password,
-                   s.Phone, s.ProfileUrl, s.ImageUrl, s.HasDota2, s.HasCS2, s.IsUnlimited, s.IsVacBanned, s.HasSteamMobile, s.LastPurchaseDate, s.CreatedAt
+                   s.Phone, s.ProfileUrl, s.ImageUrl, s.HasDota2, s.HasCS2, s.IsUnlimited, s.IsVacBanned, s.HasSteamMobile, s.LastPurchaseDate, s.LastPlay, s.CreatedAt
             FROM AccountSteam s
             LEFT JOIN AccountEmail e ON e.Id = s.EmailId
             ORDER BY s.CreatedAt DESC";
@@ -99,6 +99,31 @@ public class AccountRepository(MssqlContext context) : IAccountRepository
         var db = context.CreateDefaultConnection();
         string sql = "DELETE FROM AccountSteam WHERE Id=@Id";
         return await db.ExecuteAsync(sql, new { Id = id }) > 0;
+    }
+
+    public async Task<bool> UpdateSteamLastPlay(int id, DateTime lastPlay)
+    {
+        var db = context.CreateDefaultConnection();
+        string sql = "UPDATE AccountSteam SET LastPlay=@LastPlay WHERE Id=@Id";
+        return await db.ExecuteAsync(sql, new { Id = id, LastPlay = lastPlay }) > 0;
+    }
+    public async Task<int> ClearWeeklyLastPlay()
+    {
+        var db = context.CreateDefaultConnection();
+        var today = DateTime.Today;
+        
+        // Calcular el martes de esta semana
+        int daysUntilTuesday = ((int)DayOfWeek.Tuesday - (int)today.DayOfWeek + 7) % 7;
+        var tuesday = daysUntilTuesday == 0 ? today : today.AddDays(-daysUntilTuesday);
+        
+        // Si hoy es antes del martes de esta semana (domingo o lunes), ir al martes anterior
+        if (today.DayOfWeek == DayOfWeek.Sunday || today.DayOfWeek == DayOfWeek.Monday)
+        {
+            tuesday = tuesday.AddDays(-7);
+        }
+        
+        string sql = "UPDATE AccountSteam SET LastPlay=NULL WHERE LastPlay IS NOT NULL AND LastPlay < @Tuesday";
+        return await db.ExecuteAsync(sql, new { Tuesday = tuesday });
     }
     #endregion
 

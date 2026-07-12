@@ -17,6 +17,8 @@ public interface IAccountRepository
     Task<int> CreateSteam(AccountSteam account);
     Task<bool> UpdateSteam(AccountSteam account);
     Task<bool> DeleteSteam(int id);
+    Task<bool> UpdateSteamLastPlay(int id, DateTime lastPlay);
+    Task<int> ClearWeeklyLastPlay();
     #endregion
     
     #region account-github

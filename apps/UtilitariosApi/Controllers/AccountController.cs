@@ -71,6 +71,20 @@ public class AccountController(ISender sender) : ControllerBase
         var response = await sender.Send(new DeleteSteamAccountCommand(id));
         return response.ToActionResult();
     }
+
+    [HttpPatch("steam/{id:int}/lastplay")]
+    public async Task<ActionResult> UpdateSteamLastPlay([FromRoute] int id)
+    {
+        var response = await sender.Send(new UpdateSteamLastPlayCommand { Id = id });
+        return response.ToActionResult();
+    }
+
+    [HttpDelete("steam/lastplay")]
+    public async Task<ActionResult> ClearWeeklyLastPlay()
+    {
+        var response = await sender.Send(new ClearSteamLastPlayCommand());
+        return response.ToActionResult();
+    }
     #endregion
 
     #region Account-github
