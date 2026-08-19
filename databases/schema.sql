@@ -107,7 +107,7 @@ CREATE TABLE JavActress (
 -- Media table (Imagenes subida) 1,2,3 N imagenes, 4 actres 1 imagen, 5 1 imagen
 CREATE TABLE Media (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    Type INT NOT NULL, -- 1: GirlGalery N, 2: AnimeGalery N, 3: Project N, 4: ActressJav, 5: ActressAdult
+    Type INT NOT NULL, -- 1: GirlGalery N, 2: AnimeGalery N, 3: Project N, -- ya no 4: ActressJav, 5: ActressAdult
     RefId INT NOT NULL,
     Url NVARCHAR(1000) NOT NULL,
     Thumbnail NVARCHAR(1000),
@@ -116,12 +116,30 @@ CREATE TABLE Media (
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
--- Link table (enlaces genéricos para Project, Jav, GirlGalery, Actress, Post, helpers)
+-- Link table (enlaces genéricos para Project, GirlGalery, Post, helpers, ActressAdult, AnimeGalery)
 CREATE TABLE Link (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    Type INT NOT NULL, -- 1: Project (url_extra), 2: Jav (streaming), 3: HelperJav, 4: GirlGalery, 5: ActressJav, 6: Post, 7: ActressAdult, 8: AnimeGalery
+    Type INT NOT NULL, -- 1: Project (url_extra), 3: HelperJav, 4: GirlGalery, 6: Post, 7: ActressAdult, 8: AnimeGalery
     RefId INT, -- ID de la entidad (NULL para helpers)
     Name NVARCHAR(200), -- Nombre del helper o link
+    Url NVARCHAR(1000) NOT NULL,
+    OrderIndex INT,
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- LinkJav table (enlaces específicos para JAV - streaming)
+CREATE TABLE LinkJav (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    JavId INT NOT NULL, -- ID del JAV
+    Url NVARCHAR(1000) NOT NULL,
+    OrderIndex INT,
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- LinkActressJav table (enlaces específicos para actrices JAV)
+CREATE TABLE LinkActressJav (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    ActressJavId INT NOT NULL, -- ID de la actriz JAV
     Url NVARCHAR(1000) NOT NULL,
     OrderIndex INT,
     CreatedAt DATETIME DEFAULT GETDATE()
@@ -478,6 +496,12 @@ CREATE INDEX IX_Media_Type_RefId ON Media(Type, RefId);
 
 -- Obtener links de una entidad
 CREATE INDEX IX_Link_Type_RefId ON Link(Type, RefId);
+
+-- Obtener links de JAV
+CREATE INDEX IX_LinkJav_JavId ON LinkJav(JavId);
+
+-- Obtener links de actrices JAV
+CREATE INDEX IX_LinkActressJav_ActressJavId ON LinkActressJav(ActressJavId);
 
 -- Obtener tags de una entidad
 CREATE INDEX IX_TagRelation_Type_RefId ON TagRelation(Type, RefId);
