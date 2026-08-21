@@ -41,7 +41,7 @@ public class VideoAdultRepository(MssqlContext context) : IVideoAdultRepository
         var db = context.CreateDefaultConnection();
 
         // Primero eliminar las relaciones con actrices
-        string deleteRelationsSql = "DELETE FROM ActressVideo WHERE VideoAdultId = @VideoId";
+        string deleteRelationsSql = "DELETE FROM RelationActressVideo WHERE VideoAdultId = @VideoId";
         await db.ExecuteAsync(deleteRelationsSql, new { VideoId = videoAdultId });
 
         // Luego eliminar el video
@@ -80,9 +80,9 @@ public class VideoAdultRepository(MssqlContext context) : IVideoAdultRepository
         var db = context.CreateDefaultConnection();
 
         string sql = @"
-        IF NOT EXISTS (SELECT 1 FROM ActressVideo WHERE VideoAdultId = @VideoId AND ActressAdultId = @ActressId)
+        IF NOT EXISTS (SELECT 1 FROM RelationActressVideo WHERE VideoAdultId = @VideoId AND ActressAdultId = @ActressId)
         BEGIN
-            INSERT INTO ActressVideo (VideoAdultId, ActressAdultId)
+            INSERT INTO RelationActressVideo (VideoAdultId, ActressAdultId)
             VALUES (@VideoId, @ActressId)
         END
         ";
@@ -96,7 +96,7 @@ public class VideoAdultRepository(MssqlContext context) : IVideoAdultRepository
         var db = context.CreateDefaultConnection();
 
         string sql = @"
-        DELETE FROM ActressVideo 
+        DELETE FROM RelationActressVideo 
         WHERE VideoAdultId = @VideoId AND ActressAdultId = @ActressId
         ";
 
@@ -107,7 +107,7 @@ public class VideoAdultRepository(MssqlContext context) : IVideoAdultRepository
     public async Task<IEnumerable<int>> GetActressIdsByVideoId(int videoAdultId)
     {
         var db = context.CreateDefaultConnection();
-        string sql = "SELECT ActressAdultId FROM ActressVideo WHERE VideoAdultId = @VideoId";
+        string sql = "SELECT ActressAdultId FROM RelationActressVideo WHERE VideoAdultId = @VideoId";
         var result = await db.QueryAsync<int>(sql, new { VideoId = videoAdultId });
         return result;
     }
@@ -119,7 +119,7 @@ public class VideoAdultRepository(MssqlContext context) : IVideoAdultRepository
         string sql = @"
         SELECT v.Id, v.Source, v.ExternalId, v.VideoUrl, v.Title, v.ThumbnailUrl, v.EmbedHtml, v.Status, v.CreatedAt
         FROM VideoAdult v
-        INNER JOIN ActressVideo av ON v.Id = av.VideoAdultId
+        INNER JOIN RelationActressVideo av ON v.Id = av.VideoAdultId
         WHERE av.ActressAdultId = @ActressId
         ORDER BY v.CreatedAt DESC
         ";
@@ -135,7 +135,7 @@ public class VideoAdultRepository(MssqlContext context) : IVideoAdultRepository
         string sql = @"
         SELECT a.Id, a.Name, a.CreatedAt
         FROM ActressAdult a
-        INNER JOIN ActressVideo av ON a.Id = av.ActressAdultId
+        INNER JOIN RelationActressVideo av ON a.Id = av.ActressAdultId
         WHERE av.VideoAdultId = @VideoId
         ORDER BY a.Name
         ";
@@ -161,8 +161,8 @@ public class VideoAdultRepository(MssqlContext context) : IVideoAdultRepository
             a.Id,
             a.Name
         FROM VideoAdult v
-        INNER JOIN ActressVideo av1 ON v.Id = av1.VideoAdultId
-        INNER JOIN ActressVideo av2 ON v.Id = av2.VideoAdultId
+        INNER JOIN RelationActressVideo av1 ON v.Id = av1.VideoAdultId
+        INNER JOIN RelationActressVideo av2 ON v.Id = av2.VideoAdultId
         INNER JOIN ActressAdult a ON av2.ActressAdultId = a.Id
         WHERE av1.ActressAdultId = @ActressId
         ORDER BY v.CreatedAt DESC, a.Name

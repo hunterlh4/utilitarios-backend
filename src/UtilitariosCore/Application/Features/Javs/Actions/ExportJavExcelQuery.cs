@@ -13,7 +13,8 @@ public record ExportJavExcelQuery : IRequest<Result<ExcelFileDto>>;
 internal sealed class ExportJavExcelQueryHandler(
     IJavRepository javRepository,
     IActressJavRepository actressRepository,
-    ILinkRepository linkRepository,
+    ILinkJavRepository linkJavRepository,
+    ILinkActressJavRepository linkActressJavRepository,
     ITagRepository tagRepository)
     : IRequestHandler<ExportJavExcelQuery, Result<ExcelFileDto>>
 {
@@ -59,15 +60,16 @@ internal sealed class ExportJavExcelQueryHandler(
 
         // ── Hoja 3: JavLinks ──────────────────────────────────────────────────
         var ws3 = package.Workbook.Worksheets.Add("JavLinks");
-        SetHeader(ws3, new[] { "Code", "Link" });
+        SetHeader(ws3, new[] { "Code", "Link", "OrderIndex" });
         row = 2;
         foreach (var jav in javs)
         {
-            var links = await linkRepository.GetLinksByRefId(jav.Id, LinkType.Jav);
+            var links = await linkJavRepository.GetLinkJavsByJavId(jav.Id);
             foreach (var link in links.OrderBy(l => l.OrderIndex ?? int.MaxValue))
             {
                 ws3.Cells[row, 1].Value = jav.Code;
                 ws3.Cells[row, 2].Value = link.Url;
+                ws3.Cells[row, 3].Value = link.OrderIndex;
                 row++;
             }
         }
@@ -75,15 +77,16 @@ internal sealed class ExportJavExcelQueryHandler(
 
         // ── Hoja 4: ActressJavLinks ───────────────────────────────────────────
         var ws4 = package.Workbook.Worksheets.Add("ActressJavLinks");
-        SetHeader(ws4, new[] { "ActressName", "Link" });
+        SetHeader(ws4, new[] { "ActressName", "Link", "OrderIndex" });
         row = 2;
         foreach (var actress in actresses)
         {
-            var links = await linkRepository.GetLinksByRefId(actress.Id, LinkType.ActressJav);
+            var links = await linkActressJavRepository.GetLinkActressJavsByActressId(actress.Id);
             foreach (var link in links.OrderBy(l => l.OrderIndex ?? int.MaxValue))
             {
                 ws4.Cells[row, 1].Value = actress.Name;
                 ws4.Cells[row, 2].Value = link.Url;
+                ws4.Cells[row, 3].Value = link.OrderIndex;
                 row++;
             }
         }

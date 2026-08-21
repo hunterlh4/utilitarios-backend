@@ -30,7 +30,7 @@ public record UpdateJavCommand(int Id) : IRequest<Result>
 
     internal sealed class Handler(
         IJavRepository javRepository,
-        ILinkRepository linkRepository,
+        ILinkJavRepository linkJavRepository,
         ITagRepository tagRepository)
         : IRequestHandler<UpdateJavCommand, Result>
     {
@@ -53,26 +53,32 @@ public record UpdateJavCommand(int Id) : IRequest<Result>
             foreach (var id in incomingIds.Except(currentIds))
                 await javRepository.AddActressToJav(request.Id, id);
 
-            // Diff links: eliminar los que ya no vienen, agregar los nuevos
-            var currentLinks = (await linkRepository.GetLinksByRefId(request.Id, LinkType.Jav)).ToList();
+            // Diff links JAV: eliminar los que ya no vienen, agregar los nuevos
+            var currentJavLinks = await linkJavRepository.GetLinkJavsByJavId(request.Id);
             var incomingUrls = request.Links
                 .Where(u => !string.IsNullOrWhiteSpace(u))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var link in currentLinks.Where(l => !incomingUrls.Contains(l.Url)))
-                await linkRepository.DeleteLink(link.Id);
+            // Eliminar links que ya no están en la lista
+            foreach (var link in currentJavLinks.Where(l => !incomingUrls.Contains(l.Url)))
+                await linkJavRepository.DeleteLinkJav(link.Id);
 
-            var existingUrls = currentLinks.Select(l => l.Url).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            foreach (var url in incomingUrls.Where(u => !existingUrls.Contains(u)))
+            // Agregar nuevos links
+            var existingUrls = currentJavLinks.Select(l => l.Url).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var orderIndex = 1;
+            foreach (var url in request.Links.Where(u => !string.IsNullOrWhiteSpace(u)))
             {
-                await linkRepository.CreateLink(new Link
+                if (!existingUrls.Contains(url))
                 {
-                    Type = LinkType.Jav,
-                    RefId = request.Id,
-                    Name = null,
-                    Url = url,
-                    CreatedAt = DateTime.UtcNow
-                });
+                    await linkJavRepository.CreateLinkJav(new LinkJav
+                    {
+                        JavId = request.Id,
+                        Url = url,
+                        OrderIndex = orderIndex,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+                orderIndex++;
             }
 
             await tagRepository.ReplaceTagsForRefId(request.Id, TagType.Jav, request.TagIds);

@@ -87,7 +87,7 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
 
         try
         {
-            const string deleteRelationsSql = "DELETE FROM JavActress WHERE ActressId = @Id";
+            const string deleteRelationsSql = "DELETE FROM RelationJavActress WHERE ActressId = @Id";
             const string deleteActressSql = "DELETE FROM ActressJav WHERE Id = @Id";
 
             await db.ExecuteAsync(deleteRelationsSql, new { Id = id }, transaction);
@@ -168,7 +168,7 @@ public class ActressJavRepository(MssqlContext context) : IActressJavRepository
             ) AS TagsRaw,
             (
                 SELECT COUNT(DISTINCT ja.JavId)
-                FROM JavActress ja
+                FROM RelationJavActress ja
                 WHERE ja.ActressId = a.Id
             ) AS JavCount
         FROM ActressJav a

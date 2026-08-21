@@ -30,12 +30,26 @@ public class GetAllJavsQuery : IRequest<Result<IEnumerable<JavDto>>>
                 {
                     var tags = await tagRepository.GetTagsByRefId(actressWithLinks.Actress.Id, TagType.ActressJav);
                     foreach (var tag in tags) allTags.Add(tag.Name);
+
                     actresses.Add(new ActressDto
                     {
                         Id = actressWithLinks.Actress.Id,
-                        Name = actressWithLinks.Actress.Name
+                        Name = actressWithLinks.Actress.Name,
+                        CreatedAt = actressWithLinks.Actress.CreatedAt
                     });
                 }
+
+                // Mapear los links del JAV desde LinkJav a LinkJavDto
+                var javLinks = item.JavLinks
+                    .OrderBy(l => l.OrderIndex ?? int.MaxValue)
+                    .Select(l => new LinkJavDto
+                    {
+                        Id = l.Id,
+                        JavId = l.JavId,
+                        Url = l.Url,
+                        OrderIndex = l.OrderIndex,
+                        CreatedAt = l.CreatedAt
+                    }).ToList();
 
                 result.Add(new JavDto
                 {
@@ -45,7 +59,7 @@ public class GetAllJavsQuery : IRequest<Result<IEnumerable<JavDto>>>
                     Tags = [.. allTags],
                     Image = item.Jav.Image,
                     Status = item.Jav.Status,
-                    Links = item.JavLinks.OrderBy(l => l.OrderIndex ?? int.MaxValue).ToList(),
+                    Links = javLinks,
                     CreatedAt = item.Jav.CreatedAt
                 });
             }

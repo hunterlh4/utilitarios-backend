@@ -21,7 +21,6 @@ public class BulkCreateJavCommand : IRequest<Result<CreateJavDto>>
     public List<BulkActressInput> Actresses { get; set; } = new();
     public string? Image { get; set; }
     public List<string> Links { get; set; } = new();
-    public DateTime? CreatedAt { get; set; }
 
     public sealed class Validator : AbstractValidator<BulkCreateJavCommand>
     {
@@ -40,7 +39,8 @@ public class BulkCreateJavCommand : IRequest<Result<CreateJavDto>>
     internal sealed class Handler(
         IJavRepository javRepository,
         IActressJavRepository actressJavRepository,
-        ILinkRepository linkRepository)
+        ILinkJavRepository linkJavRepository,
+        ILinkActressJavRepository linkActressJavRepository)
         : IRequestHandler<BulkCreateJavCommand, Result<CreateJavDto>>
     {
         public async Task<Result<CreateJavDto>> Handle(BulkCreateJavCommand request, CancellationToken cancellationToken)
@@ -71,7 +71,7 @@ public class BulkCreateJavCommand : IRequest<Result<CreateJavDto>>
                     Code = request.Code.ToUpper(),
                     Image = request.Image ?? string.Empty,
                     Status = ContentStatus.Pending,
-                    CreatedAt = request.CreatedAt ?? DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 var javId = await javRepository.CreateJav(newJav);
@@ -108,34 +108,33 @@ public class BulkCreateJavCommand : IRequest<Result<CreateJavDto>>
 
                     if (!string.IsNullOrWhiteSpace(actressInput.Url))
                     {
-                        var existingLinks = await linkRepository.GetLinksByRefId(actressId, LinkType.ActressJav);
+                        var existingLinks = await linkActressJavRepository.GetLinkActressJavsByActressId(actressId);
                         if (!existingLinks.Any(l => l.Url == actressInput.Url))
                         {
-                            await linkRepository.CreateLink(new Link
+                            await linkActressJavRepository.CreateLinkActressJav(new LinkActressJav
                             {
-                                Type = LinkType.ActressJav,
-                                RefId = actressId,
-                                Name = null,
+                                ActressJavId = actressId,
                                 Url = actressInput.Url,
+                                OrderIndex = existingLinks.Count + 1,
                                 CreatedAt = DateTime.UtcNow
                             });
                         }
                     }
                 }
 
-                // Crear links del Jav
+                // Crear links del Jav usando LinkJav
                 if (request.Links != null && request.Links.Count > 0)
                 {
-                    foreach (var url in request.Links)
+                    for (int i = 0; i < request.Links.Count; i++)
                     {
+                        var url = request.Links[i];
                         if (!string.IsNullOrWhiteSpace(url))
                         {
-                            await linkRepository.CreateLink(new Link
+                            await linkJavRepository.CreateLinkJav(new LinkJav
                             {
-                                Type = LinkType.Jav,
-                                RefId = javId,
-                                Name = null,
+                                JavId = javId,
                                 Url = url,
+                                OrderIndex = i + 1,
                                 CreatedAt = DateTime.UtcNow
                             });
                         }

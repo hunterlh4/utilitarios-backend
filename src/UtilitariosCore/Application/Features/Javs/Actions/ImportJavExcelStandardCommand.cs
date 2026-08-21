@@ -16,7 +16,8 @@ public record ImportJavExcelStandardCommand : IRequest<Result<ImportJavExcelResu
 internal sealed class ImportJavExcelStandardCommandHandler(
     IJavRepository javRepository,
     IActressJavRepository actressRepository,
-    ILinkRepository linkRepository)
+    ILinkJavRepository linkJavRepository,
+    ILinkActressJavRepository linkActressJavRepository)
     : IRequestHandler<ImportJavExcelStandardCommand, Result<ImportJavExcelResult>>
 {
     public async Task<Result<ImportJavExcelResult>> Handle(ImportJavExcelStandardCommand request, CancellationToken cancellationToken)
@@ -80,8 +81,8 @@ internal sealed class ImportJavExcelStandardCommandHandler(
         CancellationToken cancellationToken)
     {
         int codeCol = GetColumnIndex(ws, "Code");
-        int imageCol = GetColumnIndex(ws, "Image");
-        int statusCol = GetColumnIndex(ws, "Status");
+        int imageCol = GetOptionalColumnIndex(ws, "Image");
+        int statusCol = GetOptionalColumnIndex(ws, "Status");
         int lastRow = ws.Dimension!.End.Row;
 
         for (int row = 2; row <= lastRow; row++)
@@ -133,7 +134,7 @@ internal sealed class ImportJavExcelStandardCommandHandler(
         CancellationToken cancellationToken)
     {
         int nameCol = GetColumnIndex(ws, "Name");
-        int imageCol = GetColumnIndex(ws, "Image");
+        int imageCol = GetOptionalColumnIndex(ws, "Image");
         int lastRow = ws.Dimension!.End.Row;
 
         for (int row = 2; row <= lastRow; row++)
@@ -187,6 +188,7 @@ internal sealed class ImportJavExcelStandardCommandHandler(
     {
         int codeCol = GetColumnIndex(ws, "Code");
         int linkCol = GetColumnIndex(ws, "Link");
+        int orderCol = GetOptionalColumnIndex(ws, "OrderIndex");
         int lastRow = ws.Dimension!.End.Row;
 
         var existingByJavId = new Dictionary<int, HashSet<string>>();
@@ -213,7 +215,7 @@ internal sealed class ImportJavExcelStandardCommandHandler(
 
             if (!existingByJavId.TryGetValue(jav.Id, out var urlSet))
             {
-                var existingLinks = await linkRepository.GetLinksByRefId(jav.Id, LinkType.Jav);
+                var existingLinks = await linkJavRepository.GetLinkJavsByJavId(jav.Id);
                 urlSet = existingLinks
                     .Select(l => l.Url.Trim())
                     .Where(u => !string.IsNullOrWhiteSpace(u))
@@ -227,11 +229,13 @@ internal sealed class ImportJavExcelStandardCommandHandler(
                 continue;
             }
 
-            await linkRepository.CreateLink(new Link
+            var orderIndex = orderCol > 0 && int.TryParse(ws.Cells[row, orderCol].Text?.Trim(), out var order) ? order : (int?)null;
+
+            await linkJavRepository.CreateLinkJav(new LinkJav
             {
-                Type = LinkType.Jav,
-                RefId = jav.Id,
+                JavId = jav.Id,
                 Url = rawUrl,
+                OrderIndex = orderIndex,
                 CreatedAt = DateTime.UtcNow
             });
         }
@@ -247,6 +251,7 @@ internal sealed class ImportJavExcelStandardCommandHandler(
     {
         int nameCol = GetColumnIndex(ws, "ActressName");
         int linkCol = GetColumnIndex(ws, "Link");
+        int orderCol = GetOptionalColumnIndex(ws, "OrderIndex");
         int lastRow = ws.Dimension!.End.Row;
 
         var existingByActressId = new Dictionary<int, HashSet<string>>();
@@ -273,7 +278,7 @@ internal sealed class ImportJavExcelStandardCommandHandler(
 
             if (!existingByActressId.TryGetValue(actress.Id, out var urlSet))
             {
-                var existingLinks = await linkRepository.GetLinksByRefId(actress.Id, LinkType.ActressJav);
+                var existingLinks = await linkActressJavRepository.GetLinkActressJavsByActressId(actress.Id);
                 urlSet = existingLinks
                     .Select(l => l.Url.Trim())
                     .Where(u => !string.IsNullOrWhiteSpace(u))
@@ -287,11 +292,13 @@ internal sealed class ImportJavExcelStandardCommandHandler(
                 continue;
             }
 
-            await linkRepository.CreateLink(new Link
+            var orderIndex = orderCol > 0 && int.TryParse(ws.Cells[row, orderCol].Text?.Trim(), out var order) ? order : (int?)null;
+
+            await linkActressJavRepository.CreateLinkActressJav(new LinkActressJav
             {
-                Type = LinkType.ActressJav,
-                RefId = actress.Id,
+                ActressJavId = actress.Id,
                 Url = rawUrl,
+                OrderIndex = orderIndex,
                 CreatedAt = DateTime.UtcNow
             });
         }
@@ -369,6 +376,19 @@ internal sealed class ImportJavExcelStandardCommandHandler(
         }
 
         throw new InvalidOperationException($"No se encontro la columna requerida '{headerName}' en la hoja '{ws.Name}'.");
+    }
+
+    private static int GetOptionalColumnIndex(ExcelWorksheet ws, string headerName)
+    {
+        int maxCol = ws.Dimension?.End.Column ?? 0;
+        for (int col = 1; col <= maxCol; col++)
+        {
+            var header = ws.Cells[1, col].Text?.Trim();
+            if (string.Equals(header, headerName, StringComparison.OrdinalIgnoreCase))
+                return col;
+        }
+
+        return -1; // Column not found, that's OK for optional columns
     }
 
 }

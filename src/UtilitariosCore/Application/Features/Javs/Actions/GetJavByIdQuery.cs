@@ -22,11 +22,25 @@ public record GetJavByIdQuery(int Id) : IRequest<Result<JavDto>>
                 return Errors.NotFound();
             }
 
-            var actresses = item.Actresses.Select(a => new ActressDto
+            // Mapear actrices (sin sus links)
+            var actresses = item.Actresses.Select(actressWithLinks => new ActressDto
             {
-                Id = a.Actress.Id,
-                Name = a.Actress.Name
+                Id = actressWithLinks.Actress.Id,
+                Name = actressWithLinks.Actress.Name,
+                CreatedAt = actressWithLinks.Actress.CreatedAt
             }).ToList();
+
+            // Mapear links del JAV
+            var javLinks = item.JavLinks
+                .OrderBy(l => l.OrderIndex ?? int.MaxValue)
+                .Select(l => new LinkJavDto
+                {
+                    Id = l.Id,
+                    JavId = l.JavId,
+                    Url = l.Url,
+                    OrderIndex = l.OrderIndex,
+                    CreatedAt = l.CreatedAt
+                }).ToList();
 
             var javTags = await tagRepository.GetTagsByRefId(item.Jav.Id, TagType.Jav);
 
@@ -38,7 +52,7 @@ public record GetJavByIdQuery(int Id) : IRequest<Result<JavDto>>
                 Tags = javTags.Select(t => t.Name).ToList(),
                 Image = item.Jav.Image,
                 Status = item.Jav.Status,
-                Links = item.JavLinks.OrderBy(l => l.OrderIndex ?? int.MaxValue).ToList(),
+                Links = javLinks,
                 CreatedAt = item.Jav.CreatedAt
             };
         }

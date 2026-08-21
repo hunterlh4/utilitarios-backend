@@ -65,7 +65,7 @@ public class JavRepository(MssqlContext context) : IJavRepository
 
         try
         {
-            const string deleteRelationsSql = "DELETE FROM JavActress WHERE JavId = @Id";
+            const string deleteRelationsSql = "DELETE FROM RelationJavActress WHERE JavId = @Id";
             const string deleteJavSql = "DELETE FROM Jav WHERE Id = @Id";
 
             await db.ExecuteAsync(deleteRelationsSql, new { Id = id }, transaction);
@@ -116,7 +116,7 @@ public class JavRepository(MssqlContext context) : IJavRepository
         string sql = @"
         SELECT j.Id, j.Code, j.Image, j.Status, j.CreatedAt
         FROM Jav j
-        INNER JOIN JavActress ja ON j.Id = ja.JavId
+        INNER JOIN RelationJavActress ja ON j.Id = ja.JavId
         WHERE ja.ActressId = @ActressId
         ORDER BY j.CreatedAt DESC
         ";
@@ -125,132 +125,30 @@ public class JavRepository(MssqlContext context) : IJavRepository
         return result;
     }
 
-    public async Task<IEnumerable<JavWithDetails>> GetJavsWithDetailsByActressId(int actressId)
-    {
-        var db = context.CreateDefaultConnection();
-
-        string sql = $@"
-        SELECT
-            j.Id, j.Code, j.Image, j.Status, j.CreatedAt,
-            a.Id, a.Name, a.CreatedAt,
-            l.Id, l.Type, l.RefId, l.Name, l.Url, l.OrderIndex, l.CreatedAt
-        FROM Jav j
-        INNER JOIN JavActress jaf ON j.Id = jaf.JavId AND jaf.ActressId = @ActressId
-        LEFT JOIN JavActress ja ON j.Id = ja.JavId
-        LEFT JOIN ActressJav a ON ja.ActressId = a.Id
-        LEFT JOIN Link l ON
-            (l.RefId = j.Id AND l.Type = {(int)LinkType.Jav})
-            OR (l.RefId = a.Id AND l.Type = {(int)LinkType.ActressJav})
-        ORDER BY j.CreatedAt DESC, j.Id, a.Id, l.Type, l.Id
-        ";
-
-        var javDict = new Dictionary<int, JavWithDetails>();
-
-        await db.QueryAsync<Jav, ActressJav?, Link?, JavWithDetails>(
-            sql,
-            (jav, actress, link) =>
-            {
-                if (!javDict.TryGetValue(jav.Id, out var javDetails))
-                {
-                    javDetails = new JavWithDetails { Jav = jav };
-                    javDict.Add(jav.Id, javDetails);
-                }
-
-                if (actress != null)
-                {
-                    var actressEntry = javDetails.Actresses.FirstOrDefault(a => a.Actress.Id == actress.Id);
-                    if (actressEntry == null)
-                    {
-                        actressEntry = new ActressWithLinks { Actress = actress };
-                        javDetails.Actresses.Add(actressEntry);
-                    }
-
-                    if (link != null && link.Type == LinkType.ActressJav
-                        && !actressEntry.Links.Any(l => l.Id == link.Id))
-                    {
-                        actressEntry.Links.Add(link);
-                    }
-                }
-
-                if (link != null && link.Type == LinkType.Jav
-                    && !javDetails.JavLinks.Any(l => l.Id == link.Id))
-                {
-                    javDetails.JavLinks.Add(link);
-                }
-
-                return javDetails;
-            },
-            new { ActressId = actressId },
-            splitOn: "Id,Id,Id"
-        );
-
-        return javDict.Values;
-    }
-
-    public async Task<bool> AddActressToJav(int javId, int actressId)
-    {
-        var db = context.CreateDefaultConnection();
-
-        string sql = @"
-        IF NOT EXISTS (SELECT 1 FROM JavActress WHERE JavId = @JavId AND ActressId = @ActressId)
-        BEGIN
-            INSERT INTO JavActress (JavId, ActressId) VALUES (@JavId, @ActressId)
-        END
-        ";
-
-        var rows = await db.ExecuteAsync(sql, new { JavId = javId, ActressId = actressId });
-        return rows > 0;
-    }
-
-    public async Task<bool> RemoveActressesFromJav(int javId)
-    {
-        var db = context.CreateDefaultConnection();
-        string sql = "DELETE FROM JavActress WHERE JavId = @JavId";
-        var rows = await db.ExecuteAsync(sql, new { JavId = javId });
-        return rows > 0;
-    }
-
-    public async Task<IEnumerable<int>> GetActressIdsByJavId(int javId)
-    {
-        var db = context.CreateDefaultConnection();
-        return await db.QueryAsync<int>(
-            "SELECT ActressId FROM JavActress WHERE JavId = @JavId",
-            new { JavId = javId });
-    }
-
-    public async Task<bool> RemoveActressFromJav(int javId, int actressId)
-    {
-        var db = context.CreateDefaultConnection();
-        var rows = await db.ExecuteAsync(
-            "DELETE FROM JavActress WHERE JavId = @JavId AND ActressId = @ActressId",
-            new { JavId = javId, ActressId = actressId });
-        return rows > 0;
-    }
-
     public async Task<JavWithDetails?> GetJavWithDetailsById(int id)
     {
         var db = context.CreateDefaultConnection();
 
-        string sql = $@"
+        string sql = @"
         SELECT
             j.Id, j.Code, j.Image, j.Status, j.CreatedAt,
             a.Id, a.Name, a.CreatedAt,
-            l.Id, l.Type, l.RefId, l.Name, l.Url, l.OrderIndex, l.CreatedAt
+            lj.Id, lj.JavId, lj.Url, lj.OrderIndex, lj.CreatedAt,
+            laj.Id, laj.ActressJavId, laj.Url, laj.OrderIndex, laj.CreatedAt
         FROM Jav j
-        LEFT JOIN JavActress ja ON j.Id = ja.JavId
+        LEFT JOIN RelationJavActress ja ON j.Id = ja.JavId
         LEFT JOIN ActressJav a ON ja.ActressId = a.Id
-        LEFT JOIN Link l ON
-            (l.RefId = j.Id AND l.Type = {(int)LinkType.Jav})
-            OR (l.RefId = a.Id AND l.Type = {(int)LinkType.ActressJav})
+        LEFT JOIN LinkJav lj ON lj.JavId = j.Id
+        LEFT JOIN LinkActressJav laj ON laj.ActressJavId = a.Id
         WHERE j.Id = @Id
-        ORDER BY a.Id, l.Type, l.Id
+        ORDER BY a.Id, lj.OrderIndex, lj.Id, laj.OrderIndex, laj.Id
         ";
 
         JavWithDetails? javDetails = null;
 
-        await db.QueryAsync<Jav, ActressJav?, Link?, JavWithDetails>(
+        await db.QueryAsync<Jav, ActressJav?, LinkJav?, LinkActressJav?, JavWithDetails>(
             sql,
-            (jav, actress, link) =>
+            (jav, actress, javLink, actressLink) =>
             {
                 javDetails ??= new JavWithDetails { Jav = jav };
 
@@ -263,51 +161,93 @@ public class JavRepository(MssqlContext context) : IJavRepository
                         javDetails.Actresses.Add(actressEntry);
                     }
 
-                    if (link != null && link.Type == LinkType.ActressJav
-                        && !actressEntry.Links.Any(l => l.Id == link.Id))
+                    if (actressLink != null && !actressEntry.Links.Any(l => l.Id == actressLink.Id))
                     {
-                        actressEntry.Links.Add(link);
+                        actressEntry.Links.Add(actressLink);
                     }
                 }
 
-                if (link != null && link.Type == LinkType.Jav
-                    && !javDetails.JavLinks.Any(l => l.Id == link.Id))
+                if (javLink != null && !javDetails.JavLinks.Any(l => l.Id == javLink.Id))
                 {
-                    javDetails.JavLinks.Add(link);
+                    javDetails.JavLinks.Add(javLink);
                 }
 
                 return javDetails;
             },
             new { Id = id },
-            splitOn: "Id,Id,Id"
+            splitOn: "Id,Id,Id,Id"
         );
 
         return javDetails;
     }
 
-    public async Task<IEnumerable<JavWithDetails>> GetAllJavsWithDetails()
+
+    public async Task<bool> AddActressToJav(int javId, int actressId)
     {
         var db = context.CreateDefaultConnection();
 
-        string sql = $@"
+        string sql = @"
+        IF NOT EXISTS (SELECT 1 FROM RelationJavActress WHERE JavId = @JavId AND ActressId = @ActressId)
+        BEGIN
+            INSERT INTO RelationJavActress (JavId, ActressId) VALUES (@JavId, @ActressId)
+        END
+        ";
+
+        var rows = await db.ExecuteAsync(sql, new { JavId = javId, ActressId = actressId });
+        return rows > 0;
+    }
+
+    public async Task<bool> RemoveActressesFromJav(int javId)
+    {
+        var db = context.CreateDefaultConnection();
+        string sql = "DELETE FROM RelationJavActress WHERE JavId = @JavId";
+        var rows = await db.ExecuteAsync(sql, new { JavId = javId });
+        return rows > 0;
+    }
+
+    public async Task<IEnumerable<int>> GetActressIdsByJavId(int javId)
+    {
+        var db = context.CreateDefaultConnection();
+        return await db.QueryAsync<int>(
+            "SELECT ActressId FROM RelationJavActress WHERE JavId = @JavId",
+            new { JavId = javId });
+    }
+
+    public async Task<bool> RemoveActressFromJav(int javId, int actressId)
+    {
+        var db = context.CreateDefaultConnection();
+        var rows = await db.ExecuteAsync(
+            "DELETE FROM RelationJavActress WHERE JavId = @JavId AND ActressId = @ActressId",
+            new { JavId = javId, ActressId = actressId });
+        return rows > 0;
+    }
+
+
+
+    public async Task<IEnumerable<JavWithDetails>> GetJavsWithDetailsByActressId(int actressId)
+    {
+        var db = context.CreateDefaultConnection();
+
+        string sql = @"
         SELECT
             j.Id, j.Code, j.Image, j.Status, j.CreatedAt,
             a.Id, a.Name, a.CreatedAt,
-            l.Id, l.Type, l.RefId, l.Name, l.Url, l.OrderIndex, l.CreatedAt
+            lj.Id, lj.JavId, lj.Url, lj.OrderIndex, lj.CreatedAt,
+            laj.Id, laj.ActressJavId, laj.Url, laj.OrderIndex, laj.CreatedAt
         FROM Jav j
-        LEFT JOIN JavActress ja ON j.Id = ja.JavId
+        INNER JOIN RelationJavActress jaf ON j.Id = jaf.JavId AND jaf.ActressId = @ActressId
+        LEFT JOIN RelationJavActress ja ON j.Id = ja.JavId
         LEFT JOIN ActressJav a ON ja.ActressId = a.Id
-        LEFT JOIN Link l ON
-            (l.RefId = j.Id AND l.Type = {(int)LinkType.Jav})
-            OR (l.RefId = a.Id AND l.Type = {(int)LinkType.ActressJav})
-        ORDER BY j.CreatedAt DESC, j.Id, a.Id, l.Type, l.Id
+        LEFT JOIN LinkJav lj ON lj.JavId = j.Id
+        LEFT JOIN LinkActressJav laj ON laj.ActressJavId = a.Id
+        ORDER BY j.CreatedAt DESC, j.Id, a.Id, lj.OrderIndex, lj.Id, laj.OrderIndex, laj.Id
         ";
 
         var javDict = new Dictionary<int, JavWithDetails>();
 
-        await db.QueryAsync<Jav, ActressJav?, Link?, JavWithDetails>(
+        await db.QueryAsync<Jav, ActressJav?, LinkJav?, LinkActressJav?, JavWithDetails>(
             sql,
-            (jav, actress, link) =>
+            (jav, actress, javLink, actressLink) =>
             {
                 if (!javDict.TryGetValue(jav.Id, out var javDetails))
                 {
@@ -324,24 +264,82 @@ public class JavRepository(MssqlContext context) : IJavRepository
                         javDetails.Actresses.Add(actressEntry);
                     }
 
-                    if (link != null && link.Type == LinkType.ActressJav
-                        && !actressEntry.Links.Any(l => l.Id == link.Id))
+                    if (actressLink != null && !actressEntry.Links.Any(l => l.Id == actressLink.Id))
                     {
-                        actressEntry.Links.Add(link);
+                        actressEntry.Links.Add(actressLink);
                     }
                 }
 
-                if (link != null && link.Type == LinkType.Jav
-                    && !javDetails.JavLinks.Any(l => l.Id == link.Id))
+                if (javLink != null && !javDetails.JavLinks.Any(l => l.Id == javLink.Id))
                 {
-                    javDetails.JavLinks.Add(link);
+                    javDetails.JavLinks.Add(javLink);
                 }
 
                 return javDetails;
             },
-            splitOn: "Id,Id,Id"
+            new { ActressId = actressId },
+            splitOn: "Id,Id,Id,Id"
         );
 
         return javDict.Values;
     }
+
+    public async Task<IEnumerable<JavWithDetails>> GetAllJavsWithDetails()
+    {
+        var db = context.CreateDefaultConnection();
+
+        string sql = @"
+        SELECT
+            j.Id, j.Code, j.Image, j.Status, j.CreatedAt,
+            a.Id, a.Name, a.CreatedAt,
+            lj.Id, lj.JavId, lj.Url, lj.OrderIndex, lj.CreatedAt,
+            laj.Id, laj.ActressJavId, laj.Url, laj.OrderIndex, laj.CreatedAt
+        FROM Jav j
+        LEFT JOIN RelationJavActress ja ON j.Id = ja.JavId
+        LEFT JOIN ActressJav a ON ja.ActressId = a.Id
+        LEFT JOIN LinkJav lj ON lj.JavId = j.Id
+        LEFT JOIN LinkActressJav laj ON laj.ActressJavId = a.Id
+        ORDER BY j.CreatedAt DESC, j.Id, a.Id, lj.OrderIndex, lj.Id, laj.OrderIndex, laj.Id
+        ";
+
+        var javDict = new Dictionary<int, JavWithDetails>();
+
+        await db.QueryAsync<Jav, ActressJav?, LinkJav?, LinkActressJav?, JavWithDetails>(
+            sql,
+            (jav, actress, javLink, actressLink) =>
+            {
+                if (!javDict.TryGetValue(jav.Id, out var javDetails))
+                {
+                    javDetails = new JavWithDetails { Jav = jav };
+                    javDict.Add(jav.Id, javDetails);
+                }
+
+                if (actress != null)
+                {
+                    var actressEntry = javDetails.Actresses.FirstOrDefault(a => a.Actress.Id == actress.Id);
+                    if (actressEntry == null)
+                    {
+                        actressEntry = new ActressWithLinks { Actress = actress };
+                        javDetails.Actresses.Add(actressEntry);
+                    }
+
+                    if (actressLink != null && !actressEntry.Links.Any(l => l.Id == actressLink.Id))
+                    {
+                        actressEntry.Links.Add(actressLink);
+                    }
+                }
+
+                if (javLink != null && !javDetails.JavLinks.Any(l => l.Id == javLink.Id))
+                {
+                    javDetails.JavLinks.Add(javLink);
+                }
+
+                return javDetails;
+            },
+            splitOn: "Id,Id,Id,Id"
+        );
+
+        return javDict.Values;
+    }
+
 }

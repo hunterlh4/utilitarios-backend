@@ -26,12 +26,12 @@ public interface IJavRepository
 public class ActressWithLinks
 {
     public ActressJav Actress { get; set; } = null!;
-    public List<Link> Links { get; set; } = new();
+    public List<LinkActressJav> Links { get; set; } = new();
 }
 
 public class JavWithDetails
 {
     public Jav Jav { get; set; } = null!;
     public List<ActressWithLinks> Actresses { get; set; } = new();
-    public List<Link> JavLinks { get; set; } = new();
+    public List<LinkJav> JavLinks { get; set; } = new();
 }

@@ -30,7 +30,7 @@ public class CreateJavCommand : IRequest<Result<CreateJavDto>>
 
     internal sealed class Handler(
         IJavRepository javRepository,
-        ILinkRepository linkRepository,
+        ILinkJavRepository linkJavRepository,
         ITagRepository tagRepository)
         : IRequestHandler<CreateJavCommand, Result<CreateJavDto>>
     {
@@ -54,15 +54,17 @@ public class CreateJavCommand : IRequest<Result<CreateJavDto>>
 
             if (request.Links != null && request.Links.Count > 0)
             {
-                foreach (var url in request.Links)
+                // Usar la nueva tabla LinkJav en lugar de Link genérica
+                for (int i = 0; i < request.Links.Count; i++)
                 {
+                    var url = request.Links[i];
                     if (!string.IsNullOrWhiteSpace(url))
                     {
-                        await linkRepository.CreateLink(new Link
+                        await linkJavRepository.CreateLinkJav(new LinkJav
                         {
-                            Type = LinkType.Jav,
-                            RefId = javId,
+                            JavId = javId,
                             Url = url,
+                            OrderIndex = i + 1,
                             CreatedAt = DateTime.UtcNow
                         });
                     }

@@ -71,8 +71,8 @@ CREATE TABLE VideoAdult (
     UNIQUE (Source, ExternalId)
 );
 
--- ActressVideo table (relación N:N entre actrices y videos)
-CREATE TABLE ActressVideo (
+-- RelationActressVideo table (relación N:N entre actrices y videos)
+CREATE TABLE RelationActressVideo (
     ActressAdultId INT NOT NULL,
     VideoAdultId INT NOT NULL,
     PRIMARY KEY (ActressAdultId, VideoAdultId)
@@ -95,8 +95,8 @@ CREATE TABLE Jav (
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
--- JavActress table (relación N:N entre JAVs y actrices)
-CREATE TABLE JavActress (
+-- RelationJavActress table (relación N:N entre JAVs y actrices)
+CREATE TABLE RelationJavActress (
     JavId INT NOT NULL,
     ActressId INT NOT NULL,
     PRIMARY KEY (JavId, ActressId)
@@ -140,6 +140,14 @@ CREATE TABLE LinkJav (
 CREATE TABLE LinkActressJav (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     ActressJavId INT NOT NULL, -- ID de la actriz JAV
+    Url NVARCHAR(1000) NOT NULL,
+    OrderIndex INT,
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE LinkActressAdult (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    ActressAdult INT NOT NULL, -- ID de la actriz JAV
     Url NVARCHAR(1000) NOT NULL,
     OrderIndex INT,
     CreatedAt DATETIME DEFAULT GETDATE()
@@ -469,6 +477,16 @@ CREATE TABLE Comic (
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
+CREATE TABLE Gastos (
+    Id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    TipoGastoId INT NOT NULL, -- 1 alimentacion, 2 transporte, 3 entretenimiento, 4 servicios, 5 servicios, 6 golosina, 7 salud, 8 limpieza, 9 otros, 10 prestamo_deuda, 11 pago, 12 prestamo_pago
+    Monto DECIMAL(12,2) NOT NULL,
+    Fecha DATETIME2 NOT NULL,
+    Descripcion VARCHAR(255) NULL,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
+);
+
+
 -- Indexes para mejorar rendimiento de consultas
 
 -- Filtrar por status (proximamente/completado)
@@ -484,12 +502,12 @@ CREATE INDEX IX_Series_ImdbId ON Series(ImdbId);
 CREATE INDEX IX_Jav_Code ON Jav(Code);
 
 -- Buscar actrices de un JAV y JAVs de una actriz
-CREATE INDEX IX_JavActress_JavId ON JavActress(JavId);
-CREATE INDEX IX_JavActress_ActressId ON JavActress(ActressId);
+CREATE INDEX IX_RelationJavActress_JavId ON RelationJavActress(JavId);
+CREATE INDEX IX_RelationJavActress_ActressId ON RelationJavActress(ActressId);
 
 -- Obtener videos de una actriz
-CREATE INDEX IX_ActressVideo_ActressAdultId ON ActressVideo(ActressAdultId);
-CREATE INDEX IX_ActressVideo_VideoAdultId ON ActressVideo(VideoAdultId);
+CREATE INDEX IX_RelationActressVideo_ActressAdultId ON RelationActressVideo(ActressAdultId);
+CREATE INDEX IX_RelationActressVideo_VideoAdultId ON RelationActressVideo(VideoAdultId);
 
 -- Obtener media de una entidad
 CREATE INDEX IX_Media_Type_RefId ON Media(Type, RefId);
