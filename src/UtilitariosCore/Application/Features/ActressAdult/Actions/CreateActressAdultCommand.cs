@@ -3,7 +3,6 @@ using MediatR;
 using UtilitariosCore.Application.Features.ActressAdults.Dtos;
 using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
-using UtilitariosCore.Domain.Models;
 using UtilitariosCore.Shared.Responses;
 using UtilitariosCore.Shared.Utils;
 
@@ -37,7 +36,7 @@ public record CreateActressAdultCommand : IRequest<Result<CreateActressAdultDto>
             if (exists)
                 return Errors.BadRequest($"Ya existe una actriz con el nombre '{normalizedName}'.");
 
-            var newActress = new ActressAdult
+            var newActress = new Domain.Models.ActressAdult
             {
                 Name = normalizedName,
                 CreatedAt = DateTime.UtcNow

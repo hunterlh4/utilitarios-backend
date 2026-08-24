@@ -1,9 +1,10 @@
 using MediatR;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Shared.Dtos;
 using UtilitariosCore.Shared.Responses;
-using UtilitariosCore.Shared.Utils;
 
 namespace UtilitariosCore.Application.Features.ActressAdults.Actions;
 
@@ -12,90 +13,118 @@ public record ExportActressAdultExcelQuery : IRequest<Result<ExcelFileDto>>;
 internal sealed class ExportActressAdultExcelQueryHandler(
     IActressAdultRepository repository,
     IVideoAdultRepository videoAdultRepository,
-    ITagRepository tagRepository,
-    ILinkRepository linkRepository)
+    ILinkRepository linkRepository,
+    ITagRepository tagRepository)
     : IRequestHandler<ExportActressAdultExcelQuery, Result<ExcelFileDto>>
 {
     public async Task<Result<ExcelFileDto>> Handle(ExportActressAdultExcelQuery request, CancellationToken cancellationToken)
     {
-        var actresses = (await repository.GetAllActressAdults()).ToList();
-        var actressRows = new List<ActressAdultExcelRow>();
-        var actressLinkRows = new List<ActressAdultLinkExcelRow>();
+        var actresses = (await repository.GetAllActressAdults()).OrderBy(a => a.Id).ToList();
+        var videos = (await videoAdultRepository.GetAllVideoAdults()).OrderBy(v => v.Id).ToList();
+        var actressById = actresses.ToDictionary(a => a.Id);
 
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var package = new ExcelPackage();
+
+        // ── Hoja 1: ActressAdult ────────────────────────────────────────────────
+        var ws1 = package.Workbook.Worksheets.Add("ActressAdult");
+        SetHeader(ws1, new[] { "Id", "Name", "Image", "TagIds" });
+        int row = 2;
         foreach (var actress in actresses)
         {
-            var actressTagIds = (await tagRepository.GetTagsByRefId(actress.Id, TagType.ActressAdult))
-                .Select(t => t.Id)
-                .ToList();
-            actressRows.Add(new ActressAdultExcelRow
-            {
-                Id = actress.Id,
-                Name = actress.Name,
-                Image = actress.Image,
-                TagIds = actressTagIds.Any() ? string.Join(',', actressTagIds.OrderBy(x => x)) : null,
-            });
+            var tags = await tagRepository.GetTagsByRefId(actress.Id, TagType.ActressAdult);
+            var tagIds = tags.Select(t => t.Id).Where(id => id > 0).OrderBy(id => id).ToList();
+            var tagIdsString = tagIds.Count > 0 ? string.Join(",", tagIds) : null;
+            
+            ws1.Cells[row, 1].Value = actress.Id;
+            ws1.Cells[row, 2].Value = actress.Name;
+            ws1.Cells[row, 3].Value = actress.Image;
+            ws1.Cells[row, 4].Value = tagIdsString;
+            row++;
+        }
+        ws1.Cells[ws1.Dimension?.Address ?? "A1"].AutoFitColumns();
 
+        // ── Hoja 2: Videos ──────────────────────────────────────────────────────
+        var ws2 = package.Workbook.Worksheets.Add("Videos");
+        SetHeader(ws2, new[] { "Id", "Source", "ExternalId", "VideoUrl", "Title", "ThumbnailUrl", "Status", "TagIds" });
+        row = 2;
+        foreach (var video in videos)
+        {
+            var tags = await tagRepository.GetTagsByRefId(video.Id, TagType.VideoAdult);
+            var tagIds = tags.Select(t => t.Id).Where(id => id > 0).OrderBy(id => id).ToList();
+            var tagIdsString = tagIds.Count > 0 ? string.Join(",", tagIds) : null;
+            
+            ws2.Cells[row, 1].Value = video.Id;
+            ws2.Cells[row, 2].Value = video.Source;
+            ws2.Cells[row, 3].Value = video.ExternalId;
+            ws2.Cells[row, 4].Value = video.VideoUrl;
+            ws2.Cells[row, 5].Value = video.Title;
+            ws2.Cells[row, 6].Value = video.ThumbnailUrl;
+            ws2.Cells[row, 7].Value = (int)video.Status;
+            ws2.Cells[row, 8].Value = tagIdsString;
+            row++;
+        }
+        ws2.Cells[ws2.Dimension?.Address ?? "A1"].AutoFitColumns();
+
+        // ── Hoja 3: ActressAdultLinks ───────────────────────────────────────────
+        var ws3 = package.Workbook.Worksheets.Add("ActressAdultLinks");
+        SetHeader(ws3, new[] { "ActressId", "ActressName", "Link", "OrderIndex" });
+        row = 2;
+        foreach (var actress in actresses)
+        {
             var links = await linkRepository.GetLinksByRefId(actress.Id, LinkType.ActressAdult);
             foreach (var link in links.OrderBy(l => l.OrderIndex ?? int.MaxValue))
             {
-                actressLinkRows.Add(new ActressAdultLinkExcelRow
-                {
-                    ActressAdultId = actress.Id,
-                    ActressAdultName = actress.Name,
-                    Url = link.Url,
-                    OrderIndex = link.OrderIndex ?? 0,
-                });
+                ws3.Cells[row, 1].Value = actress.Id;
+                ws3.Cells[row, 2].Value = actress.Name;
+                ws3.Cells[row, 3].Value = link.Url;
+                ws3.Cells[row, 4].Value = link.OrderIndex;
+                row++;
             }
         }
+        ws3.Cells[ws3.Dimension?.Address ?? "A1"].AutoFitColumns();
 
-        var videos = (await videoAdultRepository.GetAllVideoAdults()).ToList();
-        var videoRows = new List<VideoAdultExcelRow>();
-        var videoLinkRows = new List<VideoAdultLinkExcelRow>();
-
+        // ── Hoja 4: Relations (VideoId ↔ ActressId) ────────────────────────────
+        var ws4 = package.Workbook.Worksheets.Add("Relations");
+        SetHeader(ws4, new[] { "VideoId", "ActressId", "ExternalId", "ActressName" });
+        row = 2;
         foreach (var video in videos)
         {
-            var videoTagIds = (await tagRepository.GetTagsByRefId(video.Id, TagType.VideoAdult))
-                .Select(t => t.Id)
-                .ToList();
-            var actressIds = (await videoAdultRepository.GetActressIdsByVideoId(video.Id)).ToList();
-            var actressNames = actresses
-                .Where(a => actressIds.Contains(a.Id))
-                .Select(a => a.Name)
-                .ToList();
-
-            videoRows.Add(new VideoAdultExcelRow
+            var actressIds = await videoAdultRepository.GetActressIdsByVideoId(video.Id);
+            foreach (var actressId in actressIds)
             {
-                Id = video.Id,
-                Source = video.Source,
-                ExternalId = video.ExternalId,
-                VideoUrl = video.VideoUrl,
-                Title = video.Title,
-                ThumbnailUrl = video.ThumbnailUrl,
-                Status = (int)video.Status,
-                TagIds = videoTagIds.Any() ? string.Join(',', videoTagIds.OrderBy(x => x)) : null,
-                ActressIds = actressIds.Any() ? string.Join(',', actressIds.OrderBy(x => x)) : null,
-                ActressNames = actressNames.Any() ? string.Join(", ", actressNames) : null,
-            });
-
-            if (!string.IsNullOrWhiteSpace(video.VideoUrl))
-            {
-                videoLinkRows.Add(new VideoAdultLinkExcelRow
+                if (actressById.TryGetValue(actressId, out var actress))
                 {
-                    VideoAdultId = video.Id,
-                    VideoExternalId = video.ExternalId,
-                    Url = video.VideoUrl,
-                    OrderIndex = 1,
-                });
+                    ws4.Cells[row, 1].Value = video.Id;
+                    ws4.Cells[row, 2].Value = actress.Id;
+                    ws4.Cells[row, 3].Value = video.ExternalId;
+                    ws4.Cells[row, 4].Value = actress.Name;
+                    row++;
+                }
             }
         }
+        ws4.Cells[ws4.Dimension?.Address ?? "A1"].AutoFitColumns();
 
-        using var stream = ExcelHelper.CreateActressAdultExcel(actressRows, actressLinkRows, videoRows, videoLinkRows);
-        var base64 = Convert.ToBase64String(stream.ToArray());
+        var stream = new MemoryStream();
+        package.SaveAs(stream);
+        stream.Position = 0;
 
         return new ExcelFileDto
         {
-            FileName = $"actress-adult.xlsx",
-            Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{base64}"
+            FileName = $"actress-adult-export.xlsx",
+            Base64 = $"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{Convert.ToBase64String(stream.ToArray())}"
         };
+    }
+
+    private static void SetHeader(ExcelWorksheet ws, string[] headers)
+    {
+        for (int i = 0; i < headers.Length; i++)
+            ws.Cells[1, i + 1].Value = headers[i];
+
+        var range = ws.Cells[1, 1, 1, headers.Length];
+        range.Style.Font.Bold = true;
+        range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+        range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
     }
 }

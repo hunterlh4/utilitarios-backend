@@ -17,7 +17,8 @@ internal sealed class ImportJavExcelStandardCommandHandler(
     IJavRepository javRepository,
     IActressJavRepository actressRepository,
     ILinkJavRepository linkJavRepository,
-    ILinkActressJavRepository linkActressJavRepository)
+    ILinkActressJavRepository linkActressJavRepository,
+    ITagRepository tagRepository)
     : IRequestHandler<ImportJavExcelStandardCommand, Result<ImportJavExcelResult>>
 {
     public async Task<Result<ImportJavExcelResult>> Handle(ImportJavExcelStandardCommand request, CancellationToken cancellationToken)
@@ -40,31 +41,37 @@ internal sealed class ImportJavExcelStandardCommandHandler(
 
         var result = new ImportJavExcelResult();
 
+        // Obtener tags válidos para validación
+        var validJavTagIds = (await tagRepository.GetAllTagsByType(TagType.Jav)).Select(tag => tag.Id).ToHashSet();
+        var validActressTagIds = (await tagRepository.GetAllTagsByType(TagType.ActressJav)).Select(tag => tag.Id).ToHashSet();
+
         var allJavs = (await javRepository.GetAllJavs()).ToList();
         var javByCode = allJavs.ToDictionary(
             j => j.Code.ToUpperInvariant(),
             j => j,
             StringComparer.OrdinalIgnoreCase);
+        var javById = allJavs.ToDictionary(j => j.Id);
 
         var allActresses = (await actressRepository.GetAllActressJav()).ToList();
         var actressByCanonical = allActresses.ToDictionary(
             a => StringNormalizer.GetCanonicalFormForComparison(a.Name),
             a => a,
             StringComparer.OrdinalIgnoreCase);
+        var actressById = allActresses.ToDictionary(a => a.Id);
 
-        if (!await ImportJavsSheet(wsJavs, javByCode, result, cancellationToken))
+        if (!await ImportJavsSheet(wsJavs, javByCode, javById, validJavTagIds, result, cancellationToken))
             return Errors.BadRequest("No se pudo importar la hoja 'Javs'.");
 
         if (wsActress?.Dimension is not null)
-            if (!await ImportActressSheet(wsActress, actressByCanonical, result, cancellationToken))
+            if (!await ImportActressSheet(wsActress, actressByCanonical, actressById, validActressTagIds, result, cancellationToken))
                 return Errors.BadRequest("No se pudo importar la hoja 'ActressJav'.");
 
         if (wsJavLinks?.Dimension is not null)
-            if (!await ImportJavLinksSheet(wsJavLinks, javByCode, result, cancellationToken))
+            if (!await ImportJavLinksSheet(wsJavLinks, javByCode, javById, result, cancellationToken))
                 return Errors.BadRequest("No se pudo importar la hoja 'JavLinks'.");
 
         if (wsActressLinks?.Dimension is not null)
-            if (!await ImportActressLinksSheet(wsActressLinks, actressByCanonical, result, cancellationToken))
+            if (!await ImportActressLinksSheet(wsActressLinks, actressByCanonical, actressById, result, cancellationToken))
                 return Errors.BadRequest("No se pudo importar la hoja 'ActressJavLinks'.");
 
         if (wsRelations?.Dimension is not null)
@@ -77,12 +84,16 @@ internal sealed class ImportJavExcelStandardCommandHandler(
     private async Task<bool> ImportJavsSheet(
         ExcelWorksheet ws,
         Dictionary<string, Jav> javByCode,
+        Dictionary<int, Jav> javById,
+        HashSet<int> validJavTagIds,
         ImportJavExcelResult result,
         CancellationToken cancellationToken)
     {
+        int idCol = GetOptionalColumnIndex(ws, "Id");
         int codeCol = GetColumnIndex(ws, "Code");
         int imageCol = GetOptionalColumnIndex(ws, "Image");
         int statusCol = GetOptionalColumnIndex(ws, "Status");
+        int tagIdsCol = GetOptionalColumnIndex(ws, "TagIds");
         int lastRow = ws.Dimension!.End.Row;
 
         for (int row = 2; row <= lastRow; row++)
@@ -97,10 +108,19 @@ internal sealed class ImportJavExcelStandardCommandHandler(
             }
 
             var code = rawCode.ToUpperInvariant();
-            if (javByCode.ContainsKey(code))
+            Jav? existing = null;
+            var wasCreated = false;
+            var javUpdated = false;
+
+            // Buscar por ID primero, luego por código
+            if (idCol > 0 && int.TryParse(ws.Cells[row, idCol].Text?.Trim(), out var id) && id > 0)
             {
-                result.Skipped++;
-                continue;
+                javById.TryGetValue(id, out existing);
+            }
+            
+            if (existing == null)
+            {
+                javByCode.TryGetValue(code, out existing);
             }
 
             var image = imageCol > 0 ? ws.Cells[row, imageCol].Text?.Trim() ?? string.Empty : string.Empty;
@@ -110,18 +130,77 @@ internal sealed class ImportJavExcelStandardCommandHandler(
                 status = (ContentStatus)statusInt;
             }
 
-            var jav = new Jav
+            if (existing == null)
             {
-                Code = code,
-                Image = image,
-                Status = status,
-                CreatedAt = DateTime.UtcNow
-            };
+                // Crear nuevo
+                var newId = await javRepository.CreateJav(new Jav
+                {
+                    Code = code,
+                    Image = image,
+                    Status = status,
+                    CreatedAt = DateTime.UtcNow
+                });
 
-            var newId = await javRepository.CreateJav(jav);
-            jav.Id = newId;
-            javByCode[code] = jav;
-            result.JavsCreated++;
+                existing = new Jav
+                {
+                    Id = newId,
+                    Code = code,
+                    Image = image,
+                    Status = status,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                javByCode[code] = existing;
+                javById[newId] = existing;
+                wasCreated = true;
+            }
+            else
+            {
+                // Actualizar existente
+                var nextImage = string.IsNullOrWhiteSpace(image) ? existing.Image : image;
+                var hasChanges = existing.Code != code || existing.Image != nextImage || existing.Status != status;
+
+                if (hasChanges)
+                {
+                    existing.Code = code;
+                    existing.Image = nextImage;
+                    existing.Status = status;
+                    await javRepository.UpdateJav(existing);
+                    javByCode[code] = existing;
+                    javById[existing.Id] = existing;
+                    javUpdated = true;
+                }
+            }
+
+            // Manejar tags si están presentes
+            var hasTagChanges = false;
+            if (tagIdsCol > 0)
+            {
+                var rawTagIds = ws.Cells[row, tagIdsCol].Text?.Trim();
+                var desiredTagIds = ParseTagIds(rawTagIds, validJavTagIds, out var hasTagInput, out var hadInvalidTagTokens);
+                if (hadInvalidTagTokens)
+                    result.Invalid++;
+
+                if (hasTagInput)
+                {
+                    var currentTagIds = (await tagRepository.GetTagsByRefId(existing.Id, TagType.Jav))
+                        .Select(tag => tag.Id)
+                        .ToHashSet();
+
+                    if (!currentTagIds.SetEquals(desiredTagIds))
+                    {
+                        await tagRepository.ReplaceTagsForRefId(existing.Id, TagType.Jav, desiredTagIds);
+                        hasTagChanges = true;
+                    }
+                }
+            }
+
+            if (wasCreated)
+                result.JavsCreated++;
+            else if (javUpdated || hasTagChanges)
+                result.Updated++;
+            else
+                result.Skipped++;
         }
 
         return true;
@@ -130,11 +209,15 @@ internal sealed class ImportJavExcelStandardCommandHandler(
     private async Task<bool> ImportActressSheet(
         ExcelWorksheet ws,
         Dictionary<string, ActressJav> actressByCanonical,
+        Dictionary<int, ActressJav> actressById,
+        HashSet<int> validActressTagIds,
         ImportJavExcelResult result,
         CancellationToken cancellationToken)
     {
+        int idCol = GetOptionalColumnIndex(ws, "Id");
         int nameCol = GetColumnIndex(ws, "Name");
         int imageCol = GetOptionalColumnIndex(ws, "Image");
+        int tagIdsCol = GetOptionalColumnIndex(ws, "TagIds");
         int lastRow = ws.Dimension!.End.Row;
 
         for (int row = 2; row <= lastRow; row++)
@@ -148,33 +231,93 @@ internal sealed class ImportJavExcelStandardCommandHandler(
                 continue;
             }
 
-            var canonical = StringNormalizer.GetCanonicalFormForComparison(rawName);
-            if (string.IsNullOrWhiteSpace(canonical))
-            {
-                result.Invalid++;
-                continue;
-            }
-
-            if (actressByCanonical.ContainsKey(canonical))
-            {
-                result.Skipped++;
-                continue;
-            }
-
             var normalizedName = StringNormalizer.ToTitleCaseWithNumbers(rawName);
+            var canonical = StringNormalizer.GetCanonicalFormForComparison(rawName);
+            ActressJav? existing = null;
+            var wasCreated = false;
+            var actressUpdated = false;
+
+            // Buscar por ID primero, luego por nombre
+            if (idCol > 0 && int.TryParse(ws.Cells[row, idCol].Text?.Trim(), out var id) && id > 0)
+            {
+                actressById.TryGetValue(id, out existing);
+            }
+            
+            if (existing == null)
+            {
+                actressByCanonical.TryGetValue(canonical, out existing);
+            }
+
             var image = imageCol > 0 ? ws.Cells[row, imageCol].Text?.Trim() : null;
 
-            var actress = new ActressJav
+            if (existing == null)
             {
-                Name = normalizedName,
-                Image = string.IsNullOrWhiteSpace(image) ? null : image,
-                CreatedAt = DateTime.UtcNow
-            };
+                // Crear nueva
+                var newId = await actressRepository.CreateActressJav(new ActressJav
+                {
+                    Name = normalizedName,
+                    Image = string.IsNullOrWhiteSpace(image) ? null : image,
+                    CreatedAt = DateTime.UtcNow
+                });
 
-            var newId = await actressRepository.CreateActressJav(actress);
-            actress.Id = newId;
-            actressByCanonical[canonical] = actress;
-            result.ActressesCreated++;
+                existing = new ActressJav
+                {
+                    Id = newId,
+                    Name = normalizedName,
+                    Image = string.IsNullOrWhiteSpace(image) ? null : image,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                actressByCanonical[canonical] = existing;
+                actressById[newId] = existing;
+                wasCreated = true;
+            }
+            else
+            {
+                // Actualizar existente
+                var nextImage = string.IsNullOrWhiteSpace(image) ? existing.Image : image;
+                var hasChanges = existing.Name != normalizedName || existing.Image != nextImage;
+
+                if (hasChanges)
+                {
+                    existing.Name = normalizedName;
+                    existing.Image = nextImage;
+                    await actressRepository.UpdateActressJav(existing);
+                    actressByCanonical[canonical] = existing;
+                    actressById[existing.Id] = existing;
+                    actressUpdated = true;
+                }
+            }
+
+            // Manejar tags si están presentes
+            var hasTagChanges = false;
+            if (tagIdsCol > 0)
+            {
+                var rawTagIds = ws.Cells[row, tagIdsCol].Text?.Trim();
+                var desiredTagIds = ParseTagIds(rawTagIds, validActressTagIds, out var hasTagInput, out var hadInvalidTagTokens);
+                if (hadInvalidTagTokens)
+                    result.Invalid++;
+
+                if (hasTagInput)
+                {
+                    var currentTagIds = (await tagRepository.GetTagsByRefId(existing.Id, TagType.ActressJav))
+                        .Select(tag => tag.Id)
+                        .ToHashSet();
+
+                    if (!currentTagIds.SetEquals(desiredTagIds))
+                    {
+                        await tagRepository.ReplaceTagsForRefId(existing.Id, TagType.ActressJav, desiredTagIds);
+                        hasTagChanges = true;
+                    }
+                }
+            }
+
+            if (wasCreated)
+                result.ActressesCreated++;
+            else if (actressUpdated || hasTagChanges)
+                result.Updated++;
+            else
+                result.Skipped++;
         }
 
         return true;
@@ -183,9 +326,11 @@ internal sealed class ImportJavExcelStandardCommandHandler(
     private async Task<bool> ImportJavLinksSheet(
         ExcelWorksheet ws,
         Dictionary<string, Jav> javByCode,
+        Dictionary<int, Jav> javById,
         ImportJavExcelResult result,
         CancellationToken cancellationToken)
     {
+        int javIdCol = GetOptionalColumnIndex(ws, "JavId");
         int codeCol = GetColumnIndex(ws, "Code");
         int linkCol = GetColumnIndex(ws, "Link");
         int orderCol = GetOptionalColumnIndex(ws, "OrderIndex");
@@ -206,8 +351,21 @@ internal sealed class ImportJavExcelStandardCommandHandler(
                 continue;
             }
 
-            var code = rawCode.ToUpperInvariant();
-            if (!javByCode.TryGetValue(code, out var jav))
+            Jav? jav = null;
+            
+            // Buscar por ID primero, luego por código
+            if (javIdCol > 0 && int.TryParse(ws.Cells[row, javIdCol].Text?.Trim(), out var javId) && javId > 0)
+            {
+                javById.TryGetValue(javId, out jav);
+            }
+            
+            if (jav == null)
+            {
+                var code = rawCode.ToUpperInvariant();
+                javByCode.TryGetValue(code, out jav);
+            }
+
+            if (jav == null)
             {
                 result.Invalid++;
                 continue;
@@ -246,9 +404,11 @@ internal sealed class ImportJavExcelStandardCommandHandler(
     private async Task<bool> ImportActressLinksSheet(
         ExcelWorksheet ws,
         Dictionary<string, ActressJav> actressByCanonical,
+        Dictionary<int, ActressJav> actressById,
         ImportJavExcelResult result,
         CancellationToken cancellationToken)
     {
+        int actressIdCol = GetOptionalColumnIndex(ws, "ActressId");
         int nameCol = GetColumnIndex(ws, "ActressName");
         int linkCol = GetColumnIndex(ws, "Link");
         int orderCol = GetOptionalColumnIndex(ws, "OrderIndex");
@@ -269,8 +429,21 @@ internal sealed class ImportJavExcelStandardCommandHandler(
                 continue;
             }
 
-            var canonical = StringNormalizer.GetCanonicalFormForComparison(rawName);
-            if (!actressByCanonical.TryGetValue(canonical, out var actress))
+            ActressJav? actress = null;
+            
+            // Buscar por ID primero, luego por nombre
+            if (actressIdCol > 0 && int.TryParse(ws.Cells[row, actressIdCol].Text?.Trim(), out var actressId) && actressId > 0)
+            {
+                actressById.TryGetValue(actressId, out actress);
+            }
+            
+            if (actress == null)
+            {
+                var canonical = StringNormalizer.GetCanonicalFormForComparison(rawName);
+                actressByCanonical.TryGetValue(canonical, out actress);
+            }
+
+            if (actress == null)
             {
                 result.Invalid++;
                 continue;
@@ -389,6 +562,31 @@ internal sealed class ImportJavExcelStandardCommandHandler(
         }
 
         return -1; // Column not found, that's OK for optional columns
+    }
+
+    private static List<int> ParseTagIds(string? rawTags, HashSet<int> validTagIds, out bool hasInput, out bool hadInvalidTokens)
+    {
+        hasInput = !string.IsNullOrWhiteSpace(rawTags);
+        hadInvalidTokens = false;
+
+        if (!hasInput)
+            return [];
+
+        var tagIds = new HashSet<int>();
+        var tokens = (rawTags ?? string.Empty).Split([',', ';', '|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        foreach (var token in tokens)
+        {
+            if (int.TryParse(token, out var tagId) && tagId > 0 && validTagIds.Contains(tagId))
+            {
+                tagIds.Add(tagId);
+                continue;
+            }
+
+            hadInvalidTokens = true;
+        }
+
+        return tagIds.OrderBy(id => id).ToList();
     }
 
 }

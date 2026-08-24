@@ -52,7 +52,7 @@ public class JavController(ISender sender) : ControllerBase
        var response = await sender.Send(command);
        return response.ToActionResult();
     }
-
+    // completo
     [HttpPost("import")]
     public async Task<ActionResult<ImportJavExcelResult>> ImportExcel([FromForm] IFormFile file)
     {
@@ -66,7 +66,7 @@ public class JavController(ISender sender) : ControllerBase
         var response = await sender.Send(new ImportJavExcelStandardCommand { FileBytes = memory.ToArray() });
         return response.ToActionResult();
     }
-
+    //  codigo y nombre
     [HttpPost("import-temporal")]
     public async Task<ActionResult<ImportJavExcelResult>> ImportExcelTemporal([FromForm] IFormFile file)
     {

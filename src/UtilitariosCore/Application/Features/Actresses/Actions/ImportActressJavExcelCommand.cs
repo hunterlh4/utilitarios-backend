@@ -16,7 +16,8 @@ public record ImportActressJavExcelCommand : IRequest<Result<ImportExcelResult>>
 internal sealed class ImportActressJavExcelCommandHandler(
     IActressJavRepository repository,
     IJavRepository javRepository,
-    ILinkRepository linkRepository,
+    ILinkJavRepository linkJavRepository,
+    ILinkActressJavRepository linkActressJavRepository,
     ITagRepository tagRepository)
     : IRequestHandler<ImportActressJavExcelCommand, Result<ImportExcelResult>>
 {
@@ -308,7 +309,7 @@ internal sealed class ImportActressJavExcelCommandHandler(
 
     private async Task<bool> SyncActressLinks(int actressId, List<string> urls)
     {
-        var existingLinks = (await linkRepository.GetLinksByRefId(actressId, LinkType.ActressJav)).ToList();
+        var existingLinks = (await linkActressJavRepository.GetLinkActressJavsByActressId(actressId)).ToList();
         var existingByUrl = existingLinks
             .Where(x => !string.IsNullOrWhiteSpace(x.Url))
             .ToDictionary(x => x.Url.Trim(), x => x, StringComparer.OrdinalIgnoreCase);
@@ -323,7 +324,7 @@ internal sealed class ImportActressJavExcelCommandHandler(
         {
             if (!incoming.Contains(existing.Url.Trim(), StringComparer.OrdinalIgnoreCase))
             {
-                await linkRepository.DeleteLink(existing.Id);
+                await linkActressJavRepository.DeleteLinkActressJav(existing.Id);
                 changed = true;
             }
         }
@@ -338,16 +339,15 @@ internal sealed class ImportActressJavExcelCommandHandler(
                 if (current.OrderIndex != orderIndex)
                 {
                     current.OrderIndex = orderIndex;
-                    await linkRepository.UpdateLink(current);
+                    await linkActressJavRepository.UpdateLinkActressJav(current);
                     changed = true;
                 }
             }
             else
             {
-                await linkRepository.CreateLink(new Link
+                await linkActressJavRepository.CreateLinkActressJav(new LinkActressJav
                 {
-                    Type = LinkType.ActressJav,
-                    RefId = actressId,
+                    ActressJavId = actressId,
                     Url = url,
                     OrderIndex = orderIndex,
                     CreatedAt = DateTime.UtcNow
@@ -361,7 +361,7 @@ internal sealed class ImportActressJavExcelCommandHandler(
 
     private async Task<bool> SyncJavLinks(int javId, List<string> urls)
     {
-        var existingLinks = (await linkRepository.GetLinksByRefId(javId, LinkType.Jav)).ToList();
+        var existingLinks = (await linkJavRepository.GetLinkJavsByJavId(javId)).ToList();
         var existingByUrl = existingLinks
             .Where(x => !string.IsNullOrWhiteSpace(x.Url))
             .ToDictionary(x => x.Url.Trim(), x => x, StringComparer.OrdinalIgnoreCase);
@@ -376,7 +376,7 @@ internal sealed class ImportActressJavExcelCommandHandler(
         {
             if (!incoming.Contains(existing.Url.Trim(), StringComparer.OrdinalIgnoreCase))
             {
-                await linkRepository.DeleteLink(existing.Id);
+                await linkJavRepository.DeleteLinkJav(existing.Id);
                 changed = true;
             }
         }
@@ -391,16 +391,15 @@ internal sealed class ImportActressJavExcelCommandHandler(
                 if (current.OrderIndex != orderIndex)
                 {
                     current.OrderIndex = orderIndex;
-                    await linkRepository.UpdateLink(current);
+                    await linkJavRepository.UpdateLinkJav(current);
                     changed = true;
                 }
             }
             else
             {
-                await linkRepository.CreateLink(new Link
+                await linkJavRepository.CreateLinkJav(new LinkJav
                 {
-                    Type = LinkType.Jav,
-                    RefId = javId,
+                    JavId = javId,
                     Url = url,
                     OrderIndex = orderIndex,
                     CreatedAt = DateTime.UtcNow

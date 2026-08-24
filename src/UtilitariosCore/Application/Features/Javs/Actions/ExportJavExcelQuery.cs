@@ -29,47 +29,54 @@ internal sealed class ExportJavExcelQueryHandler(
 
         // ── Hoja 1: Javs ──────────────────────────────────────────────────────
         var ws1 = package.Workbook.Worksheets.Add("Javs");
-        SetHeader(ws1, new[] { "Code", "Image", "Status", "Tags" });
+        SetHeader(ws1, new[] { "Id", "Code", "Image", "Status", "TagIds" });
         int row = 2;
         foreach (var jav in javs)
         {
             var tags = await tagRepository.GetTagsByRefId(jav.Id, TagType.Jav);
-            var tagNames = string.Join(", ", tags.Select(t => t.Name));
-            ws1.Cells[row, 1].Value = jav.Code;
-            ws1.Cells[row, 2].Value = jav.Image;
-            ws1.Cells[row, 3].Value = (int)jav.Status;
-            ws1.Cells[row, 4].Value = tagNames;
+            var tagIds = tags.Select(t => t.Id).Where(id => id > 0).OrderBy(id => id).ToList();
+            var tagIdsString = tagIds.Count > 0 ? string.Join(",", tagIds) : null;
+            
+            ws1.Cells[row, 1].Value = jav.Id;
+            ws1.Cells[row, 2].Value = jav.Code;
+            ws1.Cells[row, 3].Value = jav.Image;
+            ws1.Cells[row, 4].Value = (int)jav.Status;
+            ws1.Cells[row, 5].Value = tagIdsString;
             row++;
         }
         ws1.Cells[ws1.Dimension?.Address ?? "A1"].AutoFitColumns();
 
         // ── Hoja 2: ActressJav ────────────────────────────────────────────────
         var ws2 = package.Workbook.Worksheets.Add("ActressJav");
-        SetHeader(ws2, new[] { "Name", "Image", "Tags" });
+        SetHeader(ws2, new[] { "Id", "Name", "Image", "TagIds" });
         row = 2;
         foreach (var actress in actresses)
         {
             var tags = await tagRepository.GetTagsByRefId(actress.Id, TagType.ActressJav);
-            var tagNames = string.Join(", ", tags.Select(t => t.Name));
-            ws2.Cells[row, 1].Value = actress.Name;
-            ws2.Cells[row, 2].Value = actress.Image;
-            ws2.Cells[row, 3].Value = tagNames;
+            var tagIds = tags.Select(t => t.Id).Where(id => id > 0).OrderBy(id => id).ToList();
+            var tagIdsString = tagIds.Count > 0 ? string.Join(",", tagIds) : null;
+            
+            ws2.Cells[row, 1].Value = actress.Id;
+            ws2.Cells[row, 2].Value = actress.Name;
+            ws2.Cells[row, 3].Value = actress.Image;
+            ws2.Cells[row, 4].Value = tagIdsString;
             row++;
         }
         ws2.Cells[ws2.Dimension?.Address ?? "A1"].AutoFitColumns();
 
         // ── Hoja 3: JavLinks ──────────────────────────────────────────────────
         var ws3 = package.Workbook.Worksheets.Add("JavLinks");
-        SetHeader(ws3, new[] { "Code", "Link", "OrderIndex" });
+        SetHeader(ws3, new[] { "JavId", "Code", "Link", "OrderIndex" });
         row = 2;
         foreach (var jav in javs)
         {
             var links = await linkJavRepository.GetLinkJavsByJavId(jav.Id);
             foreach (var link in links.OrderBy(l => l.OrderIndex ?? int.MaxValue))
             {
-                ws3.Cells[row, 1].Value = jav.Code;
-                ws3.Cells[row, 2].Value = link.Url;
-                ws3.Cells[row, 3].Value = link.OrderIndex;
+                ws3.Cells[row, 1].Value = jav.Id;
+                ws3.Cells[row, 2].Value = jav.Code;
+                ws3.Cells[row, 3].Value = link.Url;
+                ws3.Cells[row, 4].Value = link.OrderIndex;
                 row++;
             }
         }
@@ -77,16 +84,17 @@ internal sealed class ExportJavExcelQueryHandler(
 
         // ── Hoja 4: ActressJavLinks ───────────────────────────────────────────
         var ws4 = package.Workbook.Worksheets.Add("ActressJavLinks");
-        SetHeader(ws4, new[] { "ActressName", "Link", "OrderIndex" });
+        SetHeader(ws4, new[] { "ActressId", "ActressName", "Link", "OrderIndex" });
         row = 2;
         foreach (var actress in actresses)
         {
             var links = await linkActressJavRepository.GetLinkActressJavsByActressId(actress.Id);
             foreach (var link in links.OrderBy(l => l.OrderIndex ?? int.MaxValue))
             {
-                ws4.Cells[row, 1].Value = actress.Name;
-                ws4.Cells[row, 2].Value = link.Url;
-                ws4.Cells[row, 3].Value = link.OrderIndex;
+                ws4.Cells[row, 1].Value = actress.Id;
+                ws4.Cells[row, 2].Value = actress.Name;
+                ws4.Cells[row, 3].Value = link.Url;
+                ws4.Cells[row, 4].Value = link.OrderIndex;
                 row++;
             }
         }

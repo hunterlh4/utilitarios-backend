@@ -1,4 +1,5 @@
 using MediatR;
+using OfficeOpenXml;
 using UtilitariosCore.Domain.Enums;
 using UtilitariosCore.Domain.Interfaces;
 using UtilitariosCore.Domain.Models;
@@ -25,178 +26,344 @@ internal sealed class ImportActressAdultExcelCommandHandler(
         if (request.FileBytes.Length == 0)
             return Errors.BadRequest("Archivo Excel vacio.");
 
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using var stream = new MemoryStream(request.FileBytes);
-        var data = ExcelHelper.ReadActressAdultExcel(stream);
+        using var package = new ExcelPackage(stream);
+        
+        var actressSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "ActressAdult")
+                        ?? package.Workbook.Worksheets.FirstOrDefault();
+        var actressLinksSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "ActressAdultLinks");
+        var videosSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Videos");
+        var relationsSheet = package.Workbook.Worksheets.FirstOrDefault(w => w.Name == "Relations");
 
         int created = 0;
         int updated = 0;
         int skipped = 0;
         int invalid = 0;
 
-        var actressByExcelId = new Dictionary<int, ActressAdult>();
-        var actressByName = new Dictionary<string, ActressAdult>(StringComparer.OrdinalIgnoreCase);
+        var actressesByExcelId = new Dictionary<int, Domain.Models.ActressAdult>();
+        var actressesByName = new Dictionary<string, Domain.Models.ActressAdult>(StringComparer.OrdinalIgnoreCase);
+        var validActressTagIds = (await tagRepository.GetAllTagsByType(TagType.ActressAdult)).Select(tag => tag.Id).ToHashSet();
+        var validVideoTagIds = (await tagRepository.GetAllTagsByType(TagType.VideoAdult)).Select(tag => tag.Id).ToHashSet();
 
-        foreach (var row in data.Actresses)
+        var existingActresses = await repository.GetAllActressAdults();
+        foreach (var actress in existingActresses)
         {
-            if (string.IsNullOrWhiteSpace(row.Name))
-            {
-                invalid++;
-                continue;
-            }
-
-            var normalizedName = StringNormalizer.ToTitleCaseWithNumbers(row.Name);
-            var existing = await repository.GetActressAdultByName(normalizedName);
-            var parsedTagIds = ParseIds(row.TagIds);
-
-            if (existing is null)
-            {
-                var createdId = await repository.CreateActressAdult(new ActressAdult
-                {
-                    Name = normalizedName,
-                    Image = string.IsNullOrWhiteSpace(row.Image) ? null : row.Image,
-                    CreatedAt = DateTime.UtcNow,
-                });
-
-                var createdActress = await repository.GetActressAdultById(createdId);
-                if (createdActress is not null)
-                {
-                    if (parsedTagIds.Count > 0)
-                        await tagRepository.ReplaceTagsForRefId(createdActress.Id, TagType.ActressAdult, parsedTagIds);
-
-                    actressByName[createdActress.Name] = createdActress;
-                    if (row.Id > 0)
-                        actressByExcelId[row.Id] = createdActress;
-                }
-
-                created++;
-                continue;
-            }
-
-            var nextImage = string.IsNullOrWhiteSpace(row.Image) ? existing.Image : row.Image;
-            var hasChanges = existing.Name != normalizedName || existing.Image != nextImage;
-
-            if (!hasChanges)
-            {
-                skipped++;
-            }
-            else
-            {
-                existing.Name = normalizedName;
-                existing.Image = nextImage;
-                await repository.UpdateActressAdult(existing);
-                updated++;
-            }
-
-            if (parsedTagIds.Count > 0)
-                await tagRepository.ReplaceTagsForRefId(existing.Id, TagType.ActressAdult, parsedTagIds);
-
-            actressByName[existing.Name] = existing;
-            if (row.Id > 0)
-                actressByExcelId[row.Id] = existing;
+            actressesByExcelId[actress.Id] = actress;
+            actressesByName[StringNormalizer.ToTitleCaseWithNumbers(actress.Name)] = actress;
         }
 
-        var actressLinksByActressId = data.ActressLinks
-            .Where(x => !string.IsNullOrWhiteSpace(x.Url))
-            .GroupBy(x => x.ActressAdultId)
-            .ToDictionary(
-                g => g.Key,
-                g => g.OrderBy(x => x.OrderIndex <= 0 ? int.MaxValue : x.OrderIndex)
-                      .Select(x => x.Url.Trim())
-                      .Where(url => !string.IsNullOrWhiteSpace(url))
-                      .Distinct(StringComparer.OrdinalIgnoreCase)
-                      .ToList());
-
-        foreach (var actressRow in data.Actresses)
+        // Procesar actrices
+        if (actressSheet?.Dimension is not null)
         {
-            ActressAdult? actress = null;
-            if (actressRow.Id > 0)
-                actressByExcelId.TryGetValue(actressRow.Id, out actress);
-
-            if (actress is null)
-                actressByName.TryGetValue(StringNormalizer.ToTitleCaseWithNumbers(actressRow.Name), out actress);
-
-            if (actress is null)
-                continue;
-
-            if (!actressLinksByActressId.TryGetValue(actressRow.Id, out var urls))
-                continue;
-
-            await SyncActressLinks(actress.Id, urls);
-        }
-
-        var videoByExcelId = new Dictionary<int, VideoAdult>();
-        var videoByExternalId = new Dictionary<string, VideoAdult>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var row in data.Videos)
-        {
-            if (string.IsNullOrWhiteSpace(row.Source) || string.IsNullOrWhiteSpace(row.ExternalId))
+            for (int row = 2; row <= actressSheet.Dimension.End.Row; row++)
             {
-                invalid++;
-                continue;
-            }
+                var idText = actressSheet.Cells[row, 1].Text?.Trim() ?? "0";
+                var name = actressSheet.Cells[row, 2].Text?.Trim() ?? string.Empty;
+                var image = actressSheet.Dimension.End.Column >= 3 ? actressSheet.Cells[row, 3].Text?.Trim() : null;
+                var tagIds = actressSheet.Dimension.End.Column >= 4 ? actressSheet.Cells[row, 4].Text?.Trim() : null;
 
-            var normalizedSource = row.Source.Trim().ToLowerInvariant();
-            var existingVideo = await videoAdultRepository.GetVideoAdultBySourceAndExternalId(normalizedSource, row.ExternalId.Trim());
-            var status = Enum.IsDefined(typeof(ContentStatus), row.Status)
-                ? (ContentStatus)row.Status
-                : ContentStatus.Pending;
-            var videoUrlFromLinks = ResolveVideoUrlFromLinks(data.VideoLinks, row);
-            var nextVideoUrl = string.IsNullOrWhiteSpace(videoUrlFromLinks)
-                ? row.VideoUrl.Trim()
-                : videoUrlFromLinks;
-
-            if (existingVideo is null)
-            {
-                var videoId = await videoAdultRepository.CreateVideoAdult(new VideoAdult
-                {
-                    Source = normalizedSource,
-                    ExternalId = row.ExternalId.Trim(),
-                    VideoUrl = nextVideoUrl,
-                    Title = string.IsNullOrWhiteSpace(row.Title) ? null : row.Title.Trim(),
-                    ThumbnailUrl = string.IsNullOrWhiteSpace(row.ThumbnailUrl) ? null : row.ThumbnailUrl.Trim(),
-                    Status = status,
-                    CreatedAt = DateTime.UtcNow,
-                });
-
-                var createdVideo = await videoAdultRepository.GetVideoAdultById(videoId);
-                if (createdVideo is null)
+                if (string.IsNullOrWhiteSpace(name))
                 {
                     invalid++;
                     continue;
                 }
 
-                await SyncVideoTagsAndActresses(createdVideo, row, actressByExcelId, actressByName);
-                created++;
+                int.TryParse(idText, out var excelId);
+                var normalizedName = StringNormalizer.ToTitleCaseWithNumbers(name);
+                Domain.Models.ActressAdult? existing = null;
+                var wasCreated = false;
+                var actressUpdated = false;
 
-                videoByExternalId[createdVideo.ExternalId] = createdVideo;
-                if (row.Id > 0)
-                    videoByExcelId[row.Id] = createdVideo;
-                continue;
+                // Buscar primero por ID si es válido
+                if (excelId > 0 && actressesByExcelId.TryGetValue(excelId, out var existingById))
+                {
+                    existing = existingById;
+                }
+                else if (actressesByName.TryGetValue(normalizedName, out var existingByName))
+                {
+                    existing = existingByName;
+                }
+
+                if (existing is null)
+                {
+                    var actressId = await repository.CreateActressAdult(new Domain.Models.ActressAdult
+                    {
+                        Name = normalizedName,
+                        Image = string.IsNullOrWhiteSpace(image) ? null : image,
+                        CreatedAt = DateTime.UtcNow,
+                    });
+
+                    existing = new Domain.Models.ActressAdult
+                    {
+                        Id = actressId,
+                        Name = normalizedName,
+                        Image = string.IsNullOrWhiteSpace(image) ? null : image,
+                        CreatedAt = DateTime.UtcNow,
+                    };
+
+                    actressesByExcelId[actressId] = existing;
+                    actressesByName[normalizedName] = existing;
+                    if (excelId > 0)
+                        actressesByExcelId[excelId] = existing;
+                    wasCreated = true;
+                }
+                else
+                {
+                    var nextImage = string.IsNullOrWhiteSpace(image) ? existing.Image : image;
+                    var hasActressChanges = existing.Name != normalizedName || existing.Image != nextImage;
+
+                    if (hasActressChanges)
+                    {
+                        existing.Name = normalizedName;
+                        existing.Image = nextImage;
+                        await repository.UpdateActressAdult(existing);
+                        actressesByExcelId[existing.Id] = existing;
+                        actressesByName[normalizedName] = existing;
+                        if (excelId > 0)
+                            actressesByExcelId[excelId] = existing;
+                        actressUpdated = true;
+                    }
+                }
+
+                var desiredTagIds = ParseTagIds(tagIds, validActressTagIds, out var hasTagInput, out var hadInvalidTagTokens);
+                if (hadInvalidTagTokens)
+                    invalid++;
+
+                var hasTagChanges = false;
+                if (hasTagInput && existing is not null)
+                {
+                    var currentTagIds = (await tagRepository.GetTagsByRefId(existing.Id, TagType.ActressAdult))
+                        .Select(tag => tag.Id)
+                        .ToHashSet();
+
+                    if (!currentTagIds.SetEquals(desiredTagIds))
+                    {
+                        await tagRepository.ReplaceTagsForRefId(existing.Id, TagType.ActressAdult, desiredTagIds);
+                        hasTagChanges = true;
+                    }
+                }
+
+                if (wasCreated)
+                    created++;
+                else if (actressUpdated || hasTagChanges)
+                    updated++;
+                else
+                    skipped++;
             }
+        }
 
-            var hasChanges = existingVideo.VideoUrl != nextVideoUrl
-                || existingVideo.Title != (string.IsNullOrWhiteSpace(row.Title) ? null : row.Title.Trim())
-                || existingVideo.ThumbnailUrl != (string.IsNullOrWhiteSpace(row.ThumbnailUrl) ? null : row.ThumbnailUrl.Trim())
-                || existingVideo.Status != status;
-
-            if (hasChanges)
+        // Procesar links de actrices
+        var actressLinksByActressId = new Dictionary<int, List<string>>();
+        if (actressLinksSheet?.Dimension is not null)
+        {
+            for (int row = 2; row <= actressLinksSheet.Dimension.End.Row; row++)
             {
-                existingVideo.VideoUrl = nextVideoUrl;
-                existingVideo.Title = string.IsNullOrWhiteSpace(row.Title) ? existingVideo.Title : row.Title.Trim();
-                existingVideo.ThumbnailUrl = string.IsNullOrWhiteSpace(row.ThumbnailUrl) ? existingVideo.ThumbnailUrl : row.ThumbnailUrl.Trim();
-                existingVideo.Status = status;
-                await videoAdultRepository.UpdateVideoAdult(existingVideo);
-                updated++;
-            }
-            else
-            {
-                skipped++;
-            }
+                var actressIdText = actressLinksSheet.Cells[row, 1].Text?.Trim() ?? "0";
+                var actressName = actressLinksSheet.Cells[row, 2].Text?.Trim();
+                var url = actressLinksSheet.Cells[row, 3].Text?.Trim();
 
-            await SyncVideoTagsAndActresses(existingVideo, row, actressByExcelId, actressByName);
-            videoByExternalId[existingVideo.ExternalId] = existingVideo;
-            if (row.Id > 0)
-                videoByExcelId[row.Id] = existingVideo;
+                if (string.IsNullOrWhiteSpace(url))
+                    continue;
+
+                Domain.Models.ActressAdult? actress = null;
+
+                // Buscar primero por ID
+                if (int.TryParse(actressIdText, out var actressId) && actressId > 0 && actressesByExcelId.TryGetValue(actressId, out var actressByIdResult))
+                {
+                    actress = actressByIdResult;
+                }
+                // Si no se encuentra por ID, buscar por nombre
+                else if (!string.IsNullOrWhiteSpace(actressName))
+                {
+                    var normalizedName = StringNormalizer.ToTitleCaseWithNumbers(actressName);
+                    actressesByName.TryGetValue(normalizedName, out actress);
+                }
+
+                if (actress is not null)
+                {
+                    if (!actressLinksByActressId.TryGetValue(actress.Id, out var urls))
+                    {
+                        urls = new List<string>();
+                        actressLinksByActressId[actress.Id] = urls;
+                    }
+                    urls.Add(url);
+                }
+            }
+        }
+
+        foreach (var pair in actressLinksByActressId)
+        {
+            await SyncActressLinks(pair.Key, pair.Value);
+        }
+
+        // Procesar videos
+        var videosByExcelId = new Dictionary<int, VideoAdult>();
+        var videosByExternalId = new Dictionary<string, VideoAdult>(StringComparer.OrdinalIgnoreCase);
+        var existingVideos = await videoAdultRepository.GetAllVideoAdults();
+        foreach (var video in existingVideos)
+        {
+            videosByExcelId[video.Id] = video;
+            if (!string.IsNullOrWhiteSpace(video.ExternalId))
+                videosByExternalId[video.ExternalId] = video;
+        }
+
+        if (videosSheet?.Dimension is not null)
+        {
+            for (int row = 2; row <= videosSheet.Dimension.End.Row; row++)
+            {
+                var idText = videosSheet.Cells[row, 1].Text?.Trim() ?? "0";
+                var source = videosSheet.Cells[row, 2].Text?.Trim() ?? string.Empty;
+                var externalId = videosSheet.Cells[row, 3].Text?.Trim() ?? string.Empty;
+                var videoUrl = videosSheet.Dimension.End.Column >= 4 ? videosSheet.Cells[row, 4].Text?.Trim() : null;
+                var title = videosSheet.Dimension.End.Column >= 5 ? videosSheet.Cells[row, 5].Text?.Trim() : null;
+                var thumbnailUrl = videosSheet.Dimension.End.Column >= 6 ? videosSheet.Cells[row, 6].Text?.Trim() : null;
+                var statusText = videosSheet.Dimension.End.Column >= 7 ? videosSheet.Cells[row, 7].Text?.Trim() ?? "0" : "0";
+                var tagIds = videosSheet.Dimension.End.Column >= 8 ? videosSheet.Cells[row, 8].Text?.Trim() : null;
+
+                if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(externalId))
+                {
+                    invalid++;
+                    continue;
+                }
+
+                int.TryParse(idText, out var excelId);
+                var normalizedSource = source.Trim().ToLowerInvariant();
+                VideoAdult? existingVideo = null;
+                var wasCreated = false;
+
+                // Buscar primero por ID si es válido
+                if (excelId > 0 && videosByExcelId.TryGetValue(excelId, out var existingById))
+                {
+                    existingVideo = existingById;
+                }
+                else if (videosByExternalId.TryGetValue(externalId, out var existingByExternalId))
+                {
+                    existingVideo = existingByExternalId;
+                }
+
+                var status = int.TryParse(statusText, out var statusValue) && Enum.IsDefined(typeof(ContentStatus), statusValue)
+                    ? (ContentStatus)statusValue
+                    : ContentStatus.Pending;
+
+                if (existingVideo is null)
+                {
+                    var videoId = await videoAdultRepository.CreateVideoAdult(new VideoAdult
+                    {
+                        Source = normalizedSource,
+                        ExternalId = externalId,
+                        VideoUrl = videoUrl ?? string.Empty,
+                        Title = title,
+                        ThumbnailUrl = thumbnailUrl,
+                        Status = status,
+                        CreatedAt = DateTime.UtcNow,
+                    });
+
+                    existingVideo = new VideoAdult
+                    {
+                        Id = videoId,
+                        Source = normalizedSource,
+                        ExternalId = externalId,
+                        VideoUrl = videoUrl ?? string.Empty,
+                        Title = title,
+                        ThumbnailUrl = thumbnailUrl,
+                        Status = status,
+                        CreatedAt = DateTime.UtcNow,
+                    };
+
+                    videosByExcelId[videoId] = existingVideo;
+                    videosByExternalId[externalId] = existingVideo;
+                    if (excelId > 0)
+                        videosByExcelId[excelId] = existingVideo;
+                    wasCreated = true;
+                }
+                else
+                {
+                    var hasVideoChanges = existingVideo.VideoUrl != (videoUrl ?? string.Empty)
+                        || existingVideo.Title != title
+                        || existingVideo.ThumbnailUrl != thumbnailUrl
+                        || existingVideo.Status != status;
+
+                    if (hasVideoChanges)
+                    {
+                        existingVideo.VideoUrl = videoUrl ?? string.Empty;
+                        existingVideo.Title = title;
+                        existingVideo.ThumbnailUrl = thumbnailUrl;
+                        existingVideo.Status = status;
+                        await videoAdultRepository.UpdateVideoAdult(existingVideo);
+                    }
+                }
+
+                var desiredVideoTagIds = ParseTagIds(tagIds, validVideoTagIds, out var hasVideoTagInput, out var hadInvalidVideoTagTokens);
+                if (hadInvalidVideoTagTokens)
+                    invalid++;
+
+                var hasVideoTagChanges = false;
+                if (hasVideoTagInput)
+                {
+                    var currentVideoTagIds = (await tagRepository.GetTagsByRefId(existingVideo.Id, TagType.VideoAdult))
+                        .Select(tag => tag.Id)
+                        .ToHashSet();
+
+                    if (!currentVideoTagIds.SetEquals(desiredVideoTagIds))
+                    {
+                        await tagRepository.ReplaceTagsForRefId(existingVideo.Id, TagType.VideoAdult, desiredVideoTagIds);
+                        hasVideoTagChanges = true;
+                    }
+                }
+
+                if (wasCreated)
+                    created++;
+                else if (hasVideoTagChanges)
+                    updated++;
+                else
+                    skipped++;
+            }
+        }
+
+        // Procesar relaciones video-actriz
+        if (relationsSheet?.Dimension is not null)
+        {
+            for (int row = 2; row <= relationsSheet.Dimension.End.Row; row++)
+            {
+                var videoIdText = relationsSheet.Cells[row, 1].Text?.Trim() ?? "0";
+                var actressIdText = relationsSheet.Cells[row, 2].Text?.Trim() ?? "0";
+                var externalId = relationsSheet.Cells[row, 3].Text?.Trim();
+                var actressName = relationsSheet.Cells[row, 4].Text?.Trim();
+
+                VideoAdult? video = null;
+                Domain.Models.ActressAdult? actress = null;
+
+                // Buscar video primero por ID, luego por ExternalId
+                if (int.TryParse(videoIdText, out var videoId) && videoId > 0 && videosByExcelId.TryGetValue(videoId, out var videoByIdResult))
+                {
+                    video = videoByIdResult;
+                }
+                else if (!string.IsNullOrWhiteSpace(externalId) && videosByExternalId.TryGetValue(externalId, out var videoByExternalIdResult))
+                {
+                    video = videoByExternalIdResult;
+                }
+
+                // Buscar actriz primero por ID, luego por nombre
+                if (int.TryParse(actressIdText, out var actressId) && actressId > 0 && actressesByExcelId.TryGetValue(actressId, out var actressByIdResult))
+                {
+                    actress = actressByIdResult;
+                }
+                else if (!string.IsNullOrWhiteSpace(actressName))
+                {
+                    var normalizedActressName = StringNormalizer.ToTitleCaseWithNumbers(actressName);
+                    actressesByName.TryGetValue(normalizedActressName, out actress);
+                }
+
+                if (video is not null && actress is not null)
+                {
+                    var currentActressIds = (await videoAdultRepository.GetActressIdsByVideoId(video.Id)).ToList();
+                    if (!currentActressIds.Contains(actress.Id))
+                    {
+                        await videoAdultRepository.AddActressToVideo(video.Id, actress.Id);
+                    }
+                }
+            }
         }
 
         return new ImportExcelResult
@@ -208,41 +375,17 @@ internal sealed class ImportActressAdultExcelCommandHandler(
         };
     }
 
-    private static List<int> ParseIds(string? csv)
-    {
-        if (string.IsNullOrWhiteSpace(csv))
-            return [];
-
-        return csv.Split(',')
-            .Select(x => x.Trim())
-            .Where(x => int.TryParse(x, out _))
-            .Select(int.Parse)
-            .Where(x => x > 0)
-            .Distinct()
-            .ToList();
-    }
-
-    private static string ResolveVideoUrlFromLinks(List<VideoAdultLinkExcelRow> videoLinks, VideoAdultExcelRow videoRow)
-    {
-        var firstLink = videoLinks
-            .Where(x => !string.IsNullOrWhiteSpace(x.Url)
-                && ((videoRow.Id > 0 && x.VideoAdultId == videoRow.Id)
-                    || (!string.IsNullOrWhiteSpace(videoRow.ExternalId)
-                        && string.Equals(x.VideoExternalId?.Trim(), videoRow.ExternalId.Trim(), StringComparison.OrdinalIgnoreCase))))
-            .OrderBy(x => x.OrderIndex <= 0 ? int.MaxValue : x.OrderIndex)
-            .Select(x => x.Url.Trim())
-            .FirstOrDefault();
-
-        return firstLink ?? string.Empty;
-    }
-
     private async Task<bool> SyncActressLinks(int actressId, List<string> urls)
     {
         var existingLinks = (await linkRepository.GetLinksByRefId(actressId, LinkType.ActressAdult)).ToList();
         var existingByUrl = existingLinks
             .Where(x => !string.IsNullOrWhiteSpace(x.Url))
             .ToDictionary(x => x.Url.Trim(), x => x, StringComparer.OrdinalIgnoreCase);
-        var incoming = urls.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        var incoming = urls
+            .Where(url => !string.IsNullOrWhiteSpace(url))
+            .Select(url => url.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
         var changed = false;
 
         foreach (var existing in existingLinks)
@@ -285,60 +428,28 @@ internal sealed class ImportActressAdultExcelCommandHandler(
         return changed;
     }
 
-    private async Task<bool> SyncVideoTagsAndActresses(
-        VideoAdult video,
-        VideoAdultExcelRow row,
-        Dictionary<int, ActressAdult> actressByExcelId,
-        Dictionary<string, ActressAdult> actressByName)
+    private static List<int> ParseTagIds(string? rawTags, HashSet<int> validTagIds, out bool hasInput, out bool hadInvalidTokens)
     {
-        var changed = false;
-        var tagIds = ParseIds(row.TagIds);
-        if (tagIds.Count > 0)
+        hasInput = !string.IsNullOrWhiteSpace(rawTags);
+        hadInvalidTokens = false;
+
+        if (!hasInput)
+            return [];
+
+        var tagIds = new HashSet<int>();
+        var tokens = (rawTags ?? string.Empty).Split([',', ';', '|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        foreach (var token in tokens)
         {
-            await tagRepository.ReplaceTagsForRefId(video.Id, TagType.VideoAdult, tagIds);
-            changed = true;
+            if (int.TryParse(token, out var tagId) && tagId > 0 && validTagIds.Contains(tagId))
+            {
+                tagIds.Add(tagId);
+                continue;
+            }
+
+            hadInvalidTokens = true;
         }
 
-        var actressIds = ParseIds(row.ActressIds);
-        if (actressIds.Count == 0 && !string.IsNullOrWhiteSpace(row.ActressNames))
-        {
-            var names = row.ActressNames.Split(',')
-                .Select(x => StringNormalizer.ToTitleCaseWithNumbers(x.Trim()))
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .ToList();
-
-            actressIds = names
-                .Select(name => actressByName.TryGetValue(name, out var actress) ? actress.Id : 0)
-                .Where(id => id > 0)
-                .Distinct()
-                .ToList();
-        }
-        else if (actressIds.Count > 0)
-        {
-            actressIds = actressIds
-                .Select(id => actressByExcelId.TryGetValue(id, out var actress) ? actress.Id : 0)
-                .Where(id => id > 0)
-                .Distinct()
-                .ToList();
-        }
-
-        if (actressIds.Count == 0)
-            return changed;
-
-        var existingActressIds = (await videoAdultRepository.GetActressIdsByVideoId(video.Id)).ToList();
-
-        foreach (var removeId in existingActressIds.Where(id => !actressIds.Contains(id)))
-        {
-            await videoAdultRepository.RemoveActressFromVideo(video.Id, removeId);
-            changed = true;
-        }
-
-        foreach (var addId in actressIds.Where(id => !existingActressIds.Contains(id)))
-        {
-            await videoAdultRepository.AddActressToVideo(video.Id, addId);
-            changed = true;
-        }
-
-        return changed;
+        return tagIds.OrderBy(id => id).ToList();
     }
 }

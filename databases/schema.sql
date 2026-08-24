@@ -147,7 +147,7 @@ CREATE TABLE LinkActressJav (
 
 CREATE TABLE LinkActressAdult (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    ActressAdult INT NOT NULL, -- ID de la actriz JAV
+    ActressAdult INT NOT NULL, -- ID de la actriz adult
     Url NVARCHAR(1000) NOT NULL,
     OrderIndex INT,
     CreatedAt DATETIME DEFAULT GETDATE()

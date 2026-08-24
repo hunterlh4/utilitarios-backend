@@ -17,6 +17,7 @@ public class ImportJavExcelResult
 {
     public int JavsCreated { get; set; }
     public int ActressesCreated { get; set; }
+    public int Updated { get; set; }
     public int Skipped { get; set; }
     public int Invalid { get; set; }
 }
