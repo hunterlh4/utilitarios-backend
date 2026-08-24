@@ -49,6 +49,6 @@ internal sealed class UpdateGastoCommandHandler(IGastoRepository gastoRepository
         existingGasto.Descripcion = request.Gasto.Descripcion;
 
         var updated = await gastoRepository.UpdateGasto(existingGasto);
-        return updated ? Results.Success() : Errors.BadRequest("No se pudo actualizar el gasto");
+        return updated ? Results.NoContent() : Errors.BadRequest("No se pudo actualizar el gasto");
     }
 }

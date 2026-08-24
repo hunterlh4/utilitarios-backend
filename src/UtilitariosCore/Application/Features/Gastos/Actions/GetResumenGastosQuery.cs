@@ -30,6 +30,6 @@ internal sealed class GetResumenGastosQueryHandler(IGastoRepository gastoReposit
     public async Task<Result<ResumenGastosDto>> Handle(GetResumenGastosQuery request, CancellationToken cancellationToken)
     {
         var resumen = await gastoRepository.GetResumenGastos(request.FechaInicio, request.FechaFin);
-        return Results.Success(resumen);
+        return resumen;
     }
 }

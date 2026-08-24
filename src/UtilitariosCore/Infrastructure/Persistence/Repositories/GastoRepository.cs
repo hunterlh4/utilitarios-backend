@@ -96,7 +96,7 @@ public class GastoRepository(MssqlContext context) : IGastoRepository
         return result;
     }
 
-    public async Task<ResumenGastosDto> GetResumenGastos(DateTime fechaInicio, DateTime fechaFin)
+    public async Task<ResumenGastosDto?> GetResumenGastos(DateTime fechaInicio, DateTime fechaFin)
     {
         var db = context.CreateDefaultConnection();
 

@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using UtilitariosApi.Shared.Extensions;
 using UtilitariosCore.Application.Features.Gastos.Actions;
 using UtilitariosCore.Application.Features.Gastos.Dtos;
 using UtilitariosCore.Shared.Extensions;

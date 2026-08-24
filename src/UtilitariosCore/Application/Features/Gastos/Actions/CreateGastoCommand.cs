@@ -9,7 +9,7 @@ using UtilitariosCore.Shared.Responses;
 
 namespace UtilitariosCore.Application.Features.Gastos.Actions;
 
-public record CreateGastoCommand(CreateGastoDto Gasto) : IRequest<Result<long>>;
+public record CreateGastoCommand(CreateGastoDto Gasto) : IRequest<Result>;
 
 public sealed class CreateGastoCommandValidator : AbstractValidator<CreateGastoCommand>
 {
@@ -30,9 +30,9 @@ public sealed class CreateGastoCommandValidator : AbstractValidator<CreateGastoC
 }
 
 internal sealed class CreateGastoCommandHandler(IGastoRepository gastoRepository)
-    : IRequestHandler<CreateGastoCommand, Result<long>>
+    : IRequestHandler<CreateGastoCommand, Result>
 {
-    public async Task<Result<long>> Handle(CreateGastoCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(CreateGastoCommand request, CancellationToken cancellationToken)
     {
         // Convertir el monto al signo correcto según el tipo
         var montoCorregido = TipoGastoHelper.ConvertirMontoSegunTipo(request.Gasto.Monto, request.Gasto.TipoGastoId);
@@ -47,6 +47,6 @@ internal sealed class CreateGastoCommandHandler(IGastoRepository gastoRepository
         };
 
         var id = await gastoRepository.CreateGasto(gasto);
-        return Results.Success(id);
+        return Results.NoContent();
     }
 }

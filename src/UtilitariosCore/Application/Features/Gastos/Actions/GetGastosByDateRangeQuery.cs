@@ -30,6 +30,6 @@ internal sealed class GetGastosByDateRangeQueryHandler(IGastoRepository gastoRep
     public async Task<Result<IEnumerable<GastoDto>>> Handle(GetGastosByDateRangeQuery request, CancellationToken cancellationToken)
     {
         var gastos = await gastoRepository.GetGastosByDateRange(request.FechaInicio, request.FechaFin);
-        return Results.Success(gastos);
+        return gastos.ToList();
     }
 }

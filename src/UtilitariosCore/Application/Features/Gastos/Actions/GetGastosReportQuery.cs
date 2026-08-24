@@ -30,6 +30,6 @@ internal sealed class GetGastosReportQueryHandler(IGastoRepository gastoReposito
     public async Task<Result<IEnumerable<GastoReporteDto>>> Handle(GetGastosReportQuery request, CancellationToken cancellationToken)
     {
         var reporte = await gastoRepository.GetGastosReportByDateRange(request.FechaInicio, request.FechaFin);
-        return Results.Success(reporte);
+        return reporte.ToList();
     }
 }
